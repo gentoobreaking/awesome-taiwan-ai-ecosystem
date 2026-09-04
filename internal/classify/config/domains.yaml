@@ -1,0 +1,23 @@
+# Taiwan official domain detection (§30 Official Source Detection)
+# Each entry: domain, classification (official|government|financial)
+domains:
+  - domain: twse.com.tw
+    classification: financial
+  - domain: tpex.org.tw
+    classification: financial
+  - domain: taifex.com.tw
+    classification: financial
+  - domain: cwa.gov.tw
+    classification: government
+  - domain: moi.gov.tw
+    classification: government
+  - domain: moea.gov.tw
+    classification: government
+  - domain: moj.gov.tw
+    classification: government
+  - domain: ly.gov.tw
+    classification: government
+  - domain: judicial.gov.tw
+    classification: official
+  - domain: data.gov.tw
+    classification: official

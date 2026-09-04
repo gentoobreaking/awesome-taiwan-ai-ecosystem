@@ -1,0 +1,74 @@
+# Taiwan keyword classification (§5.1, §29)
+# All keywords are config-driven, not hard-coded (§TASK-012)
+government:
+  - Taiwan
+  - Taiwanese
+  - 台灣
+  - 臺灣
+  - TW
+  - zh-TW
+  - 繁體中文
+  - 繁體
+
+gov_domains:
+  - data.gov.tw
+  - gov.tw
+  - moi.gov.tw
+  - moea.gov.tw
+  - mof.gov.tw
+  - mohw.gov.tw
+  - cwa.gov.tw
+  - ly.gov.tw
+  - judicial.gov.tw
+  - law.moj.gov.tw
+
+finance:
+  - TWSE
+  - TPEx
+  - TAIFEX
+  - TDCC
+  - FinMind
+  - Fugle
+  - 台股
+  - 上市
+  - 上櫃
+
+real_estate:
+  - 實價登錄
+  - LVR
+  - land.moi.gov.tw
+  - 房價
+  - 房地產
+  - 土地
+  - 預售屋
+
+payment:
+  - ECPay
+  - NewebPay
+  - 綠界
+  - 藍新
+
+language:
+  - Taiwan Mandarin
+  - Traditional Chinese
+  - zh-TW
+  - 注音
+  - TOCFL
+
+company_service:
+  - SHOPLINE
+
+data_sources:
+  - twse.com.tw
+  - tpex.org.tw
+  - taifex.com.tw
+  - cwa.gov.tw
+  - moi.gov.tw
+  - moea.gov.tw
+  - moj.gov.tw
+  - ly.gov.tw
+  - judicial.gov.tw
+  - data.gov.tw
+  - ECPay
+  - NewebPay
+  - SHOPLINE
