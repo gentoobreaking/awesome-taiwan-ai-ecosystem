@@ -9,11 +9,12 @@ import (
 
 	"github.com/david/awesome-taiwan-mcp/internal/manifest"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
+	"github.com/david/awesome-taiwan-mcp/internal/sources"
 )
 
 // Normalizer interface transforms RawRecord to MCPServer (§6 Implementation Plan).
 type Normalizer interface {
-	Normalize(record models.RawRecord) (*models.MCPServer, error)
+	Normalize(record *sources.RawRecord) (*models.MCPServer, error)
 }
 
 // ServerNormalizer implements Normalizer.
@@ -32,52 +33,79 @@ var injectionPatterns = []string{
 }
 
 // Normalize converts a RawRecord into a normalized MCPServer (§10 TASK-008).
-func (n *ServerNormalizer) Normalize(record models.RawRecord) (*models.MCPServer, error) {
+func (n *ServerNormalizer) Normalize(record *sources.RawRecord) (*models.MCPServer, error) {
 	now := time.Now().UTC()
 
 	server := &models.MCPServer{
 		ID:           "",
-		Name:         normalizeName(record.Name, record.RepositoryURL),
-		Slug:         generateSlug(normalizeName(record.Name, record.RepositoryURL)),
+		Name:         normalizeName(record.Candidate.Name, record.Candidate.RepositoryURL),
+		Slug:         generateSlug(normalizeName(record.Candidate.Name, record.Candidate.RepositoryURL)),
 		FirstSeen:    now,
 		LastSeen:     now,
 		LastVerified: now,
 	}
 
-	// Repository metadata mapping (§7)
-	server.Repository = models.RepositoryInfo{
-		URL:           normalizeURL(record.RepositoryURL),
-		Host:          extractHost(record.RepositoryURL),
-		Owner:         extractOwner(record.RepositoryURL),
-		Name:          extractRepoName(record.RepositoryURL),
-		Stars:         record.Stars,
-		Topics:        record.Topics,
-		Language:      "",
-		License:       normalizeLicense(record.License),
-		DefaultBranch: "main",
-		Homepage:      record.HomepageURL,
+	// Repository info
+	repo := record.Repository
+	if repo == nil {
+		repo = &models.RepositoryInfo{}
 	}
+	if repo.URL == "" {
+		repo.URL = normalizeURL(record.Candidate.RepositoryURL)
+	}
+	if repo.Host == "" {
+		repo.Host = extractHost(record.Candidate.RepositoryURL)
+	}
+	if repo.Owner == "" {
+		repo.Owner = extractOwner(record.Candidate.RepositoryURL)
+	}
+	if repo.Name == "" {
+		repo.Name = extractRepoName(record.Candidate.RepositoryURL)
+	}
+	if repo.Topics == nil && record.Candidate.RawMetadata != nil {
+		if topics, ok := record.Candidate.RawMetadata["topics"].([]string); ok {
+			repo.Topics = topics
+		}
+	}
+	if repo.License == "" && record.Candidate.RawMetadata != nil {
+		if lic, ok := record.Candidate.RawMetadata["license"].(string); ok {
+			repo.License = lic
+		}
+	}
+	if repo.Homepage == "" {
+		repo.Homepage = record.Candidate.HomepageURL
+	}
+	if repo.DefaultBranch == "" {
+		repo.DefaultBranch = "main"
+	}
+	server.Repository = *repo
 
 	// Description normalization
-	server.Description = normalizeDescription(record.Description, record.Readme)
+	server.Description = normalizeDescription(record.Candidate.Description, record.Readme)
 
 	// README sanitization (§60)
 	sanitizedReadme := sanitizeReadme(record.Readme)
 
-	// Endpoint extraction from README, manifest, RawMetadata (§8)
-	server.Endpoints = extractEndpoints(sanitizedReadme, record.Manifest, record.RawMetadata)
+	// Endpoint extraction
+	server.Endpoints = extractEndpoints(sanitizedReadme, record.Manifest, record.Candidate.RawMetadata)
+	if len(record.Endpoints) > 0 {
+		server.Endpoints = append(server.Endpoints, record.Endpoints...)
+	}
 
 	// Transport detection
-	server.Transport = detectTransports(server.Endpoints, record.Manifest)
+	server.Transport = record.Transport
 
-	// Manifest extraction (§9, §11)
-	manifestInfo := parseRecordManifest(record.Manifest)
+	// Manifest extraction
+	manifestInfo := parsePackageFiles(record.PackageFiles, record.Manifest)
 	if manifestInfo != nil {
 		server.Tools = extractToolsFromManifest(manifestInfo)
 	}
+	if len(record.Tools) > 0 {
+		server.Tools = append(server.Tools, record.Tools...)
+	}
 
 	// License
-	server.License = normalizeLicense(record.License)
+	server.License = normalizeLicense(repo.License)
 
 	// Data source detection
 	server.DataSources = detectDataSources(server.Repository, server.Endpoints, sanitizedReadme)
@@ -87,12 +115,15 @@ func (n *ServerNormalizer) Normalize(record models.RawRecord) (*models.MCPServer
 
 	// Sources
 	server.Sources = []models.SourceReference{{
-		Source:       record.Source,
-		URL:          record.SourceURL,
-		DiscoveredAt: record.FetchedAt,
-		LastSeen:     record.FetchedAt,
-		TrustScore:   models.SourceTrustScores[record.Source],
+		Source:       record.Candidate.Source,
+		URL:          record.Candidate.SourceURL,
+		DiscoveredAt: record.Candidate.DiscoveredAt,
+		LastSeen:     record.Candidate.DiscoveredAt,
+		TrustScore:   models.SourceTrustScores[record.Candidate.Source],
 	}}
+
+	// Generate ID
+	server.ID = GenerateID(record.Candidate.RepositoryURL)
 
 	return server, nil
 }
@@ -300,15 +331,31 @@ func detectTransports(endpoints []models.Endpoint, manifest map[string]any) []st
 	return transports
 }
 
-func parseRecordManifest(manifestMap map[string]any) *manifest.ManifestInfo {
-	if manifestMap == nil {
-		return nil
+func parsePackageFiles(pkgFiles map[string]string, manifestMap map[string]any) *manifest.ManifestInfo {
+	// Parse package files (package.json, pyproject.toml, go.mod, Cargo.toml)
+	order := []string{"package.json", "pyproject.toml", "go.mod", "Cargo.toml"}
+	for _, f := range order {
+		if content, ok := pkgFiles[f]; ok {
+			info, err := manifest.ParseManifest(content, f)
+			if err == nil && info != nil {
+				return info
+			}
+		}
 	}
-	// Find the manifest file content
-	for key, val := range manifestMap {
-		if content, ok := val.(string); ok {
-			fileType := detectFileType(key)
-			if info, err := manifest.ParseManifest(content, fileType); err == nil {
+	// Parse manifest files (server.json, mcp.json, manifest.json)
+	manifestOrder := []string{"server.json", "mcp.json", "manifest.json"}
+	for _, f := range manifestOrder {
+		if content, ok := pkgFiles[f]; ok {
+			info, err := manifest.ParseManifest(content, f)
+			if err == nil && info != nil {
+				return info
+			}
+		}
+	}
+	// Also try the manifestMap (already parsed JSON)
+	if manifestMap != nil {
+		if content, ok := manifestMap["content"].(string); ok {
+			if info, err := manifest.ParseManifest(content, "server.json"); err == nil {
 				return info
 			}
 		}
@@ -325,7 +372,7 @@ func detectFileType(filename string) string {
 	case strings.HasSuffix(filename, "go.mod"):
 		return "go.mod"
 	case strings.HasSuffix(filename, "Cargo.toml"):
-		return "Cargo.toml"
+		return "cargo.toml"
 	case strings.HasSuffix(filename, "server.json"):
 		return "server.json"
 	case strings.HasSuffix(filename, "mcp.json"):
@@ -416,3 +463,18 @@ func GenerateID(repoURL string) string {
 	return hex.EncodeToString(sum[:])
 }
 
+
+func safeInt(v any) int {
+	switch val := v.(type) {
+	case int:
+		return val
+	case int32:
+		return int(val)
+	case int64:
+		return int(val)
+	case float64:
+		return int(val)
+	default:
+		return 0
+	}
+}

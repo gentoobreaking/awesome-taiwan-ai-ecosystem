@@ -161,6 +161,7 @@ type MCPServer struct {
 	Status          Status           `json:"status" yaml:"status"`
 	Health          HealthStatus     `json:"health" yaml:"health"`
 	Quality         QualityScore     `json:"quality"`
+	Security        []SecurityFinding `json:"security_findings"`
 	Sources         []SourceReference `json:"sources"`
 	FirstSeen       time.Time        `json:"first_seen_at"`
 	LastSeen        time.Time        `json:"last_seen_at"`

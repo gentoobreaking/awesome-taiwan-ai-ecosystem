@@ -3,8 +3,10 @@ package normalize
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
+	"github.com/david/awesome-taiwan-mcp/internal/sources"
 )
 
 func TestNormalizeURL(t *testing.T) {
@@ -67,19 +69,30 @@ func TestNormalizeLicense(t *testing.T) {
 
 func TestNormalizeRecord(t *testing.T) {
 	n := New()
-	record := models.RawRecord{
-		Source:        "github",
-		SourceURL:     "https://github.com/foo/bar-mcp",
-		Name:          "bar-mcp",
-		Description:   "A test MCP server",
-		RepositoryURL: "https://github.com/foo/bar-mcp",
-		HomepageURL:   "https://example.com",
-		Author:        "foo",
-		License:       "MIT",
-		Readme:        "# bar-mcp\n\nA Taiwan stock MCP server.\n\n## Usage",
-		Endpoint:      "https://twse.com.tw/api/mcp",
-		Stars:         100,
-		Topics:        []string{"mcp", "taiwan"},
+	record := &sources.RawRecord{
+		Candidate: models.RawCandidate{
+			Source:        "github",
+			SourceURL:     "https://github.com/foo/bar-mcp",
+			Name:          "bar-mcp",
+			Description:   "A test MCP server",
+			RepositoryURL: "https://github.com/foo/bar-mcp",
+			HomepageURL:   "https://example.com",
+			Author:        "foo",
+			Endpoint:      "https://twse.com.tw/api/mcp",
+			RawMetadata:   map[string]any{"stars": 100},
+			DiscoveredAt:  time.Now().UTC(),
+		},
+		Repository: &models.RepositoryInfo{
+			URL:     "https://github.com/foo/bar-mcp",
+			Owner:   "foo",
+			Name:    "bar-mcp",
+			Stars:   100,
+			License: "MIT",
+			Topics:  []string{"mcp", "taiwan"},
+		},
+		Readme:       "# bar-mcp\n\nA Taiwan stock MCP server.\n\n## Usage",
+		Transport:    []string{"stdio"},
+		PackageFiles: map[string]string{},
 	}
 
 	server, err := n.Normalize(record)

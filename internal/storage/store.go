@@ -194,6 +194,17 @@ func (s *Store) UpsertServer(ctx context.Context, server *models.MCPServer) erro
 	return nil
 }
 
+// SaveServer persists a server and its snapshot for a crawl run. Idempotent.
+func (s *Store) SaveServer(ctx context.Context, server *models.MCPServer, crawlID string) error {
+	if err := s.UpsertServer(ctx, server); err != nil {
+		return fmt.Errorf("save server: %w", err)
+	}
+	if err := s.InsertServerSnapshot(ctx, server.ID, crawlID, server); err != nil {
+		return fmt.Errorf("save snapshot: %w", err)
+	}
+	return nil
+}
+
 func (s *Store) upsertRepository(ctx context.Context, serverID string, repo *models.RepositoryInfo) error {
 	topics, _ := json.Marshal(repo.Topics)
 	_, err := s.db.ExecContext(ctx, `
