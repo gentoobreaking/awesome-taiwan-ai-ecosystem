@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
+	"github.com/david/awesome-taiwan-mcp/internal/retry"
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
 )
 
@@ -97,7 +98,9 @@ func TestDiscoverWithMockServer(t *testing.T) {
 	defer server.Close()
 
 	adapter := &GitHubAdapter{
-		Client:  server.Client(),
+		HTTPClient: retry.NewClient(retry.Config{
+			MaxRetries: 3, BaseDelay: 10 * time.Millisecond, MaxDelay: 50 * time.Millisecond,
+		}),
 		Token:   "test",
 		BaseURL: server.URL,
 	}
@@ -133,7 +136,9 @@ func TestDiscoverWithMockServer(t *testing.T) {
 
 func TestDiscoverContextCancellation(t *testing.T) {
 	adapter := &GitHubAdapter{
-		Client:  &http.Client{Timeout: 1 * time.Second},
+		HTTPClient: retry.NewClient(retry.Config{
+			MaxRetries: 3, BaseDelay: 10 * time.Millisecond, MaxDelay: 50 * time.Millisecond,
+		}).WithHTTPClient(&http.Client{Timeout: 1 * time.Second}),
 		Token:   "",
 		BaseURL: "https://invalid-url-that-does-not-exist.invalid",
 	}
@@ -149,10 +154,10 @@ func TestDiscoverRateLimit(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	}))
-	defer server.Close()
-
 	adapter := &GitHubAdapter{
-		Client:  server.Client(),
+		HTTPClient: retry.NewClient(retry.Config{
+			MaxRetries: 3, BaseDelay: 10 * time.Millisecond, MaxDelay: 50 * time.Millisecond,
+		}).WithHTTPClient(server.Client()),
 		Token:   "test",
 		BaseURL: server.URL,
 	}
@@ -199,10 +204,10 @@ func TestFetchWithMockServer(t *testing.T) {
 		}
 		http.NotFound(w, r)
 	}))
-	defer server.Close()
-
 	adapter := &GitHubAdapter{
-		Client:  server.Client(),
+		HTTPClient: retry.NewClient(retry.Config{
+			MaxRetries: 3, BaseDelay: 10 * time.Millisecond, MaxDelay: 50 * time.Millisecond,
+		}).WithHTTPClient(server.Client()),
 		Token:   "test",
 		BaseURL: server.URL,
 	}

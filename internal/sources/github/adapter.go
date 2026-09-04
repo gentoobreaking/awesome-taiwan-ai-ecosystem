@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
+	"github.com/david/awesome-taiwan-mcp/internal/retry"
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
 )
 
@@ -40,17 +41,17 @@ var KeywordMatrix = []string{
 
 // GitHubAdapter implements SourceAdapter for GitHub repository discovery.
 type GitHubAdapter struct {
-	Client   *http.Client
-	Token    string
-	BaseURL  string
+	HTTPClient *retry.RetryableClient
+	Token      string
+	BaseURL    string
 }
 
-// New creates a new GitHubAdapter.
+// New creates a new GitHubAdapter with retry and rate limiting.
 func New(token string) *GitHubAdapter {
 	return &GitHubAdapter{
-		Client:  &http.Client{Timeout: 30 * time.Second},
-		Token:   token,
-		BaseURL: "https://api.github.com",
+		HTTPClient: retry.NewClient(retry.DefaultConfig()),
+		Token:      token,
+		BaseURL:    "https://api.github.com",
 	}
 }
 
@@ -137,15 +138,13 @@ func (g *GitHubAdapter) searchRepositories(ctx context.Context, query string) ([
 	}
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
-	resp, err := g.Client.Do(req)
+	resp, err := g.HTTPClient.Do(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests {
-		return nil, fmt.Errorf("rate limited: %d", resp.StatusCode)
-	}
+	// RetryableClient handles 429/5xx retries automatically (§TASK-007)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("GitHub API returned: %d", resp.StatusCode)
 	}
@@ -173,7 +172,7 @@ func (g *GitHubAdapter) fetchTopics(ctx context.Context, owner, repo string) []s
 	}
 	req.Header.Set("Accept", "application/vnd.github.mercy-preview+json")
 
-	resp, err := g.Client.Do(req)
+	resp, err := g.HTTPClient.Do(ctx, req)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		if resp != nil {
 			resp.Body.Close()
@@ -181,7 +180,6 @@ func (g *GitHubAdapter) fetchTopics(ctx context.Context, owner, repo string) []s
 		return nil
 	}
 	defer resp.Body.Close()
-
 	var topicsResp struct {
 		Names []string `json:"names"`
 	}
@@ -306,7 +304,7 @@ func (g *GitHubAdapter) fetchRepository(ctx context.Context, repoPath string) (*
 	}
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
-	resp, err := g.Client.Do(req)
+	resp, err := g.HTTPClient.Do(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +330,7 @@ func (g *GitHubAdapter) fetchFile(ctx context.Context, repoPath, filepath, branc
 	}
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
-	resp, err := g.Client.Do(req)
+	resp, err := g.HTTPClient.Do(ctx, req)
 	if err != nil {
 		return "", err
 	}
