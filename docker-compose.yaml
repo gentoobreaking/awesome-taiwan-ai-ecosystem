@@ -1,0 +1,21 @@
+name: taiwan-mcp-crawler
+
+services:
+  crawler:
+    container_name: taiwan-mcp-crawler
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./registry:/app/registry
+      - ./data:/app/data
+      - ./config:/app/config
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 256M
