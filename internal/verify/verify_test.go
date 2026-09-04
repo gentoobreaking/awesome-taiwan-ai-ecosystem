@@ -191,3 +191,142 @@ func TestVerifyMCPProtocol_ToolsExtraction(t *testing.T) {
 		t.Error("Expected Destructive=false")
 	}
 }
+
+func TestNewRepository(t *testing.T) {
+	rv := NewRepository(nil)
+	if rv == nil {
+		t.Error("Expected non-nil RepositoryVerifier")
+	}
+}
+
+func TestNewProtocol(t *testing.T) {
+	pv := NewProtocol(nil)
+	if pv == nil {
+		t.Error("Expected non-nil ProtocolVerifier")
+	}
+}
+
+func TestVerifyRepository_NoURL(t *testing.T) {
+	rv := NewRepository(http.DefaultClient)
+	server := &models.MCPServer{
+		Repository: models.RepositoryInfo{},
+	}
+	result := rv.VerifyRepository(context.Background(), server)
+	if result.Status != models.StatusDeleted {
+		t.Errorf("Expected DELETED for empty URL, got %s", result.Status)
+	}
+}
+
+func TestVerifyRepository_Unreachable(t *testing.T) {
+	rv := NewRepository(&http.Client{Timeout: 1 * time.Millisecond})
+	server := &models.MCPServer{
+		Repository: models.RepositoryInfo{
+			URL: "http://127.0.0.1:1/mcp",
+		},
+	}
+	result := rv.VerifyRepository(context.Background(), server)
+	if result.Reachable {
+		t.Error("Expected reachable=false for unreachable URL")
+	}
+}
+
+func TestVerifyRepository_WithPushedAt(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	rv := NewRepository(srv.Client())
+	now := time.Now().UTC()
+	server := &models.MCPServer{
+		Repository: models.RepositoryInfo{
+			URL:      srv.URL,
+			PushedAt: now.AddDate(0, 0, -10),
+		},
+	}
+	result := rv.VerifyRepository(context.Background(), server)
+	if result.Status != models.StatusActive {
+		t.Errorf("Expected ACTIVE for recent push, got %s", result.Status)
+	}
+	if !result.PushedAt.Equal(now.AddDate(0, 0, -10)) {
+		t.Error("Expected PushedAt to be set from server")
+	}
+}
+
+func TestVerifyRepository_WithManifestAndReadme(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	rv := NewRepository(srv.Client())
+	server := &models.MCPServer{
+		Repository: models.RepositoryInfo{
+			URL:  srv.URL,
+			PushedAt: time.Now().UTC().AddDate(0, 0, -10),
+		},
+		Tools:       []models.Tool{{Name: "tool1"}},
+		Description: "A test server",
+	}
+	result := rv.VerifyRepository(context.Background(), server)
+	if !result.HasManifest {
+		t.Error("Expected HasManifest=true")
+	}
+	if !result.HasReadme {
+		t.Error("Expected HasReadme=true")
+	}
+}
+
+func TestVerifyMCPProtocol_RequestError(t *testing.T) {
+	pv := NewProtocol(http.DefaultClient)
+	server := &models.MCPServer{
+		Endpoints: []models.Endpoint{
+			{URL: "http://127.0.0.1:1/mcp", Transport: "http"},
+		},
+	}
+	result := pv.VerifyMCPProtocol(context.Background(), server)
+	if result.Error == "" {
+		t.Error("Expected error for unreachable endpoint")
+	}
+}
+
+func TestVerifyMCPProtocol_NonOKStatus(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+
+	pv := NewProtocol(srv.Client())
+	server := &models.MCPServer{
+		Endpoints: []models.Endpoint{
+			{URL: srv.URL, Transport: "http"},
+		},
+	}
+	result := pv.VerifyMCPProtocol(context.Background(), server)
+	if result.ToolsListable {
+		t.Error("Expected ToolsListable=false for 500")
+	}
+	if result.ProtocolVersion != "" {
+		t.Errorf("Expected empty protocol version, got %s", result.ProtocolVersion)
+	}
+}
+
+func TestExtractToolsFromToolsList_NoResult(t *testing.T) {
+	body := []byte(`{"jsonrpc":"2.0","id":1,"error":{"code":-32601}}`)
+	tools := extractToolsFromToolsList(body)
+	if len(tools) != 0 {
+		t.Errorf("Expected 0 tools for error response, got %d", len(tools))
+	}
+}
+
+func TestExtractToolsFromToolsList_NestedObject(t *testing.T) {
+	// Test with tools that have nested structures
+	body := []byte(`{"jsonrpc": "2.0", "id": 1, "result": {"tools": [{"name": "complex", "description": "desc", "inputSchema": {"type": "object", "properties": {"a": {"type": "string"}}}}]}}`)
+	tools := extractToolsFromToolsList(body)
+	if len(tools) != 1 {
+		t.Fatalf("Expected 1 tool, got %d", len(tools))
+	}
+	if tools[0].InputSchema == nil || tools[0].InputSchema["type"] != "object" {
+		t.Error("Expected input schema to be preserved")
+	}
+}

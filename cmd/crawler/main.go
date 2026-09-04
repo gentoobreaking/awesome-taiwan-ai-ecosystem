@@ -16,12 +16,12 @@ import (
 	"github.com/david/awesome-taiwan-mcp/internal/metrics"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 	"github.com/david/awesome-taiwan-mcp/internal/normalize"
+	"github.com/david/awesome-taiwan-mcp/internal/search"
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
 	"github.com/david/awesome-taiwan-mcp/internal/sources/github"
 	"github.com/david/awesome-taiwan-mcp/internal/sources/registry"
 	"github.com/david/awesome-taiwan-mcp/internal/storage"
 	"github.com/spf13/cobra"
-	_ "modernc.org/sqlite"
 )
 
 var (
@@ -222,90 +222,49 @@ func runSearch(cmd *cobra.Command, args []string) error {
 		query = args[0]
 	}
 
-	var results []models.MCPServer
-	for _, s := range servers {
-		if matchesSearch(s, query) &&
-			(levelFilter == "" || s.TaiwanRelevance.Level == levelFilter) &&
-			(catFilter == "" || hasCategory(s.Category, catFilter)) &&
-			(minScore == 0 || s.Quality.Score >= minScore) {
-			results = append(results, s)
-		}
+	// Use SearchEngine for ranking and filtering (§22, T036, T037)
+	se := search.New(servers)
+	searchQuery := search.SearchQuery{
+		Text:     query,
+		Level:    levelFilter,
+		Category: nil,
+		MinScore: minScore,
+		Limit:    100,
+	}
+	if catFilter != "" {
+		searchQuery.Category = []string{catFilter}
 	}
 
-	// Sort: Taiwan relevance + health + quality
-	sortResults(results)
+	results, err := se.Search(searchQuery)
+	if err != nil {
+		return err
+	}
+
+	// Convert to plain servers for display
+	displayServers := make([]models.MCPServer, len(results))
+	for i, r := range results {
+		displayServers[i] = r.Server
+	}
 
 	if jsonOutput {
-		data, _ := json.MarshalIndent(results, "", "  ")
+		data, _ := json.MarshalIndent(displayServers, "", "  ")
 		fmt.Println(string(data))
 		return nil
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "NAME\tLEVEL\tHEALTH\tQUALITY\tSOURCES")
-	for _, s := range results {
+	fmt.Fprintln(w, "NAME\tLEVEL\tHEALTH\tQUALITY\tSOURCES\tRELEVANCE")
+	for _, r := range results {
+		s := r.Server
 		srcs := make([]string, len(s.Sources))
 		for i, src := range s.Sources {
 			srcs[i] = src.Source
 		}
-		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\n",
-			s.Name, s.TaiwanRelevance.Level, s.Health, s.Quality.Score, strings.Join(srcs, ", "))
+		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\t%.1f\n",
+			s.Name, s.TaiwanRelevance.Level, s.Health, s.Quality.Score, strings.Join(srcs, ", "), r.Score)
 	}
 	w.Flush()
 	return nil
-}
-
-func matchesSearch(s models.MCPServer, query string) bool {
-	if query == "" {
-		return true
-	}
-	q := strings.ToLower(query)
-	if strings.Contains(strings.ToLower(s.Name), q) {
-		return true
-	}
-	if strings.Contains(strings.ToLower(s.Description), q) {
-		return true
-	}
-	for _, c := range s.Category {
-		if strings.Contains(strings.ToLower(c), q) {
-			return true
-		}
-	}
-	for _, t := range s.Tools {
-		if strings.Contains(strings.ToLower(t.Name), q) {
-			return true
-		}
-	}
-	for _, ds := range s.DataSources {
-		if strings.Contains(strings.ToLower(ds.Name), q) {
-			return true
-		}
-	}
-	return false
-}
-
-func hasCategory(cats []string, cat string) bool {
-	for _, c := range cats {
-		if strings.EqualFold(c, cat) {
-			return true
-		}
-	}
-	return false
-}
-
-func sortResults(results []models.MCPServer) {
-	// Sort by Taiwan relevance level (T5 first), then health, then quality, then name
-	levelOrder := map[string]int{"T5": 0, "T4": 1, "T3": 2, "T2": 3, "T1": 4, "T0": 5}
-	for i := 0; i < len(results)-1; i++ {
-		for j := i + 1; j < len(results); j++ {
-			si, sj := results[i], results[j]
-			li, lj := levelOrder[si.TaiwanRelevance.Level], levelOrder[sj.TaiwanRelevance.Level]
-			if li > lj || (li == lj && si.Health < sj.Health) ||
-				(li == lj && si.Health == sj.Health && si.Quality.Score < sj.Quality.Score) {
-				results[i], results[j] = results[j], results[i]
-			}
-		}
-	}
 }
 
 type crawlStats struct {
