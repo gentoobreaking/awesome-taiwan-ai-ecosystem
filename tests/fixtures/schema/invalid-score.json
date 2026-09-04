@@ -1,0 +1,18 @@
+{
+  "id": "sha256:abc",
+  "name": "Bad Quality MCP",
+  "slug": "bad-quality",
+  "description": "Quality score out of range",
+  "taiwan_relevance": {
+    "level": "T5",
+    "score": 75.0,
+    "confidence": 1.0
+  },
+  "health": {
+    "status": "HEALTHY"
+  },
+  "quality": {
+    "score": 150,
+    "grade": "A+"
+  }
+}

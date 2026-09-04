@@ -1,0 +1,72 @@
+{
+  "id": "sha256:abc123def456",
+  "name": "TWStock MCP",
+  "slug": "twstock-mcp",
+  "description": "Taiwan stock market MCP server",
+  "region": ["TW"],
+  "category": ["finance", "stock"],
+  "taiwan_relevance": {
+    "level": "T5",
+    "score": 75.0,
+    "confidence": 1.0,
+    "evidence": [
+      {
+        "type": "official_domain",
+        "source": "README",
+        "location": "https://github.com/example/twstock-mcp",
+        "content_hash": "sha256:def456",
+        "matched_text": "twse.com.tw",
+        "rule": "official_taiwan_domain",
+        "score": 40.0,
+        "confidence": 1.0,
+        "timestamp": "2026-09-01T00:00:00Z"
+      }
+    ]
+  },
+  "repository": {
+    "url": "https://github.com/example/twstock-mcp",
+    "host": "github.com",
+    "owner": "example",
+    "name": "twstock-mcp",
+    "stars": 100,
+    "forks": 5,
+    "language": "Go",
+    "license": "MIT",
+    "archived": false,
+    "last_commit_at": "2026-09-01T00:00:00Z"
+  },
+  "endpoints": [],
+  "capabilities": {
+    "tools": [],
+    "resources": [],
+    "prompts": []
+  },
+  "data_sources": [
+    {
+      "name": "TWSE",
+      "type": "official-government-api",
+      "url": "https://www.twse.com.tw",
+      "country": "TW",
+      "official": true
+    }
+  ],
+  "security": {},
+  "health": {
+    "status": "HEALTHY"
+  },
+  "quality": {
+    "score": 90,
+    "grade": "A"
+  },
+  "sources": [
+    {
+      "source": "github",
+      "url": "https://github.com/example/twstock-mcp",
+      "trust_score": 0.95
+    }
+  ],
+  "evidence": [],
+  "first_seen_at": "2026-09-01T00:00:00Z",
+  "last_seen_at": "2026-09-04T00:00:00Z",
+  "last_verified_at": "2026-09-04T00:00:00Z"
+}
