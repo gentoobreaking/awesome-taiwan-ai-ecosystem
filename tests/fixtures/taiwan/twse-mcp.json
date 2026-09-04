@@ -1,0 +1,26 @@
+{
+  "id": "taiwan-twse-mcp",
+  "name": "taiwan-twse-mcp",
+  "slug": "taiwan-twse-mcp",
+  "description": "Taiwan Stock Exchange official MCP server",
+  "category": ["finance", "stock"],
+  "transport": ["stdio"],
+  "health": "HEALTHY",
+  "quality": { "score": 95, "grade": "A" },
+  "taiwan_relevance": {
+    "level": "T5",
+    "score": 80.0,
+    "evidence": [{"type": "official_domain", "detail": "twse.com.tw"}]
+  },
+  "repository": {
+    "url": "https://github.com/twse/taiwan-twse-mcp",
+    "stars": 200,
+    "license": "MIT",
+    "archived": false
+  },
+  "tools": [
+    {"name": "get_stock_price", "description": "Get real-time Taiwan stock price", "input_schema": {"type": "object"}},
+    {"name": "get_trading_volume", "description": "Get trading volume data"}
+  ],
+  "data_sources": [{"name": "twse.com.tw", "type": "official_gov_api"}]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "web-scrape-mcp",
+  "name": "web-scrape-mcp",
+  "slug": "web-scrape-mcp",
+  "description": "Web scraping MCP with Taiwan real estate data",
+  "category": ["scraping", "real-estate"],
+  "transport": ["stdio"],
+  "health": "HEALTHY",
+  "quality": { "score": 55, "grade": "D" },
+  "taiwan_relevance": {
+    "level": "T3",
+    "score": 40.0
+  },
+  "repository": {
+    "url": "https://github.com/scrape/web-scrape-mcp",
+    "stars": 80,
+    "license": "MIT",
+    "archived": false
+  }
+}

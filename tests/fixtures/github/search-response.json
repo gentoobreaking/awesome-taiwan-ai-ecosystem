@@ -1,0 +1,38 @@
+{
+  "total_count": 2,
+  "incomplete_results": false,
+  "items": [
+    {
+      "id": 1,
+      "name": "taiwan-twse-mcp",
+      "full_name": "twse/taiwan-twse-mcp",
+      "owner": {"login": "twse"},
+      "html_url": "https://github.com/twse/taiwan-twse-mcp",
+      "description": "Taiwan Stock Exchange MCP server",
+      "stargazers_count": 200,
+      "fork": false,
+      "archived": false,
+      "language": "Python",
+      "license": {"spdx_id": "MIT"},
+      "topics": ["mcp", "taiwan", "stock", "finance"],
+      "pushed_at": "2025-01-15T10:00:00Z",
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "global-search-mcp",
+      "full_name": "global/search-mcp",
+      "owner": {"login": "global"},
+      "html_url": "https://github.com/global/search-mcp",
+      "description": "Global web search MCP",
+      "stargazers_count": 5000,
+      "fork": false,
+      "archived": false,
+      "language": "TypeScript",
+      "license": {"spdx_id": "Apache-2.0"},
+      "topics": ["mcp", "search", "web"],
+      "pushed_at": "2025-08-01T00:00:00Z",
+      "created_at": "2023-01-01T00:00:00Z"
+    }
+  ]
+}

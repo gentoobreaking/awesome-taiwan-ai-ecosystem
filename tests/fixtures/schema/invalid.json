@@ -1,20 +1,11 @@
 {
-  "id": "sha256:test",
-  "name": "Test MCP",
-  "slug": "test-mcp",
-  "description": "Test server with invalid taiwan_relevance level",
-  "region": ["TW"],
-  "category": ["finance", "stock"],
-  "taiwan_relevance": {
-    "level": "T99",
-    "score": 75.0,
-    "confidence": 1.0
-  },
-  "health": {
-    "status": "HEALTHY"
-  },
-  "quality": {
-    "score": 90,
-    "grade": "A"
-  }
+  "id": "invalid-mcp-002",
+  "name": "invalid-server",
+  "slug": "invalid-server",
+  "description": "Invalid level enum",
+  "category": ["utility"],
+  "transport": ["stdio"],
+  "health": "HEALTHY",
+  "quality": {"score": 85, "grade": "B"},
+  "taiwan_relevance": {"level": "TX", "score": 20.0}
 }

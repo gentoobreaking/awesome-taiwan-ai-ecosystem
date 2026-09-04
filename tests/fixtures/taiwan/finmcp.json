@@ -1,0 +1,26 @@
+{
+  "id": "taiwan-finmcp",
+  "name": "finmcp",
+  "slug": "finmcp",
+  "description": "Financial data MCP supporting Taiwan markets",
+  "category": ["finance"],
+  "transport": ["stdio"],
+  "health": "HEALTHY",
+  "quality": { "score": 82, "grade": "B" },
+  "taiwan_relevance": {
+    "level": "T4",
+    "score": 55.0,
+    "evidence": [{"type": "data_gov_tw", "detail": "mentions data.gov.tw"}]
+  },
+  "repository": {
+    "url": "https://github.com/finworld/finmcp",
+    "stars": 1500,
+    "license": "MIT",
+    "archived": false
+  },
+  "tools": [
+    {"name": "get_financial_data", "description": "Fetch financial data from FinMind"},
+    {"name": "get_stock_list", "description": "List available stocks"}
+  ],
+  "data_sources": [{"name": "finmind.com", "type": "known_third_party"}]
+}

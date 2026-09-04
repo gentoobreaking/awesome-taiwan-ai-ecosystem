@@ -1,0 +1,1 @@
+{"id":"dead-1","name":"dead-mcp","description":"Unreachable endpoint","category":["api"],"transport":["sse"],"health":"UNAVAILABLE","quality":{"score":30,"grade":"F"},"taiwan_relevance":{"level":"T0","score":0}}

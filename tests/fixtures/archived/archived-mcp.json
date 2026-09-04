@@ -1,0 +1,22 @@
+{
+  "id": "archived-mcp",
+  "name": "old-archived-mcp",
+  "slug": "old-archived-mcp",
+  "description": "An archived MCP server",
+  "category": ["utility"],
+  "transport": ["stdio"],
+  "health": "UNKNOWN",
+  "quality": { "score": 30, "grade": "F" },
+  "taiwan_relevance": {
+    "level": "T1",
+    "score": 10.0
+  },
+  "repository": {
+    "url": "https://github.com/old/archived-mcp",
+    "stars": 10,
+    "license": "MIT",
+    "archived": true,
+    "pushed_at": "2022-01-01T00:00:00Z"
+  },
+  "status": "ARCHIVED"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "dead-endpoint-mcp",
+  "name": "dead-endpoint-mcp",
+  "slug": "dead-endpoint-mcp",
+  "description": "MCP server with unreachable endpoint",
+  "category": ["api"],
+  "transport": ["sse"],
+  "health": "UNAVAILABLE",
+  "quality": { "score": 40, "grade": "F" },
+  "taiwan_relevance": {
+    "level": "T0",
+    "score": 0.0
+  },
+  "repository": {
+    "url": "https://github.com/dead/endpoint-mcp",
+    "stars": 5,
+    "license": "MIT",
+    "archived": false
+  },
+  "endpoints": [{"url": "http://127.0.0.1:9999/mcp", "transport": "sse", "tls": false}]
+}

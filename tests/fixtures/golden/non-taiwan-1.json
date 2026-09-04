@@ -1,0 +1,1 @@
+{"id":"nt-1","name":"global-search","description":"Web search","category":["search"],"transport":["stdio"],"health":"HEALTHY","quality":{"score":80,"grade":"B"},"taiwan_relevance":{"level":"T0","score":0}}

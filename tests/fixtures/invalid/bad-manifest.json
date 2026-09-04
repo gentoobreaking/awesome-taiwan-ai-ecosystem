@@ -1,0 +1,19 @@
+{
+  "id": "invalid-mcp",
+  "name": "invalid-mcp",
+  "slug": "invalid-mcp",
+  "description": "Invalid MCP with bad manifest",
+  "category": ["invalid"],
+  "transport": ["stdio"],
+  "health": "INVALID",
+  "quality": { "score": 0, "grade": "F" },
+  "taiwan_relevance": {
+    "level": "T0",
+    "score": 0.0
+  },
+  "repository": {
+    "url": "",
+    "stars": 0,
+    "archived": false
+  }
+}

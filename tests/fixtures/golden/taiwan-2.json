@@ -1,0 +1,1 @@
+{"id":"taiwan-2","name":"taiwan-server-2","description":"Taiwan weather","category":["weather"],"transport":["sse"],"health":"HEALTHY","quality":{"score":85,"grade":"B"},"taiwan_relevance":{"level":"T4","score":60}}

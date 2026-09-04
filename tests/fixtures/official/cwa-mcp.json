@@ -1,0 +1,24 @@
+{
+  "id": "official-cwa-mcp",
+  "name": "cwa-weather-mcp",
+  "slug": "cwa-weather-mcp",
+  "description": "Central Weather Administration official MCP",
+  "category": ["weather", "government"],
+  "transport": ["http"],
+  "health": "HEALTHY",
+  "quality": { "score": 88, "grade": "B" },
+  "taiwan_relevance": {
+    "level": "T5",
+    "score": 75.0,
+    "evidence": [{"type": "official_domain", "detail": "cwa.gov.tw"}]
+  },
+  "repository": {
+    "url": "https://github.com/cwa/weather-mcp",
+    "stars": 300,
+    "license": "MIT",
+    "archived": false
+  },
+  "sources": [
+    {"source": "official_registry", "url": "https://mcp.twregistry.org/servers/cwa", "trust_score": 1.00}
+  ]
+}

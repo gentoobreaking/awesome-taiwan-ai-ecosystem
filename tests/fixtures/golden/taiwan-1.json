@@ -1,0 +1,1 @@
+{"id":"taiwan-1","name":"taiwan-server-1","description":"Taiwan MCP","category":["finance"],"transport":["stdio"],"health":"HEALTHY","quality":{"score":90,"grade":"A"},"taiwan_relevance":{"level":"T5","score":70}}

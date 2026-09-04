@@ -1,0 +1,21 @@
+{
+  "id": "code-analyze-mcp",
+  "name": "code-analyze-mcp",
+  "slug": "code-analyze-mcp",
+  "description": "Code analysis MCP",
+  "category": ["development"],
+  "transport": ["stdio"],
+  "health": "HEALTHY",
+  "quality": { "score": 80, "grade": "B" },
+  "taiwan_relevance": {
+    "level": "T0",
+    "score": 0.0
+  },
+  "repository": {
+    "url": "https://github.com/dev/code-analyze-mcp",
+    "stars": 100,
+    "license": "MIT",
+    "archived": false
+  },
+  "tools": [{"name": "analyze", "description": "Analyze code for bugs"}]
+}

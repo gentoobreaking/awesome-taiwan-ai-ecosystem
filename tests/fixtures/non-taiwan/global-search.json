@@ -1,0 +1,21 @@
+{
+  "id": "global-search-mcp",
+  "name": "global-search-mcp",
+  "slug": "global-search-mcp",
+  "description": "Global web search MCP",
+  "category": ["search"],
+  "transport": ["stdio"],
+  "health": "UNAVAILABLE",
+  "quality": { "score": 70, "grade": "C" },
+  "taiwan_relevance": {
+    "level": "T1",
+    "score": 5.0
+  },
+  "repository": {
+    "url": "https://github.com/global/search-mcp",
+    "stars": 5000,
+    "license": "Apache-2.0",
+    "archived": false
+  },
+  "tools": [{"name": "search", "description": "Search the web globally"}]
+}

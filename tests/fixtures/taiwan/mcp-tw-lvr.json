@@ -1,0 +1,26 @@
+{
+  "id": "taiwan-mcp-tw-lvr",
+  "name": "mcp-tw-lvr",
+  "slug": "mcp-tw-lvr",
+  "description": "Taiwan real estate and house price register MCP (台灣房價實價登錄)",
+  "category": ["real-estate", "government"],
+  "transport": ["http"],
+  "health": "DEGRADED",
+  "quality": { "score": 65, "grade": "D" },
+  "taiwan_relevance": {
+    "level": "T3",
+    "score": 42.0,
+    "evidence": [{"type": "language", "detail": "Traditional Chinese"}, {"type": "keyword", "detail": "房價"}]
+  },
+  "repository": {
+    "url": "https://github.com/lvr/mcp-tw-lvr",
+    "stars": 50,
+    "license": "Apache-2.0",
+    "archived": false
+  },
+  "tools": [
+    {"name": "search_house_price", "description": "Search real estate house price register"},
+    {"name": "get_district_stats", "description": "Get district-level price statistics"}
+  ],
+  "endpoints": [{"url": "https://lvr.example.com/mcp", "transport": "http", "tls": true}]
+}

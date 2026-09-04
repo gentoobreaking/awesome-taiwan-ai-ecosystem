@@ -1,0 +1,25 @@
+{
+  "id": "taiwan-memory-mcp",
+  "name": "taiwan-memory-mcp",
+  "slug": "taiwan-memory-mcp",
+  "description": "Taiwan memory server with traditional Chinese support",
+  "category": ["productivity"],
+  "transport": ["stdio"],
+  "health": "HEALTHY",
+  "quality": { "score": 80, "grade": "B" },
+  "taiwan_relevance": {
+    "level": "T2",
+    "score": 25.0
+  },
+  "repository": {
+    "url": "https://github.com/tw-memory/server",
+    "stars": 100,
+    "license": "MIT",
+    "archived": false
+  },
+  "sources": [
+    {"source": "github", "url": "https://github.com/tw-memory/server", "trust_score": 0.95},
+    {"source": "glama", "url": "https://glama.land/mcp/servers/taiwan-memory", "trust_score": 0.85},
+    {"source": "pulsemcp", "url": "https://pulsemcp.com/servers/taiwan-memory", "trust_score": 0.80}
+  ]
+}

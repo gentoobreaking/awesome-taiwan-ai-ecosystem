@@ -1,0 +1,21 @@
+{
+  "id": "memory-server-mcp",
+  "name": "memory-server-mcp",
+  "slug": "memory-server-mcp",
+  "description": "Memory persistence MCP",
+  "category": ["productivity", "storage"],
+  "transport": ["stdio"],
+  "health": "HEALTHY",
+  "quality": { "score": 75, "grade": "C" },
+  "taiwan_relevance": {
+    "level": "T0",
+    "score": 0.0
+  },
+  "repository": {
+    "url": "https://github.com/modelcontextprotocol/memory",
+    "stars": 3000,
+    "license": "MIT",
+    "archived": false
+  },
+  "tools": [{"name": "save_memory", "description": "Save a memory"}, {"name": "read_memory", "description": "Read a memory"}]
+}

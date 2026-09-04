@@ -1,0 +1,1 @@
+{"id":"dup-1","name":"taiwan-duplicate","description":"Same server, different source","category":["finance"],"transport":["stdio"],"health":"HEALTHY","quality":{"score":75,"grade":"C"},"taiwan_relevance":{"level":"T3","score":35}}

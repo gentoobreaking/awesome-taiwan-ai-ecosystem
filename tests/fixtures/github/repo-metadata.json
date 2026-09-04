@@ -1,0 +1,18 @@
+{
+  "id": 1,
+  "name": "taiwan-twse-mcp",
+  "full_name": "twse/taiwan-twse-mcp",
+  "owner": {"login": "twse", "type": "Organization"},
+  "html_url": "https://github.com/twse/taiwan-twse-mcp",
+  "description": "Taiwan Stock Exchange MCP server",
+  "stargazers_count": 200,
+  "forks_count": 30,
+  "language": "Python",
+  "license": {"spdx_id": "MIT"},
+  "topics": ["mcp", "taiwan", "stock", "finance"],
+  "default_branch": "main",
+  "archived": false,
+  "fork": false,
+  "pushed_at": "2025-01-15T10:00:00Z",
+  "created_at": "2024-01-01T00:00:00Z"
+}
