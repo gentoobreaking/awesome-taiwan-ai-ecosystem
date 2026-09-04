@@ -1,21 +1,28 @@
-name: taiwan-mcp-crawler
-
 services:
   crawler:
-    container_name: taiwan-mcp-crawler
+    image: awesome-taiwan-mcp:crawler
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: awesome-taiwan-mcp-crawler
+    command: ["--help"]
     volumes:
-      - ./registry:/app/registry
-      - ./data:/app/data
+      - ./registry:/data/registry
+      - ./data:/data/db
       - ./config:/app/config
     environment:
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    resources:
+      limits:
+        cpus: "1.0"
+        memory: "512M"
+      reservations:
+        cpus: "0.5"
+        memory: "256M"
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 256M

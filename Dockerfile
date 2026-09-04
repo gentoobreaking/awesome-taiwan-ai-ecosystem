@@ -1,33 +1,44 @@
 # Build stage
 FROM golang:1.26-alpine3.24 AS builder
 
-WORKDIR /app
+WORKDIR /src
 
-# Cache dependencies first
-COPY go.mod go.sum* ./
+# Copy go mod files and download deps (cache layer)
+COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source and build
+# Copy source
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X main.version=v0.1.0" -o /crawler ./cmd/crawler
+
+# Build the binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X main.version=v1.0.0 -X main.commit=docker -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o /crawler ./cmd/crawler
 
 # Runtime stage
 FROM alpine:latest
 
-RUN addgroup -S crawler && adduser -S -G crawler crawler
+# Create non-root user
+RUN addgroup -S -g 1000 crawler && \
+    adduser -S -u 1000 -G crawler crawler
+
+# Install ca-certificates for HTTPS
+RUN apk --no-cache add ca-certificates && \
+    rm -rf /var/cache/apk/*
 
 WORKDIR /app
 
-# Copy binary from builder
+# Copy the binary
 COPY --from=builder /crawler /usr/local/bin/crawler
 
-# Create directories
-RUN mkdir -p /app/registry /app/data /app/config && \
-    chown -R crawler:crawler /app/registry /app/data /app/config
+# Create data directories with proper ownership
+RUN mkdir -p /data/registry /data/db /app/config && \
+    chown -R crawler:crawler /data /app
 
+# Switch to non-root user
 USER crawler
 
-EXPOSE 8080
+# Volume mounts for data persistence
+VOLUME ["/data/registry", "/data/db", "/app/config"]
 
+# Default command
 ENTRYPOINT ["crawler"]
 CMD ["version"]

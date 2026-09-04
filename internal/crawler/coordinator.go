@@ -257,7 +257,9 @@ func (c *CrawlCoordinator) discoverAndFetch(
 				case sem <- struct{}{}:
 				}
 
+				wg.Add(1)
 				go func(cand models.RawCandidate) {
+					defer wg.Done()
 					defer func() { <-sem }()
 					record, err := s.Fetch(ctx, cand)
 					if err != nil {
