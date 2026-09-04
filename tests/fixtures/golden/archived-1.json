@@ -1,1 +1,32 @@
-{"id":"arch-1","name":"archived-mcp","description":"Archived repo","category":["utility"],"transport":["stdio"],"health":"UNKNOWN","quality":{"score":20,"grade":"F"},"taiwan_relevance":{"level":"T1","score":5},"repository":{"archived":true}}
+{
+  "id": "arch-1",
+  "name": "archived-mcp",
+  "description": "Archived repo",
+  "category": [
+    "utility"
+  ],
+  "transport": [
+    "stdio"
+  ],
+  "health": "UNKNOWN",
+  "quality": {
+    "score": 20,
+    "grade": "F"
+  },
+  "taiwan_relevance": {
+    "level": "T0",
+    "score": 0.0
+  },
+  "repository": {
+    "url": "https://github.com/someorg/archived-mcp",
+    "host": "github.com",
+    "owner": "someorg",
+    "name": "archived-mcp",
+    "license": "MIT",
+    "topics": [
+      "mcp"
+    ],
+    "archived": true
+  },
+  "readme": "This repository is archived."
+}

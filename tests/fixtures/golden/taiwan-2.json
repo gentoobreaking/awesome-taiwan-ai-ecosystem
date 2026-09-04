@@ -1,1 +1,35 @@
-{"id":"taiwan-2","name":"taiwan-server-2","description":"Taiwan weather","category":["weather"],"transport":["sse"],"health":"HEALTHY","quality":{"score":85,"grade":"B"},"taiwan_relevance":{"level":"T4","score":60}}
+{
+  "id": "taiwan-2",
+  "name": "taiwan-server-2",
+  "description": "Taiwan weather MCP",
+  "category": [
+    "weather"
+  ],
+  "transport": [
+    "sse"
+  ],
+  "health": "HEALTHY",
+  "quality": {
+    "score": 85,
+    "grade": "B"
+  },
+  "taiwan_relevance": {
+    "level": "T1",
+    "score": 15.0
+  },
+  "repository": {
+    "url": "https://github.com/cwb/taiwan-weather-mcp",
+    "host": "github.com",
+    "owner": "cwb",
+    "name": "taiwan-weather-mcp",
+    "license": "MIT",
+    "topics": [
+      "mcp",
+      "taiwan",
+      "weather"
+    ],
+    "language": "Go",
+    "stars": 150
+  },
+  "readme": "Taiwan weather forecast MCP server using Central Weather Bureau API."
+}

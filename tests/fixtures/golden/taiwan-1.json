@@ -1,1 +1,35 @@
-{"id":"taiwan-1","name":"taiwan-server-1","description":"Taiwan MCP","category":["finance"],"transport":["stdio"],"health":"HEALTHY","quality":{"score":90,"grade":"A"},"taiwan_relevance":{"level":"T5","score":70}}
+{
+  "id": "taiwan-1",
+  "name": "taiwan-server-1",
+  "description": "Taiwan MCP",
+  "category": [
+    "finance"
+  ],
+  "transport": [
+    "stdio"
+  ],
+  "health": "HEALTHY",
+  "quality": {
+    "score": 90,
+    "grade": "A"
+  },
+  "taiwan_relevance": {
+    "level": "T3",
+    "score": 50.0
+  },
+  "repository": {
+    "url": "https://github.com/twse/taiwan-twse-mcp",
+    "host": "github.com",
+    "owner": "twse",
+    "name": "taiwan-twse-mcp",
+    "license": "MIT",
+    "topics": [
+      "mcp",
+      "taiwan",
+      "stock"
+    ],
+    "language": "Python",
+    "stars": 200
+  },
+  "readme": "Taiwan Stock Exchange MCP server for querying Taiwan stock market data. twse.com.tw API integration."
+}

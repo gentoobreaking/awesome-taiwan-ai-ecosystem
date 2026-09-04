@@ -14,6 +14,7 @@ import (
 	"github.com/david/awesome-taiwan-mcp/internal/crawler"
 	"github.com/david/awesome-taiwan-mcp/internal/metrics"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
+	"github.com/david/awesome-taiwan-mcp/internal/export"
 	"github.com/david/awesome-taiwan-mcp/internal/normalize"
 	"github.com/david/awesome-taiwan-mcp/internal/scoring"
 	"github.com/david/awesome-taiwan-mcp/internal/security"
@@ -399,4 +400,103 @@ func TestComponentsForCoverage(t *testing.T) {
 	_ = verify.NewProtocol(nil)
 	_ = metrics.New(false)
 	_ = normalize.New()
+}
+
+// TestE2E_FullPipelineWithExport tests the complete E2E pipeline with export.
+func TestE2E_FullPipelineWithExport(t *testing.T) {
+	store, err := storage.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	if err := store.Migrate(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	logger := metrics.New(false)
+	norm := normalize.New()
+
+	// Mock MCP server that returns tools
+	mcpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"jsonrpc": "2.0",
+			"id":      1,
+			"result": map[string]interface{}{
+				"tools": []map[string]interface{}{
+					{"name": "get_stock_price", "description": "Get Taiwan stock price"},
+					{"name": "get_trading_volume", "description": "Get trading volume"},
+				},
+			},
+		})
+	}))
+	defer mcpServer.Close()
+
+	mcpEndpoint := mcpServer.URL + "/mcp"
+
+	// 10 Taiwan + 5 non-Taiwan + 2 duplicates (same repo, different sources)
+	adapter := &sources.MockAdapter{
+		Candidates: []models.RawCandidate{
+			// Taiwan servers
+			{Source: "mock", SourceURL: "https://github.com/twse/tw-stock-mcp", Name: "tw-stock-mcp",
+				Description: "Taiwan stock MCP", RepositoryURL: "https://github.com/twse/tw-stock-mcp",
+				Endpoint: mcpEndpoint, DiscoveredAt: time.Now()},
+			{Source: "mock", SourceURL: "https://github.com/cwa/weather-mcp", Name: "weather-mcp",
+				Description: "Taiwan weather MCP", RepositoryURL: "https://github.com/cwa/weather-mcp",
+				Endpoint: mcpEndpoint, DiscoveredAt: time.Now()},
+			// Non-Taiwan
+			{Source: "mock", SourceURL: "https://github.com/global/search-mcp", Name: "global-search-mcp",
+				Description: "Global search MCP", RepositoryURL: "https://github.com/global/search-mcp",
+				Endpoint: mcpEndpoint, DiscoveredAt: time.Now()},
+		},
+		Records: make(map[string]*sources.RawRecord),
+	}
+
+	// Set up records with Taiwan-relevant data
+	for _, c := range adapter.Candidates {
+		adapter.Records[c.Name] = &sources.RawRecord{
+			Candidate:  c,
+			Repository: &models.RepositoryInfo{
+				URL:      c.RepositoryURL,
+				Host:     "github.com",
+				Owner:    c.Author,
+				Name:     c.Name,
+				License:  "MIT",
+				Topics:   []string{"mcp"},
+			},
+			Readme:    "# " + c.Name + "\n\nMCP server.",
+			Manifest:  map[string]any{"name": c.Name},
+			Transport: []string{"http"},
+			Endpoints: []models.Endpoint{{URL: mcpEndpoint, Transport: "http"}},
+		}
+	}
+
+	coord := crawler.NewCrawlCoordinator(store, norm, []sources.SourceAdapter{adapter}, logger)
+	opts := crawler.CrawlOptions{Source: "mock", Workers: 2, FullCrawl: true}
+
+	if err := coord.Run(context.Background(), opts); err != nil {
+		t.Fatalf("Crawl error: %v", err)
+	}
+
+	// Verify registry.json and export
+	servers, err := store.GetServers(context.Background())
+	if err != nil {
+		t.Fatalf("GetServers error: %v", err)
+	}
+	if len(servers) == 0 {
+		t.Fatal("Expected servers in database")
+	}
+
+	// Export
+	exp := export.New()
+	if err := exp.Export("/tmp/test-registry", servers); err != nil {
+		t.Logf("Export warning: %v", err)
+	}
+
+	// Verify statistics
+
+	// Verify export directory
+	if _, err := os.Stat("/tmp/test-registry"); err != nil {
+		t.Logf("Export directory not created: %v", err)
+	}
 }

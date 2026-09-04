@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+      - name: Build
+        run: go build ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Mod Verify
+        run: go mod verify
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.62.0
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+      - name: Lint
+        run: golangci-lint run ./...
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+      - name: Test
+        run: go test ./... -cover -timeout 120s
+      - name: Race Test
+        run: go test -race ./... -timeout 120s
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+      - name: Install gosec
+        run: |
+          wget -q https://github.com/securego/gosec/releases/download/v2.21.4/gosec_2.21.4_linux_amd64.tar.gz
+          tar -xzf gosec_2.21.4_linux_amd64.tar.gz
+          sudo mv gosec /usr/local/bin/
+      - name: Security Scan
+        run: gosec ./...

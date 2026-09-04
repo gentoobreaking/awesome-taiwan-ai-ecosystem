@@ -1,1 +1,33 @@
-{"id":"nt-1","name":"global-search","description":"Web search","category":["search"],"transport":["stdio"],"health":"HEALTHY","quality":{"score":80,"grade":"B"},"taiwan_relevance":{"level":"T0","score":0}}
+{
+  "id": "nt-1",
+  "name": "global-search",
+  "description": "Web search MCP server",
+  "category": [
+    "search"
+  ],
+  "transport": [
+    "stdio"
+  ],
+  "health": "HEALTHY",
+  "quality": {
+    "score": 80,
+    "grade": "B"
+  },
+  "taiwan_relevance": {
+    "level": "T0",
+    "score": 0.0
+  },
+  "repository": {
+    "url": "https://github.com/global/search-mcp",
+    "host": "github.com",
+    "owner": "global",
+    "name": "search-mcp",
+    "license": "MIT",
+    "topics": [
+      "mcp",
+      "search",
+      "web"
+    ]
+  },
+  "readme": "Global web search MCP server. No Taiwan reference."
+}

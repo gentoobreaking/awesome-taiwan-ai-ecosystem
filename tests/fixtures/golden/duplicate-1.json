@@ -1,1 +1,35 @@
-{"id":"dup-1","name":"taiwan-duplicate","description":"Same server, different source","category":["finance"],"transport":["stdio"],"health":"HEALTHY","quality":{"score":75,"grade":"C"},"taiwan_relevance":{"level":"T3","score":35}}
+{
+  "id": "dup-1",
+  "name": "taiwan-duplicate",
+  "description": "Same server, different source",
+  "category": [
+    "finance"
+  ],
+  "transport": [
+    "stdio"
+  ],
+  "health": "HEALTHY",
+  "quality": {
+    "score": 75,
+    "grade": "C"
+  },
+  "taiwan_relevance": {
+    "level": "T2",
+    "score": 35.0
+  },
+  "repository": {
+    "url": "https://github.com/taiwan-fin/mcp-finmind",
+    "host": "github.com",
+    "owner": "taiwan-fin",
+    "name": "mcp-finmind",
+    "license": "Apache-2.0",
+    "topics": [
+      "mcp",
+      "finance",
+      "taiwan"
+    ],
+    "language": "TypeScript",
+    "stars": 50
+  },
+  "readme": "Financial data MCP server with Taiwan market data."
+}
