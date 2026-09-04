@@ -9,32 +9,39 @@ import (
 
 	"github.com/david/awesome-taiwan-mcp/internal/classify"
 	"github.com/david/awesome-taiwan-mcp/internal/dedupe"
+	"github.com/david/awesome-taiwan-mcp/internal/health"
 	"github.com/david/awesome-taiwan-mcp/internal/metrics"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 	"github.com/david/awesome-taiwan-mcp/internal/normalize"
 	"github.com/david/awesome-taiwan-mcp/internal/scoring"
+	"github.com/david/awesome-taiwan-mcp/internal/security"
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
 	"github.com/david/awesome-taiwan-mcp/internal/storage"
+	"github.com/david/awesome-taiwan-mcp/internal/verify"
 	"github.com/david/awesome-taiwan-mcp/internal/crawler/run"
 )
-
-// CrawlCoordinator orchestrates the full crawl pipeline (§31).
-type CrawlCoordinator struct {
-	sources    []sources.SourceAdapter
-	normalizer normalize.Normalizer
-	dedupEngine *dedupe.DedupEngine
-	scorer     *scoring.QualityScorer
-	store      *storage.Store
-	metrics    *metrics.CrawlMetrics
-	logger     *metrics.Logger
-	workers    int
-}
 
 // CrawlOptions configures a crawl run.
 type CrawlOptions struct {
 	Source    string // "github", "all", or specific source name
 	FullCrawl bool
 	Workers   int
+}
+
+// CrawlCoordinator orchestrates the full crawl pipeline (§31).
+type CrawlCoordinator struct {
+	sources      []sources.SourceAdapter
+	normalizer   normalize.Normalizer
+	dedupEngine  *dedupe.DedupEngine
+	scorer       *scoring.QualityScorer
+	repoVerifier *verify.RepositoryVerifier
+	protoVerifier *verify.ProtocolVerifier
+	healthChecker *health.HealthChecker
+	secScanner   *security.Scanner
+	store        *storage.Store
+	metrics      *metrics.CrawlMetrics
+	logger       *metrics.Logger
+	workers      int
 }
 
 // NewCrawlCoordinator creates a new coordinator.
@@ -45,14 +52,18 @@ func NewCrawlCoordinator(
 	logger *metrics.Logger,
 ) *CrawlCoordinator {
 	return &CrawlCoordinator{
-		sources:    sourceAdapters,
-		normalizer: normalizer,
-		dedupEngine: dedupe.New(),
-		scorer:     scoring.New(),
-		store:      store,
-		metrics:    metrics.NewCrawlMetrics(),
-		logger:     logger,
-		workers:    4,
+		sources:       sourceAdapters,
+		normalizer:    normalizer,
+		dedupEngine:   dedupe.New(),
+		scorer:        scoring.New(),
+		repoVerifier:  verify.NewRepository(nil),
+		protoVerifier: verify.NewProtocol(nil),
+		healthChecker: health.New(nil, 10*time.Second),
+		secScanner:    security.New(),
+		store:         store,
+		metrics:       metrics.NewCrawlMetrics(),
+		logger:        logger,
+		workers:       4,
 	}
 }
 
@@ -129,6 +140,42 @@ func (c *CrawlCoordinator) Run(ctx context.Context, opts CrawlOptions) error {
 		}
 	}
 	runMgr.RecordTaiwanCandidates(taiwanCount)
+
+	// Stage 6.5: Repository Verification (§23, T021)
+	c.metrics.StartStage("verify")
+	var wg sync.WaitGroup
+	verifySem := make(chan struct{}, c.workers)
+	for _, s := range deduped {
+		if err := ctx.Err(); err != nil {
+			break
+		}
+		wg.Add(1)
+		go func(srv *models.MCPServer) {
+			defer wg.Done()
+			select {
+			case <-ctx.Done():
+			case verifySem <- struct{}{}:
+				defer func() { <-verifySem }()
+				repoResult := c.repoVerifier.VerifyRepository(ctx, srv)
+				protoResult := c.protoVerifier.VerifyMCPProtocol(ctx, srv)
+				if repoResult.Error != "" && repoResult.Status != models.StatusDeleted {
+					runMgr.AddError(fmt.Errorf("repo verification %s: %s", srv.ID, repoResult.Error))
+				}
+				if repoResult.Status != models.StatusUnknown {
+					srv.Status = repoResult.Status
+				}
+				_ = protoResult
+				// Update health from endpoint check
+				healthStatus := c.healthChecker.CheckServer(ctx, srv)
+				srv.Health = healthStatus
+				// Security scan
+				secResult := c.secScanner.ScanServer(srv)
+				srv.Security = secResult.Findings
+			}
+		}(s)
+	}
+	wg.Wait()
+	c.metrics.FinishStage("verify", len(deduped), 0)
 
 	// Stage 7: Persist
 	for _, s := range deduped {
