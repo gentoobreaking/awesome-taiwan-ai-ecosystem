@@ -1,0 +1,26 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/crawler
+/data/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Test artifacts
+/coverage.out
+/coverage.html
+test-registry/
+
+# Docker
+*.pid
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
