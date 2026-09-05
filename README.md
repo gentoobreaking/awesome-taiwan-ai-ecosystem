@@ -145,6 +145,9 @@ go test ./...
 - health: 91%+
 - security: 93%+
 
+---
+
 ## License
 
-MIT
+Apache 2.0
+
