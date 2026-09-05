@@ -173,12 +173,12 @@ func TestClassify_FailureFallback(t *testing.T) {
 	if result == nil {
 		t.Fatal("expected non-nil result with fallback")
 	}
-	// Fallback should be T0
-	if result.Level != "T0" {
-		t.Errorf("expected fallback level T0, got %s", result.Level)
+	// LLM failure fallback preserves T2 (keyword score 20-55 range already indicated relevance)
+	if result.Level != "T2" {
+		t.Errorf("expected fallback level T2, got %s", result.Level)
 	}
-	if result.Confidence != 0 {
-		t.Errorf("expected fallback confidence 0, got %.2f", result.Confidence)
+	if result.Score != 35 {
+		t.Errorf("expected fallback score 35, got %.0f", result.Score)
 	}
 }
 

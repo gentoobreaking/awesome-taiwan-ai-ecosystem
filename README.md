@@ -206,13 +206,14 @@ Output files in `registry/`:
 
 ### Markdown Registry
 
-The `--markdown` flag generates a human-readable `REGISTRY.md` file containing:
+The `--markdown` flag generates a human-readable `REGISTRY.md` file organized by functional category:
 
-- **Statistics**: Total servers, Taiwan relevance distribution (T0-T5), health, quality grades
-- **Server list grouped by level**: Each T-level section includes a description of what it means
-- **Per-server details**: Repository link, language (linked to GitHub search), Taiwan relevance score, health, quality, tools, endpoints, and security findings
+- **Statistics**: Total servers, Taiwan relevance distribution, health, quality grades
+- **🇹🇼 Taiwan-relevant Servers**: Servers with T1-T5 relevance, grouped by functional category (Finance, Government, Real Estate, etc.)
+- **🌍 International Servers**: T0 servers not Taiwan-specific but MCP-compatible
+- **Per-server details**: Repository link (with star count), language (linked to GitHub search), Taiwan relevance level + score, classification evidence, health, quality, tools, endpoints
 
-Level descriptions:
+Taiwan relevance levels:
 - **T5**: Definitively Taiwan-focused — official government or financial APIs with Taiwan-specific data
 - **T4**: Very strong Taiwan relevance — Taiwan data sources with clear local focus
 - **T3**: Strong Taiwan relevance — Taiwan-specific data or services (real estate, finance, etc.)

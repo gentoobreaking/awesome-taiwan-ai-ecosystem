@@ -24,3 +24,4 @@ test-registry/
 .idea/
 *.swp
 *.swo
+/data/

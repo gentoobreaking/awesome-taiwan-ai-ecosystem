@@ -1,7 +1,6 @@
 package export
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -186,7 +185,9 @@ func TestExportMarkdown(t *testing.T) {
 			ID:          "md-test-1",
 			Name:        "台灣金融 MCP",
 			Description: "A Taiwan financial MCP server",
+			Category:    []string{"finance"},
 			Repository: models.RepositoryInfo{
+				Name:     "taiwan-finance",
 				URL:      "https://github.com/test/taiwan-finance",
 				Stars:    100,
 				Language: "Go",
@@ -196,16 +197,18 @@ func TestExportMarkdown(t *testing.T) {
 				Score:      85,
 				Confidence: 1.0,
 			},
-			Health:   models.HealthHealthy,
-			Quality:  models.QualityScore{Grade: "A", Score: 90},
-			License:  "MIT",
-			Tools:    []models.Tool{{Name: "get_stock_price"}},
+			Health:  models.HealthHealthy,
+			Quality: models.QualityScore{Grade: "A", Score: 90},
+			License: "MIT",
+			Tools:   []models.Tool{{Name: "get_stock_price"}},
 			Endpoints: []models.Endpoint{{URL: "https://api.test.com/mcp", Transport: "http"}},
 		},
 		{
 			ID:   "md-test-2",
 			Name: "Global Server",
+			Category: []string{"search"},
 			Repository: models.RepositoryInfo{
+				Name: "server",
 				URL:  "https://github.com/global/server",
 			},
 			TaiwanRelevance: models.TaiwanRelevance{Level: "T0", Score: 5},
@@ -233,16 +236,19 @@ func TestExportMarkdown(t *testing.T) {
 	for _, expected := range []string{
 		"# Awesome Taiwan MCP Registry",
 		"## Statistics",
-		"## T5",
-		"### 台灣金融 MCP",
+		"## MCP Servers",
+		"### 🇹🇼 Taiwan-relevant",
+		"### 🌍 International",
+		"**台灣金融 MCP**",
 		"https://github.com/test/taiwan-finance",
-		"### Global Server",
-		"## T0",
+		"**Taiwan**: T5 (score: 85)",
+		"**Global Server**",
 	} {
 		if !strings.Contains(md, expected) {
 			t.Errorf("Markdown missing: %s", expected)
 		}
 	}
+
 }
 
 func TestExportMarkdown_LevelDescriptions(t *testing.T) {
@@ -250,6 +256,7 @@ func TestExportMarkdown_LevelDescriptions(t *testing.T) {
 		{
 			ID:   "md-test-1",
 			Name: "Test Taiwan Server",
+			Category: []string{"finance"},
 			Repository: models.RepositoryInfo{
 				Name:     "server",
 				URL:      "https://github.com/test/server",
@@ -260,6 +267,10 @@ func TestExportMarkdown_LevelDescriptions(t *testing.T) {
 				Level:      "T3",
 				Score:      55,
 				Confidence: 0.9,
+				Evidence: []models.Evidence{
+					{Type: "keyword", Rule: "taiwan_keyword", Score: 40, MatchedText: "taiwan"},
+					{Type: "domain", Rule: "gov_tw", Score: 15},
+				},
 			},
 			Health:  models.HealthHealthy,
 			Quality: models.QualityScore{Grade: "A", Score: 85},
@@ -281,11 +292,17 @@ func TestExportMarkdown_LevelDescriptions(t *testing.T) {
 
 	md := string(content)
 
-	// Verify level description for T3 only (only T3 server exists)
-	desc := levelDescription("T3")
-	expected := fmt.Sprintf("_T3_: %s", desc)
-	if !strings.Contains(md, expected) {
-		t.Errorf("Markdown missing level description for T3: %s", expected)
+	// Verify Taiwan relevance with score
+	if !strings.Contains(md, "**Taiwan**: T3 (score: 55)") {
+		t.Error("Markdown missing Taiwan relevance with score")
+	}
+
+	// Verify classification evidence is shown
+	if !strings.Contains(md, "+40 taiwan (taiwan_keyword)") {
+		t.Error("Markdown missing keyword evidence")
+	}
+	if !strings.Contains(md, "+15 ") {
+		t.Error("Markdown missing domain evidence")
 	}
 
 	// Verify language link is correct GitHub search URL
@@ -295,8 +312,12 @@ func TestExportMarkdown_LevelDescriptions(t *testing.T) {
 	}
 
 	// Verify language text is linked
-	if !strings.Contains(md, "- **Language**: [Go](https://github.com/search") {
+	if !strings.Contains(md, "[Go](https://github.com/search") {
 		t.Error("Markdown missing linked language text")
 	}
 
+	// Verify functional category grouping
+	if !strings.Contains(md, "💰 Finance & Fintech") {
+		t.Error("Markdown missing functional category")
+	}
 }

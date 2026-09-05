@@ -218,69 +218,195 @@ func (re *RegistryExporter) ExportMarkdown(path string, servers []models.MCPServ
 	}
 	sb.WriteString("\n---\n\n")
 
-	// Group servers by level
-	for _, level := range []string{"T5", "T4", "T3", "T2", "T1", "T0"} {
-		levelServers := make([]models.MCPServer, 0)
-		for _, s := range servers {
-			if s.TaiwanRelevance.Level == level {
-				levelServers = append(levelServers, s)
-			}
-		}
-		if len(levelServers) == 0 {
+	// Group servers by functional category
+	sb.WriteString("## MCP Servers\n\n")
+	sb.WriteString("_Organized by functional category._\n\n")
+
+	// Taiwan-relevant by functional category
+	sb.WriteString("### 🇹🇼 Taiwan-relevant\n\n")
+	for _, cat := range functionalCategories {
+		catServers := filterByCategory(servers, cat.key)
+		if len(catServers) == 0 {
 			continue
 		}
-
-		sb.WriteString(fmt.Sprintf("## %s — %d servers\n\n", level, len(levelServers)))
-		
-		// Add level description
-		levelDesc := levelDescription(level)
-		if levelDesc != "" {
-			sb.WriteString(fmt.Sprintf("_%s_: %s\n\n", level, levelDesc))
+		sb.WriteString(fmt.Sprintf("#### %s %s\n\n", cat.emoji, cat.name))
+		for _, s := range catServers {
+			sb.WriteString(serverMarkdown(s))
 		}
-		
-		for _, s := range levelServers {
-			sb.WriteString(fmt.Sprintf("### %s\n\n", s.Name))
-			if s.Description != "" {
-				sb.WriteString(fmt.Sprintf("> %s\n\n", s.Description))
-			}
-			sb.WriteString(fmt.Sprintf("- **Repository**: [%s](%s)\n", s.Repository.URL, s.Repository.URL))
-			if s.Repository.Stars > 0 {
-				sb.WriteString(fmt.Sprintf("- **Stars**: %d\n", s.Repository.Stars))
-			}
-			if s.Repository.Language != "" {
-				sb.WriteString(fmt.Sprintf("- **Language**: [%s](https://github.com/search?q=%s+language:%s&type=repositories)\n",
-					s.Repository.Language, url.QueryEscape(s.Repository.Name), url.QueryEscape(s.Repository.Language)))
-			}
-			sb.WriteString(fmt.Sprintf("- **Taiwan Relevance**: %s (score: %.1f, confidence: %.2f)\n", s.TaiwanRelevance.Level, s.TaiwanRelevance.Score, s.TaiwanRelevance.Confidence))
-			sb.WriteString(fmt.Sprintf("- **Health**: %s\n", s.Health))
-			sb.WriteString(fmt.Sprintf("- **Quality**: %s (score: %d)\n", s.Quality.Grade, s.Quality.Score))
-			if s.License != "" {
-				sb.WriteString(fmt.Sprintf("- **License**: %s\n", s.License))
-			}
-			if len(s.Tools) > 0 {
-				toolNames := make([]string, len(s.Tools))
-				for i, t := range s.Tools {
-					toolNames[i] = t.Name
-				}
-				sb.WriteString(fmt.Sprintf("- **Tools**: %s\n", strings.Join(toolNames, ", ")))
-			}
-			if len(s.Endpoints) > 0 {
-				for _, ep := range s.Endpoints {
-					sb.WriteString(fmt.Sprintf("- **Endpoint**: `%s` (transport: %s)\n", ep.URL, ep.Transport))
-				}
-			}
-			if len(s.Security) > 0 {
-				severities := make([]string, 0, len(s.Security))
-				for _, f := range s.Security {
-					severities = append(severities, fmt.Sprintf("%s: %s", f.Type, f.Severity))
-				}
-				sb.WriteString(fmt.Sprintf("- **Security**: %s\n", strings.Join(severities, ", ")))
-			}
-			sb.WriteString("\n")
+	}
+
+	// International servers (T0)
+	t0Servers := make([]models.MCPServer, 0)
+	for _, s := range servers {
+		if s.TaiwanRelevance.Level == "T0" {
+			t0Servers = append(t0Servers, s)
+		}
+	}
+	if len(t0Servers) > 0 {
+		sb.WriteString("\n### 🌍 International\n\n")
+		sb.WriteString("_These servers are not Taiwan-specific but are compatible with the MCP protocol._\n\n")
+		for _, s := range t0Servers {
+			sb.WriteString(serverMarkdownIntl(s))
 		}
 	}
 
 	return writeFile(path, []byte(sb.String()))
+}
+
+// functionalCategory maps domain categories to functional categories
+type functionalCategory struct {
+	key   string
+	emoji string
+	name  string
+}
+
+var functionalCategories = []functionalCategory{
+	{"finance", "💰", "Finance & Fintech"},
+	{"government", "🏛️", "Government & Open Data"},
+	{"real-estate", "🏠", "Real Estate"},
+	{"transport", "🚆", "Travel & Transportation"},
+	{"healthcare", "🧬", "Biology & Medicine"},
+	{"education", "🎓", "Education"},
+	{"agriculture", "🌳", "Environment & Nature"},
+	{"tourism", "🗺️", "Tourism & Geography"},
+	{"language", "🗣️", "Language & Culture"},
+	{"ecommerce", "🛒", "E-Commerce"},
+	{"devops", "🔄", "Version Control & DevOps"},
+	{"search", "🔎", "Search & Data Extraction"},
+	{"coding-agents", "🤖", "Coding Agents"},
+	{"communication", "💬", "Communication"},
+	{"databases", "🗄️", "Databases"},
+	{"knowledge", "🧠", "Knowledge & Memory"},
+	{"legal", "⚖️", "Legal"},
+	{"security", "🔒", "Security"},
+	{"news", "📊", "News & Data"},
+	{"other", "📦", "Other Tools"},
+}
+
+func filterByCategory(servers []models.MCPServer, catKey string) []models.MCPServer {
+	var matched []models.MCPServer
+	for _, s := range servers {
+		if s.TaiwanRelevance.Level == "T0" {
+			continue
+		}
+		if catKey == "other" {
+			// Servers with no matching category
+			if len(s.Category) == 0 {
+				matched = append(matched, s)
+				continue
+			}
+			matchedAny := false
+			for _, c := range s.Category {
+				for _, fc := range functionalCategories {
+					if fc.key != "other" && c == fc.key {
+						matchedAny = true
+						break
+					}
+				}
+			}
+			if !matchedAny {
+				matched = append(matched, s)
+			}
+			continue
+		}
+		for _, c := range s.Category {
+			if c == catKey {
+				matched = append(matched, s)
+				break
+			}
+		}
+	}
+	return matched
+}
+
+func serverMarkdown(s models.MCPServer) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("**%s**", s.Name))
+	if s.Description != "" {
+		desc := s.Description
+		if len(desc) > 150 {
+			desc = desc[:150] + "..."
+		}
+		sb.WriteString(fmt.Sprintf(" — %s", desc))
+	}
+	sb.WriteString("\n\n")
+	if s.Repository.Stars > 0 {
+		sb.WriteString(fmt.Sprintf("[%s](%s) ⭐%d\n\n", s.Name, s.Repository.URL, s.Repository.Stars))
+	} else {
+		sb.WriteString(fmt.Sprintf("[%s](%s)\n\n", s.Name, s.Repository.URL))
+	}
+	sb.WriteString(fmt.Sprintf("- **Taiwan**: %s (score: %.0f)\n", s.TaiwanRelevance.Level, s.TaiwanRelevance.Score))
+	if len(s.TaiwanRelevance.Evidence) > 0 {
+		for _, e := range s.TaiwanRelevance.Evidence {
+			if e.Type == "keyword" || e.Type == "domain" {
+				sb.WriteString(fmt.Sprintf("  - +%d ", int(e.Score)))
+				if e.MatchedText != "" {
+					sb.WriteString(fmt.Sprintf("%s ", e.MatchedText))
+				}
+				sb.WriteString(fmt.Sprintf("(%s)\n", e.Rule))
+			}
+		}
+	}
+	if s.Repository.Language != "" {
+		sb.WriteString(fmt.Sprintf("- **Language**: [%s](https://github.com/search?q=%s+language:%s&type=repositories)\n",
+			s.Repository.Language, url.QueryEscape(s.Repository.Name), url.QueryEscape(s.Repository.Language)))
+	}
+	sb.WriteString(fmt.Sprintf("- **Health**: %s\n", s.Health))
+	sb.WriteString(fmt.Sprintf("- **Quality**: %s (%d)\n", s.Quality.Grade, s.Quality.Score))
+	if s.License != "" {
+		sb.WriteString(fmt.Sprintf("- **License**: %s\n", s.License))
+	}
+	if len(s.Tools) > 0 {
+		toolNames := make([]string, len(s.Tools))
+		for i, t := range s.Tools {
+			toolNames[i] = t.Name
+		}
+		sb.WriteString(fmt.Sprintf("- **Tools**: %s\n", strings.Join(toolNames, ", ")))
+	}
+	if len(s.Endpoints) > 0 {
+		for _, ep := range s.Endpoints {
+			sb.WriteString(fmt.Sprintf("- **Endpoint**: `%s` (transport: %s)\n", ep.URL, ep.Transport))
+		}
+	}
+	sb.WriteString("\n")
+	return sb.String()
+}
+
+func serverMarkdownIntl(s models.MCPServer) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("**%s**", s.Name))
+	if s.Description != "" {
+		desc := s.Description
+		if len(desc) > 150 {
+			desc = desc[:150] + "..."
+		}
+		sb.WriteString(fmt.Sprintf(" — %s", desc))
+	}
+	sb.WriteString("\n\n")
+	if s.Repository.Stars > 0 {
+		sb.WriteString(fmt.Sprintf("[%s](%s) ⭐%d\n\n", s.Name, s.Repository.URL, s.Repository.Stars))
+	} else {
+		sb.WriteString(fmt.Sprintf("[%s](%s)\n\n", s.Name, s.Repository.URL))
+	}
+	if s.Repository.Language != "" {
+		sb.WriteString(fmt.Sprintf("- **Language**: [%s](https://github.com/search?q=%s+language:%s&type=repositories)\n",
+			s.Repository.Language, url.QueryEscape(s.Repository.Name), url.QueryEscape(s.Repository.Language)))
+	}
+	sb.WriteString(fmt.Sprintf("- **Health**: %s\n", s.Health))
+	sb.WriteString(fmt.Sprintf("- **Quality**: %s (%d)\n", s.Quality.Grade, s.Quality.Score))
+	if len(s.Tools) > 0 {
+		toolNames := make([]string, len(s.Tools))
+		for i, t := range s.Tools {
+			toolNames[i] = t.Name
+		}
+	}
+	if len(s.Endpoints) > 0 {
+		for _, ep := range s.Endpoints {
+			sb.WriteString(fmt.Sprintf("- **Endpoint**: `%s` (transport: %s)\n", ep.URL, ep.Transport))
+		}
+	}
+	sb.WriteString("\n")
+	return sb.String()
 }
 
 // levelDescription returns a human-readable description for each Taiwan relevance level.

@@ -19,8 +19,8 @@ import (
 // llmModels is the fallback chain for LLM classification.
 // First model is primary; subsequent are fallbacks.
 var llmModels = []string{
-	"opencode/muse-spark-1.2-contributor-free",
-	"opencode/nemotron-3-ultra-free",
+	"gpt-4o-mini",
+	"gpt-3.5-turbo",
 }
 
 // LLMCallCount tracks total LLM invocations for observability (§TST-050).
@@ -127,18 +127,20 @@ func (lc *LLMClassifier) Classify(ctx context.Context, server *models.MCPServer)
 		}, nil
 	}
 
-	// All models failed — return empty classification (fallback)
-	// Factual metadata is never modified
+	// All models failed — preserve T2 score from keyword matching instead of T0
+	// Keyword scoring for 20-55 range already indicated Taiwan relevance
+	evidence := []models.Evidence{{
+		Type:     "llm_failure",
+		Source:   "llm_classifier",
+		Rule:     "fallback_preserve_t2",
+		Location: fmt.Sprintf("LLM failed: %v", lastErr),
+		Timestamp: time.Now().UTC(),
+	}}
 	return &models.TaiwanRelevance{
-		Level:      "T0",
-		Score:      0,
-		Confidence: 0,
-		Evidence: []models.Evidence{{
-			Type:     "llm_failure",
-			Source:   "llm_classifier",
-			Rule:     "fallback",
-			Timestamp: time.Now().UTC(),
-		}},
+		Level:      "T2",
+		Score:      35,
+		Confidence: 0.5,
+		Evidence:   evidence,
 	}, lastErr
 }
 

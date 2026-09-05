@@ -1,18 +1,17 @@
 {
   "total_servers": 10,
-  "taiwan_relevant": 7,
+  "taiwan_relevant": 3,
   "by_level": {
-    "T0": 3,
-    "T2": 1,
-    "T3": 6
+    "T0": 7,
+    "T1": 1,
+    "T2": 2
   },
   "by_health": {
     "HEALTHY": 9,
     "UNAVAILABLE": 1
   },
   "quality_distribution": {
-    "C": 2,
-    "D": 4,
-    "F": 4
+    "D": 1,
+    "F": 9
   }
 }
