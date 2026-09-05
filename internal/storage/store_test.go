@@ -561,3 +561,34 @@ func TestUpsertServer_StatusPersisted(t *testing.T) {
 		t.Errorf("Expected status %s, got %s", models.StatusArchived, status)
 	}
 }
+
+func TestUpsertServer_SecurityFindingsPersisted(t *testing.T) {
+	store := testStore(t)
+	server := testServer()
+	server.ID = "security-test"
+	server.Slug = "security-test"
+	server.Security = []models.SecurityFinding{
+		{
+			Type:     "unsafe_transport",
+			Severity: models.SeverityHigh,
+			Source:   "security_scanner",
+			Location: "endpoint",
+			Evidence: "HTTP endpoint without TLS",
+		},
+	}
+
+	if err := store.UpsertServer(context.Background(), server); err != nil {
+		t.Fatalf("UpsertServer error: %v", err)
+	}
+
+	// Verify findings were persisted
+	var count int
+	err := store.db.QueryRowContext(context.Background(),
+		"SELECT COUNT(*) FROM security_findings WHERE server_id = ?", server.ID).Scan(&count)
+	if err != nil {
+		t.Fatalf("Query error: %v", err)
+	}
+	if count != 1 {
+		t.Errorf("Expected 1 security finding, got %d", count)
+	}
+}

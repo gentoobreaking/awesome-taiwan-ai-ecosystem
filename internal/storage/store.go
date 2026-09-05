@@ -173,10 +173,16 @@ func (s *Store) UpsertServer(ctx context.Context, server *models.MCPServer) erro
 			return err
 		}
 	}
-
 	// Upsert sources
 	for _, src := range server.Sources {
 		if err := s.upsertSourceAndLink(ctx, server.ID, &src); err != nil {
+			return err
+		}
+	}
+
+	// Upsert security findings
+	for i := range server.Security {
+		if err := s.InsertSecurityFinding(ctx, server.ID, &server.Security[i]); err != nil {
 			return err
 		}
 	}
