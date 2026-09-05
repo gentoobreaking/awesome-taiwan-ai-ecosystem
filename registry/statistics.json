@@ -1,0 +1,23 @@
+{
+  "total_servers": 561,
+  "taiwan_relevant": 200,
+  "by_level": {
+    "T0": 361,
+    "T1": 57,
+    "T2": 69,
+    "T3": 39,
+    "T4": 18,
+    "T5": 17
+  },
+  "by_health": {
+    "DEGRADED": 19,
+    "HEALTHY": 520,
+    "INVALID": 1,
+    "UNAVAILABLE": 21
+  },
+  "quality_distribution": {
+    "C": 8,
+    "D": 50,
+    "F": 503
+  }
+}
