@@ -17,10 +17,9 @@ func New() *Collector {
 	return &Collector{}
 }
 
-// Add appends an evidence item.
 func (c *Collector) Add(ev models.Evidence) {
 	if ev.Timestamp.IsZero() {
-		ev.Timestamp = time.Now().UTC()
+		ev.Timestamp = models.RFC3339Time(time.Now().UTC())
 	}
 	c.items = append(c.items, ev)
 }

@@ -127,7 +127,7 @@ go build -o crawler ./cmd/crawler
 ### Docker
 
 ```bash
-docker build -t awesome-taiwan-mcp .
+docker build -t awesome-taiwan-ai-ecosystem .
 ```
 
 ## 配置
@@ -360,7 +360,7 @@ go vet ./...
 go mod verify
 
 # Docker
-docker build -t awesome-taiwan-mcp .
+docker build -t awesome-taiwan-ai-ecosystem .
 docker compose up
 ```
 
@@ -373,11 +373,11 @@ Dockerfile 使用多階段建構：
 安全性：非 root 使用者 (uid 1000)，無 privileged，資源限制。
 
 ```bash
-docker build -t awesome-taiwan-mcp .
+docker build -t awesome-taiwan-ai-ecosystem .
 docker run --rm \
   -e GITHUB_TOKEN=your_token \
   -v $(pwd)/data:/data \
-  awesome-taiwan-mcp crawl --db /data/registry.db
+  awesome-taiwan-ai-ecosystem crawl --db /data/registry.db
 ```
 
 ## 開發

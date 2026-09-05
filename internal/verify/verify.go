@@ -28,7 +28,7 @@ type RepositoryVerificationResult struct {
 	Reachable   bool
 	HTTPStatus  int
 	Status      models.Status
-	PushedAt    time.Time
+	PushedAt    models.RFC3339Time
 	HasManifest bool
 	HasReadme   bool
 	Archived    bool
@@ -69,7 +69,7 @@ func (rv *RepositoryVerifier) VerifyRepository(ctx context.Context, server *mode
 	// Compute status from PushedAt if available
 	if !server.Repository.PushedAt.IsZero() {
 		result.PushedAt = server.Repository.PushedAt
-		result.Status = statusFromPushedAt(server.Repository.PushedAt, server.Repository.Archived)
+		result.Status = statusFromPushedAt(server.Repository.PushedAt.Time(), server.Repository.Archived)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "GET", repoURL, nil)
@@ -97,7 +97,7 @@ func (rv *RepositoryVerifier) VerifyRepository(ctx context.Context, server *mode
 	// If PushedAt is available, compute status from it
 	if !server.Repository.PushedAt.IsZero() {
 		result.PushedAt = server.Repository.PushedAt
-		result.Status = statusFromPushedAt(server.Repository.PushedAt, server.Repository.Archived)
+		result.Status = statusFromPushedAt(server.Repository.PushedAt.Time(), server.Repository.Archived)
 	}
 	// Check manifest presence from tools (extracted from manifest)
 	if len(server.Tools) > 0 {

@@ -1,342 +1,413 @@
 package security
 
 import (
-	"fmt"
 	"math"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
-
-	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
+
+// RiskLevel represents the risk level of a malicious finding.
+type RiskLevel string
 
 const (
-	// MaliciousType is the finding type for malicious repository detection.
-	MaliciousType = "malicious_repository"
+	RiskLevelLow      RiskLevel = "LOW"
+	RiskLevelMedium   RiskLevel = "MEDIUM"
+	RiskLevelHigh     RiskLevel = "HIGH"
+	RiskLevelCritical RiskLevel = "CRITICAL"
 )
 
-// MaliciousSignal represents a single malicious indicator.
+// MaliciousSignal represents a single detection signal.
 type MaliciousSignal struct {
-	Name        string  // e.g., "high_entropy", "lua_bytecode", "throwaway_account"
-	Description string  // human-readable
-	Confidence  float64 // 0.0-1.0
-	Evidence    string  // matched snippet or metric value
+	Type        string  `json:"type"`        // e.g., "readme_entropy", "obfuscation_lua", "account_anomaly"
+	Description string  `json:"description"` // human-readable description
+	Severity    RiskLevel `json:"severity"`  // severity of this signal
+	Evidence    string  `json:"evidence"`    // matched pattern or evidence
+	Confidence  float64 `json:"confidence"`  // confidence in this signal (0-1)
 }
 
-// MaliciousResult holds the result of malicious detection.
+// MaliciousResult holds the overall malicious detection result.
 type MaliciousResult struct {
-	RiskLevel   string            // LOW, MEDIUM, HIGH, CRITICAL
-	Score       float64           // 0.0-100.0
-	Signals     []MaliciousSignal // detected signals
-	Recommend   string            // "monitor", "investigate", "block", "report"
-	ScannedAt   time.Time
+	RiskLevel  RiskLevel         `json:"risk_level"`  // overall risk level
+	Signals    []MaliciousSignal `json:"signals"`     // all detected signals
+	Confidence float64           `json:"confidence"`  // overall confidence (0-1)
 }
 
-// MaliciousDetectorConfig holds configuration for malicious detection.
-type MaliciousDetectorConfig struct {
-	EntropyThreshold        float64       // Shannon entropy > this = suspicious (default 7.0)
-	MaxReadmeSize           int           // README > this bytes = suspicious (default 100KB)
-	NonPrintableThreshold   float64       // non-printable ratio > this = suspicious (default 0.30)
-	AccountAgeThreshold     time.Duration // account age < this = suspicious (default 90 days)
-	MinFollowers            int           // followers < this = suspicious (default 0)
-	MinProfileFields        int           // profile fields < this = suspicious (default 1)
-	MaxReposForNewAccount   int           // repos > this for new account = suspicious (default 5)
-	EnableObfuscationDetect bool          // enable obfuscation pattern matching
-}
-
-// DefaultMaliciousDetectorConfig returns sensible defaults.
-func DefaultMaliciousDetectorConfig() MaliciousDetectorConfig {
-	return MaliciousDetectorConfig{
-		EntropyThreshold:        7.0,
-		MaxReadmeSize:           100 * 1024, // 100 KB
-		NonPrintableThreshold:   0.30,
-		AccountAgeThreshold:     90 * 24 * time.Hour,
-		MinFollowers:            0,
-		MinProfileFields:        1,
-		MaxReposForNewAccount:   5,
-		EnableObfuscationDetect: true,
-	}
-}
-
-// MaliciousDetector detects malicious repository patterns.
+// MaliciousDetector detects malicious repository characteristics.
 type MaliciousDetector struct {
-	config MaliciousDetectorConfig
-	// Compiled regex patterns for obfuscation detection
-	obfuscationPatterns []*regexp.Regexp
+	// Configurable thresholds
+	EntropyThreshold      float64
+	ReadmeSizeThreshold   int
+	NonTextRatioThreshold float64
+	AccountAgeThreshold   time.Duration
+	MinFollowers          int
+	MinRepos              int
 }
 
-// NewMaliciousDetector creates a new malicious detector with default config.
+// NewMaliciousDetector creates a new detector with default thresholds.
 func NewMaliciousDetector() *MaliciousDetector {
-	return NewMaliciousDetectorWithConfig(DefaultMaliciousDetectorConfig())
-}
-
-// NewMaliciousDetectorWithConfig creates a new malicious detector with custom config.
-func NewMaliciousDetectorWithConfig(config MaliciousDetectorConfig) *MaliciousDetector {
-	d := &MaliciousDetector{
-		config: config,
-	}
-	d.compileObfuscationPatterns()
-	return d
-}
-
-// compileObfuscationPatterns compiles regex patterns for obfuscation detection.
-func (d *MaliciousDetector) compileObfuscationPatterns() {
-	patterns := []string{
-		// Lua VM bytecode patterns (e.g., clearsdunker-create/ez)
-		`while\s+W\[\d+\]\s+do`,
-		`W\[0x[0-9A-Fa-f]+\]`,
-		`W\.\w+\(\(W\.\w+\(`,
-		`return\s+nil;\s*end;\s*return\s+nil`,
-		`0x[0-9A-Fa-f]{2,}__`,
-
-		// JavaScript obfuscation
-		`eval\s*\(\s*atob\s*\(`,
-		`eval\s*\(\s*decodeURIComponent\s*\(`,
-		`String\.fromCharCode\s*\([^)]{50,}`,
-		`\\x[0-9a-f]{2}\\x[0-9a-f]{2}\\x[0-9a-f]{2}`,
-
-		// Base64 blobs (long continuous base64)
-		`[A-Za-z0-9+/]{200,}={0,2}`,
-
-		// Python obfuscation
-		`exec\s*\(\s*base64\.b64decode\s*\(`,
-		`__import__\s*\(\s*['\"]base64['\"]\s*\)`,
-	}
-	d.obfuscationPatterns = make([]*regexp.Regexp, len(patterns))
-	for i, p := range patterns {
-		d.obfuscationPatterns[i] = regexp.MustCompile(`(?i)` + p)
+	return &MaliciousDetector{
+		EntropyThreshold:      7.0,
+		ReadmeSizeThreshold:   100 * 1024, // 100KB
+		NonTextRatioThreshold: 0.30,       // 30%
+		AccountAgeThreshold:   90 * 24 * time.Hour,
+		MinFollowers:          0,
+		MinRepos:              5,
 	}
 }
 
-// Detect runs malicious detection on a server's README and metadata.
-func (d *MaliciousDetector) Detect(server *models.MCPServer, readme string, accountCreatedAt *time.Time, followerCount int, profileFieldCount int, repoCount int) MaliciousResult {
+// Detect analyzes a repository for malicious characteristics.
+func (d *MaliciousDetector) Detect(readme string, repoInfo RepositoryInfo) MaliciousResult {
 	var signals []MaliciousSignal
 
 	// 1. README entropy check
-	if d.config.EntropyThreshold > 0 {
-		entropy := shannonEntropy(readme)
-		if entropy > d.config.EntropyThreshold {
-			signals = append(signals, MaliciousSignal{
-				Name:        "high_entropy",
-				Description: "README has unusually high Shannon entropy (likely binary/obfuscated)",
-				Confidence:  math.Min((entropy-d.config.EntropyThreshold)/2.0, 1.0),
-				Evidence:    "entropy=" + entropyString(entropy),
-			})
-		}
+	if entropySignal := d.checkReadmeEntropy(readme); entropySignal != nil {
+		signals = append(signals, *entropySignal)
 	}
 
-	// 2. README size check
-	if d.config.MaxReadmeSize > 0 && len(readme) > d.config.MaxReadmeSize {
-		signals = append(signals, MaliciousSignal{
-			Name:        "oversized_readme",
-			Description: "README exceeds typical documentation size",
-			Confidence:  math.Min(float64(len(readme))/float64(d.config.MaxReadmeSize*5), 1.0),
-			Evidence:    "size=" + sizeString(len(readme)),
-		})
+	// 2. README size anomaly check
+	if sizeSignal := d.checkReadmeSize(readme); sizeSignal != nil {
+		signals = append(signals, *sizeSignal)
 	}
 
-	// 3. Non-printable character ratio
-	if d.config.NonPrintableThreshold > 0 && len(readme) > 0 {
-		nonPrintable := countNonPrintable(readme)
-		ratio := float64(nonPrintable) / float64(len(readme))
-		if ratio > d.config.NonPrintableThreshold {
-			signals = append(signals, MaliciousSignal{
-				Name:        "high_nonprintable",
-				Description: "README contains high ratio of non-printable characters",
-				Confidence:  math.Min(ratio/d.config.NonPrintableThreshold, 1.0),
-				Evidence:    "ratio=" + ratioString(ratio),
-			})
-		}
+	// 3. Obfuscated code patterns
+	if obfSignals := d.checkObfuscationPatterns(readme); len(obfSignals) > 0 {
+		signals = append(signals, obfSignals...)
 	}
 
-	// 4. Obfuscation pattern matching
-	if d.config.EnableObfuscationDetect {
-		for _, pattern := range d.obfuscationPatterns {
-			matches := pattern.FindAllString(readme, 5)
-			if len(matches) > 0 {
-				signals = append(signals, MaliciousSignal{
-					Name:        "obfuscation_pattern",
-					Description: "Detected code obfuscation pattern: " + pattern.String(),
-					Confidence:  0.85,
-					Evidence:    "matches: " + strings.Join(matches, ", "),
-				})
-			}
-		}
+	// 4. Account anomaly check
+	if accountSignal := d.checkAccountAnomaly(repoInfo); accountSignal != nil {
+		signals = append(signals, *accountSignal)
 	}
 
-	// 5. Account anomaly detection (if metadata available)
-	if accountCreatedAt != nil && followerCount >= 0 && profileFieldCount >= 0 && repoCount >= 0 {
-		accountAge := time.Since(*accountCreatedAt)
-		if accountAge < d.config.AccountAgeThreshold {
-			isNewAccount := true
-			// Check multiple anomaly indicators
-			anomalyCount := 0
-			if followerCount <= d.config.MinFollowers {
-				anomalyCount++
-			}
-			if profileFieldCount <= d.config.MinProfileFields {
-				anomalyCount++
-			}
-			if repoCount > d.config.MaxReposForNewAccount {
-				anomalyCount++
-			}
-			if isNewAccount && anomalyCount >= 2 {
-				signals = append(signals, MaliciousSignal{
-					Name:        "throwaway_account",
-					Description: "New account with multiple anomaly indicators (low followers, empty profile, many repos)",
-					Confidence:  0.75 + 0.1*float64(anomalyCount),
-					Evidence:    "age=" + accountAge.Truncate(time.Hour).String() + ", followers=" + intString(followerCount) + ", profile_fields=" + intString(profileFieldCount) + ", repos=" + intString(repoCount),
-				})
-			}
-		}
+	// 5. Non-text ratio check
+	if nonTextSignal := d.checkNonTextRatio(readme); nonTextSignal != nil {
+		signals = append(signals, *nonTextSignal)
 	}
 
-	// Calculate overall risk
-	return d.calculateRisk(signals)
-}
-
-// calculateRisk determines overall risk level from signals.
-func (d *MaliciousDetector) calculateRisk(signals []MaliciousSignal) MaliciousResult {
-	if len(signals) == 0 {
-		return MaliciousResult{
-			RiskLevel: "LOW",
-			Score:     0,
-			Signals:   nil,
-			Recommend: "monitor",
-			ScannedAt: time.Now().UTC(),
-		}
-	}
-
-	// Weighted score
-	var totalScore float64
-	for _, s := range signals {
-		// Base weight by signal type
-		weight := 1.0
-		switch s.Name {
-		case "lua_bytecode", "obfuscation_pattern":
-			weight = 3.0
-		case "high_entropy":
-			weight = 2.0
-		case "throwaway_account":
-			weight = 2.5
-		case "oversized_readme", "high_nonprintable":
-			weight = 1.5
-		}
-		totalScore += s.Confidence * weight * 10 // scale to 0-100
-	}
-
-	// Normalize to 0-100
-	score := math.Min(totalScore/float64(len(signals))*5, 100)
-
-	var riskLevel string
-	var recommend string
-	switch {
-	case score >= 75:
-		riskLevel = "CRITICAL"
-		recommend = "block,report"
-	case score >= 50:
-		riskLevel = "HIGH"
-		recommend = "block,investigate"
-	case score >= 25:
-		riskLevel = "MEDIUM"
-		recommend = "investigate"
-	default:
-		riskLevel = "LOW"
-		recommend = "monitor"
-	}
+	// Calculate overall risk level and confidence
+	riskLevel, confidence := d.aggregateRisk(signals)
 
 	return MaliciousResult{
-		RiskLevel: riskLevel,
-		Score:     score,
-		Signals:   signals,
-		Recommend: recommend,
-		ScannedAt: time.Now().UTC(),
+		RiskLevel:  riskLevel,
+		Signals:    signals,
+		Confidence: confidence,
 	}
 }
 
-// --- Helper functions ---
-
-
-// IsMalicious returns true if risk level is HIGH or CRITICAL.
-func (r MaliciousResult) IsMalicious() bool {
-	return r.RiskLevel == "HIGH" || r.RiskLevel == "CRITICAL"
-}
-
-// ToSecurityFinding converts malicious result to SecurityFinding.
-func (r MaliciousResult) ToSecurityFinding(repoURL string) models.SecurityFinding {
-	if len(r.Signals) == 0 {
-		return models.SecurityFinding{}
+// checkReadmeEntropy checks for high entropy in README (indicating binary/encoded content).
+func (d *MaliciousDetector) checkReadmeEntropy(readme string) *MaliciousSignal {
+	if len(readme) == 0 {
+		return nil
 	}
-	var evidenceParts []string
-	for _, s := range r.Signals {
-		evidenceParts = append(evidenceParts, s.Name+": "+s.Evidence)
-	}
-	return models.SecurityFinding{
-		Type:     MaliciousType,
-		Severity: models.SecuritySeverity(r.RiskLevel),
-		Source:   "malicious_detector",
-		Location: repoURL,
-		Evidence: strings.Join(evidenceParts, "; "),
-	}
-}
-// --- Helper functions ---
 
-func shannonEntropy(data string) float64 {
-	if len(data) == 0 {
-		return 0
-	}
-	freq := make(map[rune]int)
-	for _, r := range data {
-		freq[r]++
-	}
-	var entropy float64
-	length := float64(len(data))
-	for _, count := range freq {
-		p := float64(count) / length
-		if p > 0 {
-			entropy -= p * math.Log2(p)
-		}
-	}
-	return entropy
-}
+	// Calculate Shannon entropy
+	entropy := calculateEntropy(readme)
 
-
-func float64String(f float64, prec int) string {
-	return fmt.Sprintf("%."+intString(prec)+"f", f)
-}
-
-func intString(i int) string {
-	return fmt.Sprintf("%d", i)
-}
-
-func int64String(i int64) string {
-	return fmt.Sprintf("%d", i)
-}
-
-func sizeString(bytes int) string {
-	if bytes < 1024 {
-		return intString(bytes) + "B"
-	}
-	if bytes < 1024*1024 {
-		return intString(bytes/1024) + "KB"
-	}
-	return intString(bytes/(1024*1024)) + "MB"
-}
-func entropyString(e float64) string {
-	return float64String(e, 2)
-}
-
-func ratioString(r float64) string {
-	return float64String(r, 3)
-}
-func countNonPrintable(s string) int {
-	count := 0
-	for _, r := range s {
-		if r < 32 || r > 126 {
-			if r != '\n' && r != '\r' && r != '\t' {
-				count++
+	if entropy > d.EntropyThreshold {
+		// Additional check: is it structured markdown?
+		hasStructure := d.hasMarkdownStructure(readme)
+		if !hasStructure {
+			return &MaliciousSignal{
+				Type:        "readme_entropy",
+				Description: "README has high Shannon entropy (>7.0) without markdown structure, likely binary/encoded content",
+				Severity:    RiskLevelHigh,
+				Evidence:    "entropy=" + formatFloat(entropy, 2) + ", length=" + strconv.Itoa(len(readme)),
+				Confidence:  0.85,
 			}
 		}
 	}
-	return count
+	return nil
+}
+
+// checkReadmeSize checks for abnormally large README without standard structure.
+func (d *MaliciousDetector) checkReadmeSize(readme string) *MaliciousSignal {
+	if len(readme) > d.ReadmeSizeThreshold {
+		hasStructure := d.hasMarkdownStructure(readme)
+		if !hasStructure {
+			return &MaliciousSignal{
+				Type:        "readme_size_anomaly",
+				Description: "README exceeds 100KB without standard markdown headings/paragraphs",
+				Severity:    RiskLevelMedium,
+				Evidence:    "size=" + strconv.Itoa(len(readme)) + " bytes",
+				Confidence:  0.75,
+			}
+		}
+	}
+	return nil
+}
+
+// checkObfuscationPatterns detects obfuscated code patterns in README.
+func (d *MaliciousDetector) checkObfuscationPatterns(readme string) []MaliciousSignal {
+	var signals []MaliciousSignal
+
+	// Lua VM bytecode patterns
+	luaPatterns := []struct {
+		pattern     string
+		description string
+		severity    RiskLevel
+	}{
+		{`while\s+W\[`, "Lua VM instruction pattern (while W[)", RiskLevelHigh},
+		{`0x[0-9A-Fa-f]{2,}`, "Hex byte sequence (potential Lua bytecode)", RiskLevelMedium},
+		{`\\[=\\[.*?\\]=\\]`, "Lua long string delimiter", RiskLevelMedium},
+		{`loadstring\s*\(`, "Lua loadstring (dynamic code execution)", RiskLevelHigh},
+	}
+
+	for _, p := range luaPatterns {
+		if matched := regexp.MustCompile(p.pattern).FindString(readme); matched != "" {
+			signals = append(signals, MaliciousSignal{
+				Type:        "obfuscation_lua",
+				Description: p.description,
+				Severity:    p.severity,
+				Evidence:    truncate(matched, 200),
+				Confidence:  0.8,
+			})
+		}
+	}
+
+	// JavaScript obfuscation patterns
+	jsPatterns := []struct {
+		pattern     string
+		description string
+		severity    RiskLevel
+	}{
+		{`eval\s*\(\s*atob\s*\(`, "eval(atob(...)) - base64 decoded eval", RiskLevelCritical},
+		{`eval\s*\(\s*["']?\s*base64`, "eval with base64", RiskLevelCritical},
+		{`Function\s*\(\s*["']?\s*[A-Za-z0-9+/]{100,}`, "Function constructor with large base64", RiskLevelHigh},
+		{`["']([A-Za-z0-9+/]{500,}={0,2})["']`, "Large base64 string literal (>500 chars)", RiskLevelMedium},
+		{`\\x[0-9A-Fa-f]{2}`, "Hex escape sequences", RiskLevelMedium},
+		{`\\u[0-9A-Fa-f]{4}`, "Unicode escape sequences", RiskLevelMedium},
+	}
+
+	for _, p := range jsPatterns {
+		if matched := regexp.MustCompile(p.pattern).FindString(readme); matched != "" {
+			signals = append(signals, MaliciousSignal{
+				Type:        "obfuscation_js",
+				Description: p.description,
+				Severity:    p.severity,
+				Evidence:    truncate(matched, 200),
+				Confidence:  0.75,
+			})
+		}
+	}
+
+	// Generic base64 blobs
+	base64Regex := regexp.MustCompile(`[A-Za-z0-9+/]{200,}={0,2}`)
+	matches := base64Regex.FindAllString(readme, -1)
+	if len(matches) > 0 {
+		totalLen := 0
+		for _, m := range matches {
+			totalLen += len(m)
+		}
+		if totalLen > 1000 {
+			signals = append(signals, MaliciousSignal{
+				Type:        "obfuscation_base64",
+				Description: "Large base64 encoded content detected",
+				Severity:    RiskLevelMedium,
+				Evidence:    "total_base64_chars=" + strconv.Itoa(totalLen) + ", chunks=" + strconv.Itoa(len(matches)),
+				Confidence:  0.7,
+			})
+		}
+	}
+
+	return signals
+}
+
+// checkAccountAnomaly checks for suspicious account characteristics.
+func (d *MaliciousDetector) checkAccountAnomaly(repoInfo RepositoryInfo) *MaliciousSignal {
+	var anomalies []string
+	severity := RiskLevelLow
+
+	// Account age check
+	if repoInfo.OwnerCreatedAt != nil {
+		age := time.Since(*repoInfo.OwnerCreatedAt)
+		if age < d.AccountAgeThreshold {
+			anomalies = append(anomalies, "account_age="+age.String())
+		}
+	}
+
+	// Followers check
+	if repoInfo.OwnerFollowers != nil && *repoInfo.OwnerFollowers <= d.MinFollowers {
+		anomalies = append(anomalies, "followers=0")
+	}
+
+	// Profile completeness check (bio, location, etc.)
+	if repoInfo.OwnerBio == nil || *repoInfo.OwnerBio == "" {
+		anomalies = append(anomalies, "no_bio")
+	}
+
+	// Repository count check
+	if repoInfo.OwnerRepos != nil && *repoInfo.OwnerRepos < d.MinRepos {
+		anomalies = append(anomalies, "repos="+strconv.Itoa(*repoInfo.OwnerRepos))
+	}
+
+	// Need at least 2 anomalies to trigger (per spec: new account + 0 followers + no bio + few repos)
+	if len(anomalies) < 2 {
+		return nil
+	}
+
+	// Determine severity based on number of anomalies
+	switch len(anomalies) {
+	case 2:
+		severity = RiskLevelMedium
+	case 3:
+		severity = RiskLevelHigh
+	default: // 4+
+		severity = RiskLevelCritical
+	}
+
+	return &MaliciousSignal{
+		Type:        "account_anomaly",
+		Description: "Suspicious account: " + strings.Join(anomalies, ", "),
+		Severity:    severity,
+		Evidence:    strings.Join(anomalies, "; "),
+		Confidence:  0.7,
+	}
+}
+
+// checkNonTextRatio checks for high ratio of non-printable characters.
+func (d *MaliciousDetector) checkNonTextRatio(readme string) *MaliciousSignal {
+	if len(readme) == 0 {
+		return nil
+	}
+
+	nonPrintable := 0
+	for _, r := range readme {
+		// Printable ASCII range: 32-126, plus common whitespace (tab, newline, carriage return)
+		if (r < 32 && r != '\t' && r != '\n' && r != '\r') || r > 126 {
+			nonPrintable++
+		}
+	}
+
+	ratio := float64(nonPrintable) / float64(len(readme))
+	if ratio > d.NonTextRatioThreshold {
+		return &MaliciousSignal{
+			Type:        "non_text_ratio",
+			Description: "High ratio of non-printable characters in README",
+			Severity:    RiskLevelHigh,
+			Evidence:    "ratio=" + formatFloat(ratio, 3) + ", non_printable=" + strconv.Itoa(nonPrintable) + "/" + strconv.Itoa(len(readme)),
+			Confidence:  0.8,
+		}
+	}
+	return nil
+}
+// hasMarkdownStructure checks if content has standard markdown structure.
+func (d *MaliciousDetector) hasMarkdownStructure(content string) bool {
+	// Check for common markdown patterns (multiline mode for ^ anchor)
+	hasHeading := regexp.MustCompile(`(?m)^#{1,6}\s+`).MatchString(content)
+	hasParagraph := regexp.MustCompile(`\n\s*\n`).MatchString(content) // blank line separation
+	hasList := regexp.MustCompile(`(?m)^[\s]*[-*+]\s+`).MatchString(content)
+	hasCodeBlock := regexp.MustCompile("```").MatchString(content)
+	hasLink := regexp.MustCompile(`\[.*?\]\(.*?\)`).MatchString(content)
+
+	// At least 2 structural elements
+	count := 0
+	if hasHeading {
+		count++
+	}
+	if hasParagraph {
+		count++
+	}
+	if hasList {
+		count++
+	}
+	if hasCodeBlock {
+		count++
+	}
+	if hasLink {
+		count++
+	}
+
+	return count >= 2
+}
+
+// aggregateRisk computes overall risk level and confidence from signals.
+func (d *MaliciousDetector) aggregateRisk(signals []MaliciousSignal) (RiskLevel, float64) {
+	if len(signals) == 0 {
+		return RiskLevelLow, 1.0
+	}
+
+	// Count by severity
+	critical := 0
+	high := 0
+	medium := 0
+	low := 0
+
+	var totalConfidence float64
+	for _, s := range signals {
+		totalConfidence += s.Confidence
+		switch s.Severity {
+		case RiskLevelCritical:
+			critical++
+		case RiskLevelHigh:
+			high++
+		case RiskLevelMedium:
+			medium++
+		case RiskLevelLow:
+			low++
+		}
+	}
+
+	avgConfidence := totalConfidence / float64(len(signals))
+
+	// Determine overall risk level
+	var riskLevel RiskLevel
+	if critical > 0 {
+		riskLevel = RiskLevelCritical
+	} else if high >= 2 {
+		riskLevel = RiskLevelCritical
+	} else if high > 0 || medium >= 3 {
+		riskLevel = RiskLevelHigh
+	} else if medium > 0 || low >= 3 {
+		riskLevel = RiskLevelMedium
+	} else {
+		riskLevel = RiskLevelLow
+	}
+
+	return riskLevel, avgConfidence
+}
+
+// RepositoryInfo holds repository metadata for account anomaly detection.
+type RepositoryInfo struct {
+	OwnerCreatedAt *time.Time
+	OwnerFollowers *int
+	OwnerBio       *string
+	OwnerRepos     *int
+}
+
+// formatFloat formats a float64 to string with given precision.
+func formatFloat(f float64, prec int) string {
+	return strconv.FormatFloat(f, 'f', prec, 64)
+}
+
+// truncate truncates a string to max length.
+func truncate(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "..."
+}
+
+// calculateEntropy calculates Shannon entropy of a string (by runes).
+func calculateEntropy(s string) float64 {
+	if len(s) == 0 {
+		return 0
+	}
+
+	freq := make(map[rune]int)
+	runeCount := 0
+	for _, r := range s {
+		freq[r]++
+		runeCount++
+	}
+
+	entropy := 0.0
+	length := float64(runeCount)
+	for _, count := range freq {
+		p := float64(count) / length
+		entropy -= p * math.Log2(p)
+	}
+
+	return entropy
 }

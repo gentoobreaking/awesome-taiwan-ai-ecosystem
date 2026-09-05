@@ -15,16 +15,6 @@ type ScoreResult struct {
 
 // Score computes the Taiwan relevance score for an MCPServer (§17).
 // Returns the relevance level (T0-T5) and evidence for each scoring rule.
-//
-// Scoring rules (§17):
-//   - official Taiwan domain match: +40 (evidence type=official_domain)
-//   - Taiwan government API detected: +40 (evidence type=official_gov_api)
-//   - Taiwan financial API detected: +35 (evidence type=taiwan_financial_api)
-//   - Taiwan-specific dataset detected: +30 (evidence type=taiwan_dataset)
-//   - Taiwan-specific keyword found: +20 (evidence type=repository_keyword)
-//   - Taiwan language detected: +15 (evidence type=taiwan_language)
-//   - Taiwan company/service detected: +15 (evidence type=taiwan_company)
-//   - README Taiwan mention: +5 (evidence type=readme_mention)
 func Score(server *models.MCPServer) ScoreResult {
 	var evidence []models.Evidence
 	var score float64
@@ -44,7 +34,7 @@ func Score(server *models.MCPServer) ScoreResult {
 			Rule:        "official_domain_match",
 			Score:       40,
 			Confidence:  1.0,
-			Timestamp:   time.Now().UTC(),
+			Timestamp:   models.RFC3339Time(time.Now().UTC()),
 			ContentHash: contentHash(d),
 		})
 	}
@@ -61,9 +51,9 @@ func Score(server *models.MCPServer) ScoreResult {
 			Rule:        "financial_api_detected",
 			Score:       35,
 			Confidence:  1.0,
-			Timestamp:   time.Now().UTC(),
+			Timestamp:   models.RFC3339Time(time.Now().UTC()),
 			ContentHash: contentHash(ds),
-	})
+		})
 	}
 
 	// --- Taiwan keyword match: +20 (§17) ---
@@ -79,7 +69,7 @@ func Score(server *models.MCPServer) ScoreResult {
 			Rule:        "taiwan_keyword",
 			Score:       pts,
 			Confidence:  1.0,
-			Timestamp:   time.Now().UTC(),
+			Timestamp:   models.RFC3339Time(time.Now().UTC()),
 			ContentHash: contentHash(m.Keyword),
 		})
 	}

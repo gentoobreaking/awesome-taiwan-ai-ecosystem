@@ -107,7 +107,7 @@ func (lc *LLMClassifier) Classify(ctx context.Context, server *models.MCPServer)
 	LLMCallsIncrement()
 
 	// Sanitize README text — strip injection patterns (§60)
-	readmeText := normalize.SanitizeReadme(server.GetReadme())
+	readmeText := normalize.SanitizeReadme(server.Readme)
 
 	// Build LLM prompt with only classification-relevant data
 	prompt := buildLLMPrompt(server, readmeText)
@@ -155,11 +155,11 @@ func (lc *LLMClassifier) Classify(ctx context.Context, server *models.MCPServer)
 			Rule:       "llm_classifier",
 			Score:      result.Score,
 			Confidence: result.Confidence,
-			Timestamp:  time.Now().UTC(),
+			Timestamp:  models.RFC3339Time(time.Now().UTC()),
 		}}
 
 		return &models.TaiwanRelevance{
-			Level:      result.TaiwanRelevance,
+			Level:      models.TaiwanRelevanceLevel(result.TaiwanRelevance),
 			Score:      result.Score,
 			Confidence: result.Confidence,
 			Evidence:   evidence,
@@ -173,7 +173,7 @@ func (lc *LLMClassifier) Classify(ctx context.Context, server *models.MCPServer)
 		Source:   "llm_classifier",
 		Rule:     "fallback_preserve_t2",
 		Location: fmt.Sprintf("LLM failed: %v", lastErr),
-		Timestamp: time.Now().UTC(),
+		Timestamp: models.RFC3339Time(time.Now().UTC()),
 	}}
 	return &models.TaiwanRelevance{
 		Level:      "T2",
@@ -290,7 +290,7 @@ func isValidLevel(level string) bool {
 // data. Factual metadata is included for context but explicitly marked as
 // read-only (§2.3 LLM Isolation).
 func buildLLMPrompt(server *models.MCPServer, readmeText string) string {
-	topics := strings.Join(server.TopicList(), ", ")
+	topics := strings.Join(server.Category, ", ")
 
 	// Truncate readme to avoid excessive length
 	if len(readmeText) > 3000 {

@@ -1,271 +1,297 @@
 package export
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
-	"github.com/david/awesome-taiwan-mcp/internal/normalize"
 )
 
-// InjectionExporter generates injection detection reports.
-type InjectionExporter struct{}
-
-// NewInjectionExporter creates a new InjectionExporter.
-func NewInjectionExporter() *InjectionExporter {
-	return &InjectionExporter{}
+// InjectionExporter handles export of injection detection reports.
+type InjectionExporter struct {
+	GeneratedAt time.Time
+	OutputDir   string
+	Entities    []*models.Entity
 }
 
-// InjectionReportData holds data for the injection report.
+// InjectionEntry represents an injection detection entry for reporting.
+type InjectionEntry struct {
+	Entity     *models.Entity
+	Findings   []models.SecurityFinding
+	HitCount   int
+	RiskLevel  string
+	Patterns   []string
+}
+
+// InjectionPatternStats holds statistics for a detection pattern.
+type InjectionPatternStats struct {
+	Pattern     string `json:"pattern"`
+	Count       int    `json:"count"`
+	Description string `json:"description"`
+}
+
+// InjectionReportData holds all data for the injection report.
 type InjectionReportData struct {
-	GeneratedAt     string
-	CrawlerVersion  string
-	TotalScanned    int
-	TotalFlagged    int
-	PatternCounts   map[string]int
-	Servers         []InjectionServerEntry
+	GeneratedAt    time.Time               `json:"generated_at"`
+	TotalScanned   int                     `json:"total_scanned"`
+	TotalDetected  int                     `json:"total_detected"`
+	PatternStats   []InjectionPatternStats `json:"pattern_stats"`
+	TopRiskServers []InjectionServerEntry  `json:"top_risk_servers"`
+	Details        []InjectionDetailEntry  `json:"details"`
 }
 
-// InjectionServerEntry represents a server with injection findings.
+// InjectionServerEntry represents a server entry in the report.
 type InjectionServerEntry struct {
-	Name           string
-	Repository     string
-	MatchedPatterns []InjectionMatchEntry
-	ScannedAt      string
+	Owner      string  `json:"owner"`
+	Repo       string  `json:"repo"`
+	URL        string  `json:"url"`
+	HitCount   int     `json:"hit_count"`
+	RiskLevel  string  `json:"risk_level"`
+	Patterns   []string `json:"patterns"`
 }
 
-// InjectionMatchEntry represents a single pattern match.
-type InjectionMatchEntry struct {
-	Pattern      string
-	Description  string
-	MatchedText  string
-	Context      string
-	LineNumber   int
+// InjectionDetailEntry represents a detailed finding.
+type InjectionDetailEntry struct {
+	Owner         string  `json:"owner"`
+	Repo          string  `json:"repo"`
+	URL           string  `json:"url"`
+	Pattern       string  `json:"pattern"`
+	MatchedText   string  `json:"matched_text"`
+	Location      string  `json:"location"`
+	Severity      string  `json:"severity"`
+	Confidence    float64 `json:"confidence"`
 }
 
-// InjectionPatternsJSON represents the JSON output for patterns.
-type InjectionPatternsJSON struct {
-	GeneratedAt   string         `json:"generated_at"`
-	TotalPatterns int            `json:"total_patterns"`
-	TotalMatches  int            `json:"total_matches"`
-	Patterns      []PatternStats `json:"patterns"`
+// NewInjectionExporter creates a new injection exporter.
+func NewInjectionExporter(entities []*models.Entity, outputDir string) *InjectionExporter {
+	return &InjectionExporter{
+		GeneratedAt: time.Now().UTC(),
+		OutputDir:   outputDir,
+		Entities:    entities,
+	}
 }
 
-// PatternStats holds statistics for a single injection pattern.
-type PatternStats struct {
-	Pattern      string `json:"pattern"`
-	Description  string `json:"description"`
-	MatchCount   int    `json:"match_count"`
-	AffectedRepos int   `json:"affected_repos"`
-}
-
-// ExportInjectionReport generates INJECTION_REPORT.md and patterns.json.
-func (ie *InjectionExporter) ExportInjectionReport(dir string, servers []models.MCPServer) error {
-	injectionDir := filepath.Join(dir, "security", "injection")
-	if err := os.MkdirAll(injectionDir, 0755); err != nil {
-		return fmt.Errorf("create injection dir: %w", err)
+// Export generates injection detection reports.
+func (e *InjectionExporter) Export() error {
+	if err := os.MkdirAll(e.OutputDir, 0755); err != nil {
+		return err
 	}
 
-	// Scan all servers for injection patterns
-	var flagged []InjectionServerEntry
+	// Collect injection findings
+	var entries []InjectionEntry
 	patternCounts := make(map[string]int)
-	patternRepos := make(map[string]map[string]bool) // pattern -> repo -> bool
 
-	for _, s := range servers {
-		matches := scanForInjectionPatterns(s)
-		if len(matches) > 0 {
-			flagged = append(flagged, InjectionServerEntry{
-				Name:            s.Name,
-				Repository:      s.Repository.URL,
-				MatchedPatterns: matches,
-				ScannedAt:       time.Now().UTC().Format(time.RFC3339),
-			})
-			for _, m := range matches {
-				patternCounts[m.Pattern]++
-				if patternRepos[m.Pattern] == nil {
-					patternRepos[m.Pattern] = make(map[string]bool)
-				}
-				patternRepos[m.Pattern][s.Repository.URL] = true
+	for _, entity := range e.Entities {
+		if entity.SecurityStatus.Findings == nil {
+			continue
+		}
+
+		var injectionFindings []models.SecurityFinding
+		for _, f := range entity.SecurityStatus.Findings {
+			// Check for injection-related findings
+			if isInjectionFinding(f) {
+				injectionFindings = append(injectionFindings, f)
+				patternCounts[f.Rule]++
 			}
+		}
+
+		if len(injectionFindings) > 0 {
+			// Determine highest severity
+			riskLevel := "LOW"
+			for _, f := range injectionFindings {
+				sev := strings.ToUpper(f.Severity)
+				if severityRank(sev) > severityRank(riskLevel) {
+					riskLevel = sev
+				}
+			}
+
+			// Collect unique patterns
+			patterns := make(map[string]bool)
+			for _, f := range injectionFindings {
+				patterns[f.Rule] = true
+			}
+			patternList := make([]string, 0, len(patterns))
+			for p := range patterns {
+				patternList = append(patternList, p)
+			}
+
+			entries = append(entries, InjectionEntry{
+				Entity:    entity,
+				Findings:  injectionFindings,
+				HitCount:  len(injectionFindings),
+				RiskLevel: riskLevel,
+				Patterns:  patternList,
+			})
 		}
 	}
 
-	// Sort by number of matches (descending)
-	sort.Slice(flagged, func(i, j int) bool {
-		return len(flagged[i].MatchedPatterns) > len(flagged[j].MatchedPatterns)
-	})
-
-	// Generate markdown report
-	reportPath := filepath.Join(injectionDir, "INJECTION_REPORT.md")
-	if err := generateInjectionMarkdown(reportPath, InjectionReportData{
-		GeneratedAt:    time.Now().UTC().Format(time.RFC3339),
-		CrawlerVersion: "v1.0.0",
-		TotalScanned:   len(servers),
-		TotalFlagged:   len(flagged),
-		PatternCounts:  patternCounts,
-		Servers:        flagged,
-	}); err != nil {
-		return fmt.Errorf("generate markdown: %w", err)
+	// Generate INJECTION_REPORT.md
+	if err := e.generateMarkdownReport(entries, patternCounts); err != nil {
+		return err
 	}
 
 	// Generate patterns.json
-	patternsJSON := InjectionPatternsJSON{
-		GeneratedAt:   time.Now().UTC().Format(time.RFC3339),
-		TotalPatterns: len(normalize.GetInjectionPatterns()),
-		TotalMatches:  sumMapValues(patternCounts),
-		Patterns:      buildPatternStats(normalize.GetInjectionPatterns(), patternCounts, patternRepos),
-	}
-	jsonPath := filepath.Join(injectionDir, "patterns.json")
-	if err := writeJSON(jsonPath, patternsJSON, true); err != nil {
-		return fmt.Errorf("write patterns.json: %w", err)
+	if err := e.generatePatternsJSON(entries, patternCounts); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-// scanForInjectionPatterns scans a server's README for injection patterns.
-func scanForInjectionPatterns(server models.MCPServer) []InjectionMatchEntry {
-	var matches []InjectionMatchEntry
-	readme := server.Readme
-	if readme == "" {
-		return matches
-	}
-
-	lines := strings.Split(readme, "\n")
-	patterns := normalize.GetInjectionPatterns()
-
-	for lineNum, line := range lines {
-		for _, pattern := range patterns {
-			if strings.Contains(strings.ToLower(line), strings.ToLower(pattern)) {
-				// Extract context (surrounding text)
-				start := max(0, lineNum-2)
-				end := min(len(lines)-1, lineNum+2)
-				context := strings.Join(lines[start:end+1], "\n")
-
-				matches = append(matches, InjectionMatchEntry{
-					Pattern:     pattern,
-					Description: getInjectionDescription(pattern),
-					MatchedText: strings.TrimSpace(line),
-					Context:     context,
-					LineNumber:  lineNum + 1,
-				})
-			}
-		}
-	}
-	return matches
+// isInjectionFinding checks if a finding is injection-related.
+func isInjectionFinding(f models.SecurityFinding) bool {
+	t := strings.ToLower(f.Type)
+	return strings.Contains(t, "injection") ||
+		strings.Contains(t, "prompt") ||
+		strings.Contains(strings.ToLower(f.Rule), "injection") ||
+		strings.Contains(strings.ToLower(f.Rule), "prompt")
 }
 
-// getInjectionDescription returns description for injection pattern.
-func getInjectionDescription(pattern string) string {
-	descriptions := map[string]string{
-		"Ignore previous instructions": "Classic prompt injection attempt to override system prompt",
-		"Call this URL":               "Attempt to make the model fetch external resources",
-		"Upload credentials":          "Attempt to exfiltrate sensitive credentials",
-	}
-	if desc, ok := descriptions[pattern]; ok {
-		return desc
-	}
-	return "Potential prompt injection pattern"
-}
-
-// buildPatternStats builds statistics for each pattern.
-func buildPatternStats(patterns []string, counts map[string]int, repos map[string]map[string]bool) []PatternStats {
-	var stats []PatternStats
-	for _, p := range patterns {
-		stats = append(stats, PatternStats{
-			Pattern:       p,
-			Description:   getInjectionDescription(p),
-			MatchCount:    counts[p],
-			AffectedRepos: len(repos[p]),
-		})
-	}
-	// Sort by match count descending
-	sort.Slice(stats, func(i, j int) bool {
-		return stats[i].MatchCount > stats[j].MatchCount
-	})
-	return stats
-}
-
-func sumMapValues(m map[string]int) int {
-	sum := 0
-	for _, v := range m {
-		sum += v
-	}
-	return sum
-}
-
-// generateInjectionMarkdown generates the INJECTION_REPORT.md file.
-func generateInjectionMarkdown(path string, data InjectionReportData) error {
+// generateMarkdownReport generates INJECTION_REPORT.md.
+func (e *InjectionExporter) generateMarkdownReport(entries []InjectionEntry, patternCounts map[string]int) error {
 	var sb strings.Builder
 
-	sb.WriteString("# Injection Detection Report\n\n")
-	sb.WriteString(fmt.Sprintf("> Generated on %s\n\n", data.GeneratedAt))
+	sb.WriteString("# Prompt Injection Detection Report\n\n")
+	sb.WriteString(fmt.Sprintf("Generated at: %s\n\n", e.GeneratedAt.Format(time.RFC3339)))
+	sb.WriteString(fmt.Sprintf("Total entities scanned: %d\n", len(e.Entities)))
+	sb.WriteString(fmt.Sprintf("Servers with injection patterns detected: %d\n\n", len(entries)))
 
-	sb.WriteString("## Summary\n\n")
-	sb.WriteString(fmt.Sprintf("- **Total Scanned**: %d\n", data.TotalScanned))
-	sb.WriteString(fmt.Sprintf("- **Total Flagged**: %d\n", data.TotalFlagged))
-	sb.WriteString(fmt.Sprintf("- **Total Pattern Matches**: %d\n\n", sumMapValues(data.PatternCounts)))
-
-	if data.TotalFlagged == 0 {
-		sb.WriteString("No injection patterns detected.\n")
-		return writeFile(path, sanitizeUTF8([]byte(sb.String())))
-	}
-
-	sb.WriteString("## Pattern Match Distribution\n\n")
-	sb.WriteString("| Pattern | Matches | Affected Repos |\n")
-	sb.WriteString("|---------|---------|----------------|\n")
-
-	// Sort patterns by count
-	type kv struct {
-		Key   string
-		Value int
-	}
-	var sorted []kv
-	for k, v := range data.PatternCounts {
-		sorted = append(sorted, kv{k, v})
-	}
-	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].Value > sorted[j].Value
-	})
-
-	for _, kv := range sorted {
-		sb.WriteString(fmt.Sprintf("| %s | %d | %d |\n", kv.Key, kv.Value, len(data.PatternCounts)))
-	}
-
-	sb.WriteString("\n## Flagged Repositories\n\n")
-	sb.WriteString("| Repository | Matches | Patterns |\n")
-	sb.WriteString("|------------|---------|----------|\n")
-
-	for _, s := range data.Servers {
-		var patternNames []string
-		for _, m := range s.MatchedPatterns {
-			patternNames = append(patternNames, m.Pattern)
+	// Summary by pattern
+	if len(patternCounts) > 0 {
+		sb.WriteString("## Pattern Hit Statistics\n\n")
+		sb.WriteString("| Pattern | Hits |\n")
+		sb.WriteString("|---------|------|\n")
+		for pattern, count := range patternCounts {
+			sb.WriteString(fmt.Sprintf("| %s | %d |\n", pattern, count))
 		}
-		sb.WriteString(fmt.Sprintf("| [%s](%s) | %d | %s |\n",
-			s.Name, s.Repository, len(s.MatchedPatterns), strings.Join(patternNames, ", ")))
+		sb.WriteString("\n")
 	}
 
-	sb.WriteString("\n## Detailed Findings\n\n")
-	for _, s := range data.Servers {
-		sb.WriteString(fmt.Sprintf("### %s (%s)\n\n", s.Name, s.Repository))
-		sb.WriteString(fmt.Sprintf("- **Scanned At**: %s\n", s.ScannedAt))
-		sb.WriteString("- **Matches**:\n")
-		for _, m := range s.MatchedPatterns {
-			sb.WriteString(fmt.Sprintf("  - **Pattern**: `%s`\n", m.Pattern))
-			sb.WriteString(fmt.Sprintf("    **Description**: %s\n", m.Description))
-			sb.WriteString(fmt.Sprintf("    **Line %d**: %s\n", m.LineNumber, m.MatchedText))
-			sb.WriteString(fmt.Sprintf("    **Context**:\n    ```\n    %s\n    ```\n\n", m.Context))
+	// Top 10 risk servers
+	if len(entries) > 0 {
+		// Sort by hit count descending
+		sortedEntries := make([]InjectionEntry, len(entries))
+		copy(sortedEntries, entries)
+		for i := 0; i < len(sortedEntries)-1; i++ {
+			for j := i + 1; j < len(sortedEntries); j++ {
+				if sortedEntries[j].HitCount > sortedEntries[i].HitCount {
+					sortedEntries[i], sortedEntries[j] = sortedEntries[j], sortedEntries[i]
+				}
+			}
 		}
+
+		sb.WriteString("## Top 10 High-Risk Servers\n\n")
+		sb.WriteString("| Server | Hits | Risk Level | Patterns |\n")
+		sb.WriteString("|--------|------|------------|----------|\n")
+		for i, entry := range sortedEntries {
+			if i >= 10 {
+				break
+			}
+			repoURL := entry.Entity.Repository.URL
+			if repoURL == "" {
+				repoURL = fmt.Sprintf("https://github.com/%s/%s", entry.Entity.Repository.Owner, entry.Entity.Repository.Name)
+			}
+			patternsStr := strings.Join(entry.Patterns, ", ")
+			sb.WriteString(fmt.Sprintf("| [%s/%s](%s) | %d | %s | %s |\n",
+				entry.Entity.Repository.Owner, entry.Entity.Repository.Name, repoURL,
+				entry.HitCount, entry.RiskLevel, truncateForMarkdown(patternsStr, 100)))
+		}
+		sb.WriteString("\n")
 	}
 
-	return writeFile(path, sanitizeUTF8([]byte(sb.String())))
+	// Detailed findings
+	sb.WriteString("## Detailed Findings\n\n")
+
+	for _, entry := range entries {
+		repoURL := entry.Entity.Repository.URL
+		if repoURL == "" {
+			repoURL = fmt.Sprintf("https://github.com/%s/%s", entry.Entity.Repository.Owner, entry.Entity.Repository.Name)
+		}
+
+		sb.WriteString(fmt.Sprintf("### %s/%s\n\n", entry.Entity.Repository.Owner, entry.Entity.Repository.Name))
+		sb.WriteString(fmt.Sprintf("- **Repository**: %s\n", repoURL))
+		sb.WriteString(fmt.Sprintf("- **Hit Count**: %d\n", entry.HitCount))
+		sb.WriteString(fmt.Sprintf("- **Risk Level**: %s\n", entry.RiskLevel))
+		sb.WriteString(fmt.Sprintf("- **Patterns**: %s\n\n", strings.Join(entry.Patterns, ", ")))
+
+		if len(entry.Findings) > 0 {
+			sb.WriteString("#### Matches\n\n")
+			sb.WriteString("| Pattern | Severity | Confidence | Evidence | Location |\n")
+			sb.WriteString("|---------|----------|------------|----------|----------|\n")
+			for _, f := range entry.Findings {
+				evidence := truncateForMarkdown(f.Evidence, 100)
+				sb.WriteString(fmt.Sprintf("| %s | %s | %.2f | %s | %s |\n",
+					f.Rule, f.Severity, f.Confidence, evidence, f.Location))
+			}
+			sb.WriteString("\n")
+		}
+
+		sb.WriteString("---\n\n")
+	}
+
+	// Sanitize and write
+	markdown := SanitizeString(sb.String())
+	path := filepath.Join(e.OutputDir, "INJECTION_REPORT.md")
+	return os.WriteFile(path, []byte(markdown), 0644)
 }
 
-// GetInjectionPatterns returns the list of injection patterns (for external access).
-func GetInjectionPatterns() []string {
-	return normalize.GetInjectionPatterns()
+// generatePatternsJSON generates patterns.json for CI/CD automation.
+func (e *InjectionExporter) generatePatternsJSON(entries []InjectionEntry, patternCounts map[string]int) error {
+	data := InjectionReportData{
+		GeneratedAt:   e.GeneratedAt,
+		TotalScanned:  len(e.Entities),
+		TotalDetected: len(entries),
+	}
+
+	// Pattern stats
+	for pattern, count := range patternCounts {
+		data.PatternStats = append(data.PatternStats, InjectionPatternStats{
+			Pattern: pattern,
+			Count:   count,
+		})
+	}
+
+	// Top risk servers
+	for _, entry := range entries {
+		repoURL := entry.Entity.Repository.URL
+		if repoURL == "" {
+			repoURL = fmt.Sprintf("https://github.com/%s/%s", entry.Entity.Repository.Owner, entry.Entity.Repository.Name)
+		}
+		data.TopRiskServers = append(data.TopRiskServers, InjectionServerEntry{
+			Owner:     entry.Entity.Repository.Owner,
+			Repo:      entry.Entity.Repository.Name,
+			URL:       repoURL,
+			HitCount:  entry.HitCount,
+			RiskLevel: entry.RiskLevel,
+			Patterns:  entry.Patterns,
+		})
+	}
+
+	// Details
+	for _, entry := range entries {
+		for _, f := range entry.Findings {
+			data.Details = append(data.Details, InjectionDetailEntry{
+				Owner:       entry.Entity.Repository.Owner,
+				Repo:        entry.Entity.Repository.Name,
+				URL:         entry.Entity.Repository.URL,
+				Pattern:     f.Rule,
+				MatchedText: f.Evidence,
+				Location:    f.Location,
+				Severity:    f.Severity,
+				Confidence:  f.Confidence,
+			})
+		}
+	}
+
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Join(e.OutputDir, "patterns.json")
+	return os.WriteFile(path, jsonData, 0644)
 }

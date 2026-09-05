@@ -181,8 +181,8 @@ func (s *Store) UpsertServer(ctx context.Context, server *models.MCPServer) erro
 	}
 
 	// Upsert security findings
-	for i := range server.Security {
-		if err := s.InsertSecurityFinding(ctx, server.ID, &server.Security[i]); err != nil {
+	for i := range server.Security.Findings {
+		if err := s.InsertSecurityFinding(ctx, server.ID, &server.Security.Findings[i]); err != nil {
 			return err
 		}
 	}
@@ -438,7 +438,7 @@ func (s *Store) GetTaiwanServers(ctx context.Context, level string) ([]models.MC
 		if err != nil {
 			continue
 		}
-		if server.TaiwanRelevance.Level == level {
+		if string(server.TaiwanRelevance.Level) == level {
 			servers = append(servers, *server)
 		}
 	}

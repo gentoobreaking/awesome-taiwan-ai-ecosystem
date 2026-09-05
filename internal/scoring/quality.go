@@ -23,7 +23,7 @@ func (qs *QualityScorer) Score(server *models.MCPServer) models.QualityScore {
 	components.DataSource = scoreDataSource(server.DataSources)
 
 	// Maintenance (max 15)
-	components.Maintenance = scoreMaintenance(server.Repository.PushedAt)
+	components.Maintenance = scoreMaintenance(server.Repository.PushedAt.Time())
 
 	// Documentation (max 10)
 	components.Documentation = scoreDocumentation(server.Description, server.Tools)
@@ -74,9 +74,25 @@ func (qs *QualityScorer) Score(server *models.MCPServer) models.QualityScore {
 func scoreDataSource(sources []models.DataSource) int {
 	max := 0
 	for _, ds := range sources {
-		v := models.DataSourceScores[ds.Type]
-		if v > max {
-			max = v
+		var v float64
+		switch ds.Type {
+		case models.DataSourceOfficialCompany:
+			v = models.DataSourceScores{}.OfficialCompany
+		case models.DataSourceThirdPartyAPI:
+			v = models.DataSourceScores{}.ThirdPartyAPI
+		case models.DataSourceOfficialGovAPI:
+			v = models.DataSourceScores{}.OfficialGovAPI
+		case models.DataSourceOpenData:
+			v = models.DataSourceScores{}.OpenData
+		case models.DataSourceOfficial:
+			v = models.DataSourceScores{}.Official
+		case models.DataSourceCommunity:
+			v = models.DataSourceScores{}.Community
+		default:
+			continue
+		}
+		if int(v) > max {
+			max = int(v)
 		}
 	}
 	if max > 20 {
@@ -209,7 +225,7 @@ func scoreLicense(license string) int {
 
 func scoreSecurity(server *models.MCPServer) int {
 	score := 5
-	for _, f := range server.Security {
+	for _, f := range server.Security.Findings {
 		switch f.Severity {
 		case models.SeverityLow:
 			score -= 1

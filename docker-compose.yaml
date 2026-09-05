@@ -1,10 +1,10 @@
 services:
   crawler:
-    image: awesome-taiwan-mcp:crawler
+    image: awesome-taiwan-ai-ecosystem:crawler
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: awesome-taiwan-mcp-crawler
+    container_name: awesome-taiwan-ai-ecosystem-crawler
     command: ["--help"]
     volumes:
       - ./registry:/data/registry

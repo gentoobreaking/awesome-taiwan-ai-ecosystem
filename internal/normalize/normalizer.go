@@ -9,12 +9,11 @@ import (
 
 	"github.com/david/awesome-taiwan-mcp/internal/manifest"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
-	"github.com/david/awesome-taiwan-mcp/internal/sources"
 )
 
 // Normalizer interface transforms RawRecord to MCPServer (§6 Implementation Plan).
 type Normalizer interface {
-	Normalize(record *sources.RawRecord) (*models.MCPServer, error)
+	Normalize(record *models.RawRecord) (*models.MCPServer, error)
 }
 
 // ServerNormalizer implements Normalizer.
@@ -40,13 +39,13 @@ func GetInjectionPatterns() []string {
 }
 
 // Normalize converts a RawRecord into a normalized MCPServer (§10 TASK-008).
-func (n *ServerNormalizer) Normalize(record *sources.RawRecord) (*models.MCPServer, error) {
+func (n *ServerNormalizer) Normalize(record *models.RawRecord) (*models.MCPServer, error) {
 	now := time.Now().UTC()
 
 	server := &models.MCPServer{
 		ID:           "",
-		Name:         normalizeName(record.Candidate.Name, record.Candidate.RepositoryURL),
-		Slug:         generateSlug(normalizeName(record.Candidate.Name, record.Candidate.RepositoryURL)),
+		Name:         normalizeName(record.Name, record.RepositoryURL),
+		Slug:         generateSlug(normalizeName(record.Name, record.RepositoryURL)),
 		FirstSeen:    now,
 		LastSeen:     now,
 		LastVerified: now,
@@ -54,48 +53,44 @@ func (n *ServerNormalizer) Normalize(record *sources.RawRecord) (*models.MCPServ
 
 	// Repository info
 	repo := record.Repository
-	if repo == nil {
-		repo = &models.RepositoryInfo{}
-	}
 	if repo.URL == "" {
-		repo.URL = normalizeURL(record.Candidate.RepositoryURL)
+		repo.URL = normalizeURL(record.RepositoryURL)
 	}
 	if repo.Host == "" {
-		repo.Host = extractHost(record.Candidate.RepositoryURL)
+		repo.Host = extractHost(record.RepositoryURL)
 	}
 	if repo.Owner == "" {
-		repo.Owner = extractOwner(record.Candidate.RepositoryURL)
+		repo.Owner = extractOwner(record.RepositoryURL)
 	}
 	if repo.Name == "" {
-		repo.Name = extractRepoName(record.Candidate.RepositoryURL)
+		repo.Name = extractRepoName(record.RepositoryURL)
 	}
-	if repo.Topics == nil && record.Candidate.RawMetadata != nil {
-		if topics, ok := record.Candidate.RawMetadata["topics"].([]string); ok {
+	if repo.Topics == nil && record.RawMetadata != nil {
+		if topics, ok := record.RawMetadata["topics"].([]string); ok {
 			repo.Topics = topics
 		}
 	}
-	if repo.License == "" && record.Candidate.RawMetadata != nil {
-		if lic, ok := record.Candidate.RawMetadata["license"].(string); ok {
+	if repo.License == "" && record.RawMetadata != nil {
+		if lic, ok := record.RawMetadata["license"].(string); ok {
 			repo.License = lic
 		}
 	}
 	if repo.Homepage == "" {
-		repo.Homepage = record.Candidate.HomepageURL
+		repo.Homepage = record.HomepageURL
 	}
 	if repo.DefaultBranch == "" {
 		repo.DefaultBranch = "main"
 	}
-	server.Repository = *repo
+	server.Repository = repo
 
 	// Description normalization
-	server.Description = normalizeDescription(record.Candidate.Description, record.Readme)
+	server.Description = normalizeDescription(record.Description, record.Readme)
 
 	// README sanitization (§60)
 	sanitizedReadme := sanitizeReadme(record.Readme)
 	server.Readme = sanitizedReadme
-
 	// Endpoint extraction
-	server.Endpoints = extractEndpoints(sanitizedReadme, record.Manifest, record.Candidate.RawMetadata)
+	server.Endpoints = extractEndpoints(sanitizedReadme, toAnyMap(record.PackageFiles), record.RawMetadata)
 	if len(record.Endpoints) > 0 {
 		server.Endpoints = append(server.Endpoints, record.Endpoints...)
 	}
@@ -104,12 +99,9 @@ func (n *ServerNormalizer) Normalize(record *sources.RawRecord) (*models.MCPServ
 	server.Transport = record.Transport
 
 	// Manifest extraction
-	manifestInfo := parsePackageFiles(record.PackageFiles, record.Manifest)
+	manifestInfo := parsePackageFiles(record.PackageFiles, nil)
 	if manifestInfo != nil {
 		server.Tools = extractToolsFromManifest(manifestInfo)
-	}
-	if len(record.Tools) > 0 {
-		server.Tools = append(server.Tools, record.Tools...)
 	}
 
 	// License
@@ -123,21 +115,46 @@ func (n *ServerNormalizer) Normalize(record *sources.RawRecord) (*models.MCPServ
 
 	// Sources
 	server.Sources = []models.SourceReference{{
-		Source:       record.Candidate.Source,
-		URL:          record.Candidate.SourceURL,
-		DiscoveredAt: record.Candidate.DiscoveredAt,
-		LastSeen:     record.Candidate.DiscoveredAt,
-		TrustScore:   models.SourceTrustScores[record.Candidate.Source],
+		Source:       record.Source,
+		URL:          record.SourceURL,
+		DiscoveredAt: models.RFC3339Time(record.DiscoveredAt),
+		LastSeen:     models.RFC3339Time(record.DiscoveredAt),
+		TrustScore:   getSourceTrustScore(record.Source),
 	}}
 
 	// Generate ID
-	server.ID = GenerateID(record.Candidate.RepositoryURL)
+	server.ID = GenerateID(record.RepositoryURL)
 
 	return server, nil
 }
 
-// Normalizer interface implementation
-var _ Normalizer = (*ServerNormalizer)(nil)
+// getSourceTrustScore returns trust score for a source
+func getSourceTrustScore(source string) float64 {
+	switch source {
+	case "github":
+		return models.SourceTrustScores{}.GitHub
+	case "registry":
+		return models.SourceTrustScores{}.Registry
+	case "mcpserversorg":
+		return models.SourceTrustScores{}.Mcpserversorg
+	case "mcpmarket":
+		return models.SourceTrustScores{}.Mcpmarket
+	case "githubrepo":
+		return models.SourceTrustScores{}.GithubRepo
+	default:
+		return 0.5
+	}
+}
+
+
+// toAnyMap converts map[string]string to map[string]any
+func toAnyMap(m map[string]string) map[string]any {
+	result := make(map[string]any, len(m))
+	for k, v := range m {
+		result[k] = v
+	}
+	return result
+}
 
 func normalizeURL(raw string) string {
 	s := strings.TrimSpace(raw)

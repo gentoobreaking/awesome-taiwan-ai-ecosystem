@@ -72,7 +72,7 @@ func (se *SearchEngine) Search(query SearchQuery) ([]SearchResult, error) {
 
 func (se *SearchEngine) matches(s models.MCPServer, q SearchQuery) bool {
 	// Level filter
-	if q.Level != "" && s.TaiwanRelevance.Level != q.Level {
+	if q.Level != "" && string(s.TaiwanRelevance.Level) != q.Level {
 		return false
 	}
 
@@ -202,7 +202,7 @@ func (se *SearchEngine) score(s models.MCPServer, q SearchQuery) float64 {
 	levelScores := map[string]float64{
 		"T5": 50, "T4": 40, "T3": 30, "T2": 20, "T1": 10, "T0": 0,
 	}
-	score += levelScores[s.TaiwanRelevance.Level]
+	score += levelScores[string(s.TaiwanRelevance.Level)]
 	score += s.TaiwanRelevance.Score * 0.3
 
 	// Quality score contribution

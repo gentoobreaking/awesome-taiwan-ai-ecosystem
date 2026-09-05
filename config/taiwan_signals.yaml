@@ -1,0 +1,70 @@
+official_domains:
+  - twse.com.tw
+  - tpex.org.tw
+  - taifex.com.tw
+  - cwa.gov.tw
+  - moi.gov.tw
+  - moea.gov.tw
+  - moj.gov.tw
+  - ly.gov.tw
+  - judicial.gov.tw
+  - data.gov.tw
+  - gov.tw
+
+government_agencies:
+  - CWA
+  - MOI
+  - MOEA
+  - MOL
+  - MOF
+  - PCC
+  - LY
+  - "Judicial Yuan"
+  - "data.gov.tw"
+  - "gov.tw"
+
+financial_keywords:
+  - TWSE
+  - TPEx
+  - TAIFEX
+  - TDCC
+  - FinMind
+  - Fugle
+  - "台股"
+  - "上市"
+  - "上櫃"
+
+dataset_keywords:
+  - "實價登錄"
+  - LVR
+  - "land.moi.gov.tw"
+  - "房價"
+  - "房地產"
+  - "土地"
+  - "預售屋"
+
+payment_keywords:
+  - ECPay
+  - NewebPay
+  - "綠界"
+  - "藍新"
+
+taiwan_keywords:
+  - Taiwan
+  - Taiwanese
+  - 台灣
+  - 臺灣
+  - TW
+  - Taipei
+
+language_keywords:
+  - "zh-TW"
+  - "繁體中文"
+  - "繁體"
+  - "Traditional Chinese"
+  - "Taiwan Mandarin"
+  - "注音"
+  - TOCFL
+
+company_keywords:
+  - SHOPLINE

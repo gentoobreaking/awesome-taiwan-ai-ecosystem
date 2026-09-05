@@ -662,12 +662,12 @@ _Organized by functional category._
 - **License**: UNKNOWN
 - **Endpoint**: `https://api.twinkleai.tw/mcp/` (transport: http)
 
-**awesome-taiwan-mcp** — 
+**awesome-taiwan-ai-ecosystem** — 
 
-[awesome-taiwan-mcp](https://github.com/gentoobreaking/awesome-taiwan-mcp)
+[awesome-taiwan-ai-ecosystem](https://github.com/gentoobreaking/awesome-taiwan-ai-ecosystem)
 
 - **Taiwan**: T1 (score: 15)
-- **Language**: [Go](https://github.com/search?q=awesome-taiwan-mcp+language:Go&type=repositories)
+- **Language**: [Go](https://github.com/search?q=awesome-taiwan-ai-ecosystem+language:Go&type=repositories)
 - **Health**: HEALTHY
 - **Quality**: F (52)
 - **License**: Apache-2.0

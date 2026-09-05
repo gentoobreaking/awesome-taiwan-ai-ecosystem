@@ -1,9 +1,7 @@
-// Package models defines the domain model for the Taiwan MCP Crawler.
-// All structs marshal/unmarshal to/from JSON with snake_case field names
-// and RFC3339 timestamps.
 package models
 
 import (
+	"strings"
 	"time"
 )
 
@@ -11,25 +9,25 @@ import (
 type Status string
 
 const (
-	StatusActive     Status = "ACTIVE"
+	StatusActive      Status = "ACTIVE"
 	StatusMaintenance Status = "MAINTENANCE"
-	StatusStale      Status = "STALE"
-	StatusDormant    Status = "DORMANT"
-	StatusArchived   Status = "ARCHIVED"
-	StatusDeleted    Status = "DELETED"
-	StatusUnknown    Status = "UNKNOWN"
+	StatusStale       Status = "STALE"
+	StatusDormant     Status = "DORMANT"
+	StatusArchived    Status = "ARCHIVED"
+	StatusDeleted     Status = "DELETED"
+	StatusUnknown     Status = "UNKNOWN"
 )
 
 // HealthStatus represents MCP endpoint health.
 type HealthStatus string
 
 const (
-	HealthHealthy     HealthStatus = "HEALTHY"
-	HealthDegraded    HealthStatus = "DEGRADED"
-	HealthUnavailable HealthStatus = "UNAVAILABLE"
-	HealthInvalid     HealthStatus = "INVALID"
-	HealthUnknown     HealthStatus = "UNKNOWN"
+	HealthHealthy   HealthStatus = "healthy"
+	HealthDegraded  HealthStatus = "degraded"
+	HealthUnhealthy HealthStatus = "unhealthy"
+	HealthUnknown   HealthStatus = "unknown"
 )
+
 
 // Transport type for MCP endpoints.
 type Transport string
@@ -37,7 +35,7 @@ type Transport string
 const (
 	TransportStdio          Transport = "stdio"
 	TransportSSE            Transport = "sse"
-	TransportStreamableHTTP  Transport = "streamable-http"
+	TransportStreamableHTTP Transport = "streamable-http"
 	TransportHTTP           Transport = "http"
 	TransportWebsocket      Transport = "websocket"
 	TransportUnknown        Transport = "unknown"
@@ -47,26 +45,46 @@ const (
 type DataSourceType string
 
 const (
-	DataSourceOfficialGovAPI  DataSourceType = "official-government-api"
-	DataSourceOfficialCompany DataSourceType = "official-company-api"
-	DataSourceGovOpenData    DataSourceType = "government-open-data"
-	DataSourceThirdPartyAPI  DataSourceType = "third-party-api"
-	DataSourceWebScraping    DataSourceType = "web-scraping"
-	DataSourceDatabase       DataSourceType = "database"
-	DataSourceStaticDataset  DataSourceType = "static-dataset"
-	DataSourceUnknown        DataSourceType = "unknown"
+	DataSourceOfficialGovAPI DataSourceType = "official_gov_api"
+	DataSourceOfficialCompany DataSourceType = "official_company"
+	DataSourceThirdPartyAPI  DataSourceType = "third_party_api"
+	DataSourceOpenData       DataSourceType = "open_data"
+	DataSourceOfficial       DataSourceType = "official"
+	DataSourceCommunity      DataSourceType = "community"
 )
 
-// SecuritySeverity levels.
-type SecuritySeverity string
-
+// Severity levels for security findings
 const (
-	SeverityLow      SecuritySeverity = "LOW"
-	SeverityMedium   SecuritySeverity = "MEDIUM"
-	SeverityHigh     SecuritySeverity = "HIGH"
-	SeverityCritical SecuritySeverity = "CRITICAL"
-	SeverityUnknown  SecuritySeverity = "UNKNOWN"
+	SeverityLow      = "LOW"
+	SeverityMedium   = "MEDIUM"
+	SeverityHigh     = "HIGH"
+	SeverityCritical = "CRITICAL"
 )
+
+// HealthStatus missing values
+const (
+	HealthInvalid     HealthStatus = "INVALID"
+	HealthUnavailable HealthStatus = "UNAVAILABLE"
+)
+
+// DataSourceScores holds scores for different data source types
+type DataSourceScores struct {
+	OfficialCompany float64
+	ThirdPartyAPI   float64
+	OfficialGovAPI  float64
+	OpenData        float64
+	Official        float64
+	Community       float64
+}
+
+// SourceTrustScores holds trust scores for different sources
+type SourceTrustScores struct {
+	GitHub           float64
+	Registry         float64
+	Mcpserversorg    float64
+	Mcpmarket        float64
+	GithubRepo       float64
+}
 
 // ValidCategories is the controlled vocabulary for server categories (§19).
 var ValidCategories = []string{
@@ -84,14 +102,90 @@ var ValidCategories = []string{
 	"ecommerce", "devops", "news",
 }
 
+var validCategoriesSet = map[string]bool{
+	"finance": true, "stock": true, "etf": true, "banking": true, "insurance": true,
+	"real-estate": true, "land": true, "housing": true,
+	"government": true, "open-data": true, "legislative": true, "judicial": true, "procurement": true,
+	"weather": true, "earthquake": true,
+	"transport": true, "traffic": true, "railway": true, "metro": true, "bus": true,
+	"logistics": true, "payment": true, "invoice": true, "tax": true,
+	"company": true, "business": true,
+	"healthcare": true, "education": true,
+	"agriculture": true, "food": true,
+	"tourism": true, "geography": true, "gis": true,
+	"language": true, "traditional-chinese": true, "culture": true,
+	"ecommerce": true, "devops": true, "news": true,
+}
+
+var functionalSet = map[string]bool{
+	"finance": true, "real-estate": true, "government": true, "weather": true,
+	"transport": true, "healthcare": true, "education": true, "geography": true,
+	"language": true, "ecommerce": true, "payment": true, "news": true,
+	"search": true, "coding-agents": true, "communication": true, "databases": true,
+	"knowledge": true, "legal": true, "security": true, "other": true,
+}
+
+var categoryParentMap = map[string]string{
+	"stock": "finance", "etf": "finance", "banking": "finance", "insurance": "finance",
+	"land": "real-estate", "housing": "real-estate",
+	"open-data": "government", "legislative": "government", "judicial": "government", "procurement": "government",
+	"earthquake": "weather",
+	"traffic": "transport", "railway": "transport", "metro": "transport", "bus": "transport", "logistics": "transport",
+	"invoice": "payment", "tax": "payment",
+	"company": "ecommerce", "business": "ecommerce",
+	"tourism": "geography", "gis": "geography",
+	"traditional-chinese": "language", "culture": "language",
+	"agriculture": "other", "food": "other", "devops": "other",
+}
+
+var categoryAliases = map[string]string{
+	"finance & fintech": "finance",
+	"finance-fintech":   "finance",
+	"fintech":           "finance",
+	"taiwan-stock":      "stock",
+	"taiwan_stock":      "stock",
+	"stock-market":      "stock",
+	"etf-fund":          "etf",
+	"bank":              "banking",
+	"insurance-fin":     "insurance",
+	"real estate":       "real-estate",
+	"land-registry":     "land",
+	"housing-price":     "housing",
+	"gov":               "government",
+	"open data":         "open-data",
+	"legislative-yuan":  "legislative",
+	"judicial-yuan":     "judicial",
+	"gov-procurement":   "procurement",
+	"weather-cwa":       "weather",
+	"earthquake-tw":     "earthquake",
+	"transport-tw":      "transport",
+	"traffic-tw":        "traffic",
+	"railway-tw":        "railway",
+	"metro-tw":          "metro",
+	"bus-tw":            "bus",
+	"logistics-tw":      "logistics",
+	"payment-tw":        "payment",
+	"invoice-tw":        "invoice",
+	"tax-tw":            "tax",
+	"company-tw":        "company",
+	"business-tw":       "business",
+	"healthcare-tw":     "healthcare",
+	"education-tw":      "education",
+	"agriculture-tw":    "agriculture",
+	"food-tw":           "food",
+	"tourism-tw":        "tourism",
+	"geography-tw":      "geography",
+	"gis-tw":            "gis",
+	"chinese-traditional": "traditional-chinese",
+	"culture-tw":        "culture",
+	"ecommerce-tw":      "ecommerce",
+	"devops-tw":         "devops",
+	"news-tw":           "news",
+}
+
 // IsValidCategory returns true if cat is in the controlled vocabulary.
 func IsValidCategory(cat string) bool {
-	for _, c := range ValidCategories {
-		if c == cat {
-			return true
-		}
-	}
-	return false
+	return validCategoriesSet[cat]
 }
 
 // ValidLevels are the Taiwan relevance levels (§14, §17).
@@ -99,12 +193,46 @@ var ValidLevels = []string{"T0", "T1", "T2", "T3", "T4", "T5"}
 
 // IsValidLevel returns true if level is T0–T5.
 func IsValidLevel(level string) bool {
-	for _, l := range ValidLevels {
-		if l == level {
-			return true
+	switch level {
+	case "T0", "T1", "T2", "T3", "T4", "T5":
+		return true
+	default:
+		return false
+	}
+}
+
+// NormalizeCategory maps any raw category to its functional parent or "other".
+func NormalizeCategory(cat string) string {
+	cat = strings.ToLower(strings.TrimSpace(cat))
+	if alias, ok := categoryAliases[cat]; ok {
+		cat = alias
+	}
+	if parent, ok := categoryParentMap[cat]; ok {
+		return parent
+	}
+	if validCategoriesSet[cat] {
+		return cat
+	}
+	return "other"
+}
+
+// NormalizeCategories deduplicates and normalizes a slice.
+func NormalizeCategories(cats []string) []string {
+	seen := make(map[string]bool)
+	var result []string
+	for _, c := range cats {
+		norm := NormalizeCategory(c)
+		if !seen[norm] {
+			seen[norm] = true
+			result = append(result, norm)
 		}
 	}
-	return false
+	return result
+}
+
+// IsFunctionalKey reports whether key is a functional category key.
+func IsFunctionalKey(key string) bool {
+	return functionalSet[key]
 }
 
 // RawCandidate represents a raw MCP discovered from a source (§12).
@@ -121,27 +249,24 @@ type RawCandidate struct {
 	DiscoveredAt  time.Time      `json:"discovered_at"`
 }
 
+// Prompt represents an MCP prompt (§9.3).
+type Prompt struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 // RawRecord is a fully fetched candidate with all metadata (§12, §16).
 type RawRecord struct {
-	Source        string         `json:"source"`
-	SourceURL     string         `json:"source_url"`
-	Name          string         `json:"name"`
-	Description   string         `json:"description"`
-	RepositoryURL string         `json:"repository_url"`
-	HomepageURL   string         `json:"homepage_url"`
-	Readme        string         `json:"readme"`
-	Manifest      map[string]any `json:"manifest"`
-	Endpoint      string         `json:"endpoint"`
-	Transport     string         `json:"transport"`
-	Author        string         `json:"author"`
-	License       string         `json:"license"`
-	Stars         int            `json:"stars"`
-	Topics        []string       `json:"topics"`
-	RawMetadata   map[string]any `json:"raw_metadata"`
-	FetchedAt     time.Time      `json:"fetched_at"`
+	RawCandidate
+	Repository RepositoryInfo `json:"repository"`
+	Endpoints  []Endpoint     `json:"endpoints"`
+	Transport  []string       `json:"transport"`
+	Readme     string         `json:"readme"`
+	PackageFiles map[string]string `json:"package_files"`
 }
 
 // MCPServer is the normalized, classified MCP server (§13).
+// Deprecated: Use Entity with ToMCPServerView() instead.
 type MCPServer struct {
 	ID              string           `json:"id"`
 	Name            string           `json:"name"`
@@ -154,73 +279,32 @@ type MCPServer struct {
 	Endpoints       []Endpoint       `json:"endpoints"`
 	Transport       []string         `json:"transport"`
 	Tools           []Tool           `json:"tools"`
-	Resources       []Resource       `json:"resources"`
-	Prompts         []Prompt         `json:"prompts"`
+	Resources       []Resource       `json:"resources,omitempty"`
+	Prompts         []Prompt         `json:"prompts,omitempty"`
 	DataSources     []DataSource     `json:"data_sources"`
 	License         string           `json:"license"`
-	Status          Status           `json:"status" yaml:"status"`
-	Health          HealthStatus     `json:"health" yaml:"health"`
+	Status          Status           `json:"status"`
+	Health          HealthStatus     `json:"health"`
 	Quality         QualityScore     `json:"quality"`
-	Security        []SecurityFinding `json:"security_findings"`
+	Security        SecurityStatusDetail `json:"security,omitempty"`
 	Sources         []SourceReference `json:"sources"`
-	Readme          string            `json:"readme,omitempty"`
-	FirstSeen       time.Time         `json:"first_seen_at"`
-	LastSeen        time.Time         `json:"last_seen_at"`
-	LastVerified    time.Time         `json:"last_verified_at"`
-}
-
-// GetReadme returns the sanitized README text for LLM classification.
-func (s *MCPServer) GetReadme() string {
-	return s.Readme
-}
-
-// TopicList returns the server's topics.
-func (s *MCPServer) TopicList() []string {
-	return s.Repository.Topics
-}
-
-// TaiwanRelevance holds the Taiwan classification (§14, §17).
-type TaiwanRelevance struct {
-	Level      string      `json:"level"`
-	Score      float64     `json:"score"`
-	Confidence float64     `json:"confidence"`
-	Evidence   []Evidence  `json:"evidence"`
-}
-
-// RepositoryInfo holds GitHub/repository metadata (§7).
-type RepositoryInfo struct {
-	URL           string    `json:"url"`
-	Host          string    `json:"host"`
-	Owner         string    `json:"owner"`
-	Name          string    `json:"name"`
-	Stars         int       `json:"stars"`
-	Forks         int       `json:"forks"`
-	Watchers      int       `json:"watchers"`
-	OpenIssues    int       `json:"open_issues"`
-	Language      string    `json:"language"`
-	License       string    `json:"license"`
-	Topics         []string  `json:"topics"`
-	DefaultBranch  string    `json:"default_branch"`
-	Archived       bool      `json:"archived"`
-	Fork            bool      `json:"fork"`
-	Homepage        string    `json:"homepage"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
-	PushedAt        time.Time `json:"pushed_at"`
-	LastCommitAt    time.Time `json:"last_commit_at"`
+	FirstSeen       time.Time        `json:"first_seen"`
+	LastSeen        time.Time        `json:"last_seen"`
+	LastVerified    time.Time        `json:"last_verified"`
+	Readme          string           `json:"readme,omitempty"`
 }
 
 // Endpoint holds MCP endpoint connection info (§8).
 type Endpoint struct {
-	URL            string    `json:"url"`
-	Transport      string    `json:"transport"`
-	ProtocolVersion string   `json:"protocol_version"`
+	URL            string            `json:"url"`
+	Transport      string            `json:"transport"`
+	ProtocolVersion string           `json:"protocol_version"`
 	Authentication AuthenticationInfo `json:"authentication"`
-	TLS           bool      `json:"tls"`
-	Status         string    `json:"status"`
+	TLS            bool              `json:"tls"`
+	Status         string            `json:"status"`
 }
 
-// AuthenticationInfo holds endpoint auth info.
+// AuthenticationInfo holds authentication details.
 type AuthenticationInfo struct {
 	Required bool   `json:"required"`
 	Type     string `json:"type"`
@@ -228,18 +312,17 @@ type AuthenticationInfo struct {
 
 // Tool represents an MCP tool (§9.1).
 type Tool struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	InputSchema map[string]any `json:"input_schema"`
-	Annotations ToolAnnotations `json:"annotations"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	InputSchema map[string]any         `json:"input_schema"`
+	Annotations ToolAnnotations        `json:"annotations"`
 }
 
-// ToolAnnotations holds tool capability flags (§9.1).
 type ToolAnnotations struct {
-	ReadOnly     bool `json:"read_only"`
-	Destructive  bool `json:"destructive"`
-	Idempotent   bool `json:"idempotent"`
-	Open         bool `json:"open"`
+	ReadOnly    bool `json:"read_only"`
+	Destructive bool `json:"destructive"`
+	Idempotent  bool `json:"idempotent"`
+	Open        bool `json:"open"`
 }
 
 // Resource represents an MCP resource (§9.2).
@@ -247,175 +330,54 @@ type Resource struct {
 	URI         string `json:"uri"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	MIMEType     string `json:"mime_type"`
-}
-
-// Prompt represents an MCP prompt (§9.3).
-type Prompt struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	MIMEType    string `json:"mime_type"`
 }
 
 // DataSource represents a data source used by the MCP (§10).
 type DataSource struct {
-	Name         string         `json:"name"`
+	Name         string        `json:"name"`
 	Type         DataSourceType `json:"type"`
-	URL          string         `json:"url"`
-	Country      string         `json:"country"`
-	Official     bool           `json:"official"`
-	AccessMethod string         `json:"access_method"`
+	URL          string        `json:"url"`
+	Country      string        `json:"country"`
+	Official     bool          `json:"official"`
+	AccessMethod string        `json:"access_method"`
 }
-
-// Evidence holds scoring rule evidence (§16, §66).
-type Evidence struct {
-	Type          string    `json:"type"`
-	Source        string    `json:"source"`
-	Location      string    `json:"location"`
-	ContentHash   string    `json:"content_hash"`
-	MatchedText   string    `json:"matched_text"`
-	Rule          string    `json:"rule"`
-	Score         float64   `json:"score"`
-	Confidence     float64   `json:"confidence"`
-	Timestamp     time.Time `json:"timestamp"`
-}
-
-// QualityScore holds the 100-point quality assessment (§15, §31).
-type QualityScore struct {
-	Score      int                `json:"score"`
-	Grade      string             `json:"grade"`
-	Components QualityComponents  `json:"components"`
-}
-
-// QualityComponents holds the 10 scoring components (§31).
-type QualityComponents struct {
-	DataSource     int `json:"data_source"`
-	Maintenance    int `json:"maintenance"`
-	Documentation   int `json:"documentation"`
-	MCPCompliance   int `json:"mcp_compliance"`
-	ToolSchema      int `json:"tool_schema"`
-	Health          int `json:"health"`
-	Repository      int `json:"repository"`
-	License         int `json:"license"`
-	Security        int `json:"security"`
-	Community       int `json:"community"`
-}
-
-// SourceReference holds discovery source info (§16, §64).
-type SourceReference struct {
-	Source       string    `json:"source"`
-	URL          string    `json:"url"`
-	DiscoveredAt time.Time `json:"discovered_at"`
-	LastSeen     time.Time `json:"last_seen"`
-	TrustScore   float64   `json:"trust_score"`
-}
-
-// SecurityFinding holds a security scan result (§33).
-type SecurityFinding struct {
-	Type     string           `json:"type"`
-	Severity SecuritySeverity `json:"severity"`
-	Source   string         `json:"source"`
-	Location string         `json:"location"`
-	Evidence string         `json:"evidence"`
-}
-
-// CrawlRun holds metadata for a crawl execution (§37).
-type CrawlRun struct {
-	CrawlID            string    `json:"crawl_id"`
-	StartedAt          time.Time `json:"started_at"`
-	FinishedAt         time.Time `json:"finished_at"`
-	SourcesScanned     int       `json:"sources_scanned"`
-	CandidatesFound    int       `json:"candidates_found"`
-	CandidatesNorm     int       `json:"candidates_normalized"`
-	DuplicatesRemoved  int       `json:"duplicates_removed"`
-	TaiwanCandidates   int       `json:"taiwan_candidates"`
-	Verified           int       `json:"verified"`
-	Failed             int       `json:"failed"`
-	Errors             []string  `json:"errors"`
-}
-
-// Taiwan Relevance Scoring Constants (§17)
-const (
-	ScoreOfficialDomain      = 40
-	ScoreGovAPI              = 40
-	ScoreFinancialAPI        = 35
-	ScoreTaiwanDataset       = 30
-	ScoreTaiwanKeyword       = 20
-	ScoreTaiwanLanguage      = 15
-	ScoreTaiwanCompany       = 15
-	ScoreReadmeMention       = 5
-)
 
 // Level thresholds (§17)
 var LevelThresholds = []struct {
-	MinScore int
-	Level    string
+	Level  string
+	Min    float64
+	Max    float64
 }{
-	{70, "T5"},
-	{55, "T4"},
-	{40, "T3"},
-	{20, "T2"},
-	{5, "T1"},
-	{0, "T0"},
+	{"T5", 70, 100},
+	{"T4", 55, 69.99},
+	{"T3", 40, 54.99},
+	{"T2", 20, 39.99},
+	{"T1", 5, 19.99},
+	{"T0", 0, 4.99},
 }
 
 // ScoreToLevel maps a score to its Taiwan relevance level.
-func ScoreToLevel(score float64) string {
-	for _, t := range LevelThresholds {
-		if int(score) >= t.MinScore {
-			return t.Level
-		}
-	}
-	return "T0"
-}
+// Deprecated: Use ScoreToTaiwanLevel instead.
 
-// Quality component max values (§31)
-const (
-	QualityMaxDataSource    = 20
-	QualityMaxMaintenance   = 15
-	QualityMaxDocumentation = 10
-	QualityMaxMCPCompliance = 15
-	QualityMaxToolSchema     = 10
-	QualityMaxHealth        = 10
-	QualityMaxRepository    = 5
-	QualityMaxLicense       = 5
-	QualityMaxSecurity      = 5
-	QualityMaxCommunity     = 5
-)
-
-// Source trust scores (§64)
-var SourceTrustScores = map[string]float64{
-	"official-registry": 1.00,
-	"github":            0.95,
-	"glama":             0.85,
-	"pulsemcp":          0.80,
-	"mcpso":             0.75,
-	"manual":            0.50,
-}
-
-// Data source scores (§32)
-var DataSourceScores = map[DataSourceType]int{
-	DataSourceOfficialGovAPI:  20,
-	DataSourceGovOpenData:     18,
-	DataSourceOfficialCompany: 15,
-	DataSourceThirdPartyAPI:   10,
-	DataSourceWebScraping:     7,
-	DataSourceDatabase:        7,
-	DataSourceStaticDataset:   7,
-	DataSourceUnknown:         0,
-}
-
-// GradeMap converts quality score to grade (§31).
-func GradeForScore(score int) string {
-	switch {
-	case score >= 90:
-		return "A"
-	case score >= 80:
-		return "B"
-	case score >= 70:
-		return "C"
-	case score >= 60:
-		return "D"
-	default:
-		return "F"
-	}
+// CrawlRun metadata for tracking crawl executions
+type CrawlRun struct {
+	ID               string          `json:"id"`
+	StartedAt        RFC3339Time     `json:"started_at"`
+	CompletedAt      *RFC3339Time    `json:"completed_at,omitempty"`
+	Status           string          `json:"status"`
+	SourcesRun       []string        `json:"sources_run"`
+	TotalFound       int             `json:"total_found"`
+	TotalNew         int             `json:"total_new"`
+	TotalUpdated     int             `json:"total_updated"`
+	Errors           []string        `json:"errors,omitempty"`
+	CrawlID          string          `json:"crawl_id"`
+	FinishedAt       *RFC3339Time    `json:"finished_at,omitempty"`
+	SourcesScanned   int             `json:"sources_scanned"`
+	CandidatesFound  int             `json:"candidates_found"`
+	CandidatesNorm   int             `json:"candidates_norm"`
+	DuplicatesRemoved int            `json:"duplicates_removed"`
+	TaiwanCandidates int             `json:"taiwan_candidates"`
+	Verified         int             `json:"verified"`
+	Failed           int             `json:"failed"`
 }

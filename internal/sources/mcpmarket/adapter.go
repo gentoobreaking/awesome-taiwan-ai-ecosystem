@@ -40,6 +40,6 @@ func (a *Adapter) Discover(ctx context.Context) ([]models.RawCandidate, error) {
 }
 
 // Fetch returns ErrNotAvailable for the same reason.
-func (a *Adapter) Fetch(ctx context.Context, candidate models.RawCandidate) (*sources.RawRecord, error) {
+func (a *Adapter) Fetch(ctx context.Context, candidate models.RawCandidate) (*models.RawRecord, error) {
 	return nil, fmt.Errorf("mcpmarket: %w — not implemented (blocked by Vercel WAF)", sources.ErrNotAvailable)
 }

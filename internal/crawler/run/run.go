@@ -35,7 +35,7 @@ func (m *Manager) Start(ctx context.Context) error {
 	}
 	m.run = &models.CrawlRun{
 		CrawlID:    m.crawlID,
-		StartedAt:  time.Now().UTC(),
+		StartedAt:  models.RFC3339Time(time.Now().UTC()),
 	}
 	return nil
 }
@@ -44,7 +44,8 @@ func (m *Manager) Start(ctx context.Context) error {
 func (m *Manager) Finish(ctx context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.run.FinishedAt = time.Now().UTC()
+	t := models.RFC3339Time(time.Now().UTC())
+	m.run.FinishedAt = &t
 	return m.store.UpsertCrawlRun(ctx, m.run)
 }
 

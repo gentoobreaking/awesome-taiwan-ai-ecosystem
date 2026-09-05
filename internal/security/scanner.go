@@ -8,269 +8,250 @@ import (
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
 
-// Scanner scans for security issues in MCP server configuration (§33, §34).
+// Scanner performs security scanning on discovered entities.
 type Scanner struct {
-	dangerousPatterns []*regexp.Regexp
 	maliciousDetector *MaliciousDetector
+	version           string
 }
 
-// New creates a new security Scanner.
-func New() *Scanner {
-	s := &Scanner{
-		dangerousPatterns: []*regexp.Regexp{
-			regexp.MustCompile(`(?i)\beval\s*\(`),
-			regexp.MustCompile(`(?i)\bexec(?:_|\s*)\(`),
-			regexp.MustCompile(`(?i)\bchild_process\.exec`),
-			regexp.MustCompile(`(?i)\brequire\s*\(\s*['"(?:child_process|fs)['"]\s*\)`),
-			regexp.MustCompile(`(?i)\b(?:npm|pip|go|composer)_install`),
-			regexp.MustCompile(`(?i)\bsubprocess\.(?:Popen|run|call)\(`),
-			regexp.MustCompile(`(?i)\bos\.system\s*\(`),
-			regexp.MustCompile(`(?i)\bspawn\s*\(`),
-			regexp.MustCompile(`(?i)\bcurl\s+.*\|\s*(?:sh|bash)`),
-			regexp.MustCompile(`(?i)\beval\s+.*\|\s*(?:sh|bash)`),
-			regexp.MustCompile(`(?i)os_system`),
-			regexp.MustCompile(`(?i)subprocess_run`),
-			regexp.MustCompile(`(?i)run_exec`),
-		},
+// NewScanner creates a new security scanner.
+func NewScanner() *Scanner {
+	return &Scanner{
 		maliciousDetector: NewMaliciousDetector(),
-	}
-	return s
-}
-
-// SecurityScanResult holds the results of scanning an MCPServer.
-type SecurityScanResult struct {
-	Findings      []models.SecurityFinding
-	RiskLevel     models.SecuritySeverity
-	ScoreImpact   float64
-	LastScanned   string
-}
-
-// ScanServer scans an MCPServer for security issues (§33).
-func (s *Scanner) ScanServer(server *models.MCPServer) SecurityScanResult {
-	var findings []models.SecurityFinding
-	seen := make(map[string]bool)
-
-	// Scan tool input schemas for injection patterns (§33.1: injection in input_schema)
-	for _, tool := range server.Tools {
-		for _, finding := range s.scanTool(tool) {
-			key := finding.Type + ":" + finding.Location
-			if !seen[key] {
-				findings = append(findings, finding)
-				seen[key] = true
-			}
-		}
-	}
-
-	// Scan endpoints for risky patterns (§33.2: insecure transport, no TLS)
-	for _, ep := range server.Endpoints {
-		for _, finding := range s.scanEndpoint(ep) {
-			key := finding.Type + ":" + finding.Location
-			if !seen[key] {
-				findings = append(findings, finding)
-				seen[key] = true
-			}
-		}
-	}
-
-	// Scan repository metadata (§33.3: malicious repository patterns)
-	for _, finding := range s.scanRepository(&server.Repository) {
-		key := finding.Type + ":" + finding.Location
-		if !seen[key] {
-			findings = append(findings, finding)
-			seen[key] = true
-		}
-	}
-
-	// Scan for malicious repository patterns (§33.4: supply chain attack detection)
-	if s.maliciousDetector != nil {
-		// Use server.Readme for README content
-		// For account metadata, use what's available from RepositoryInfo
-		var accountCreatedAt *time.Time
-		if !server.Repository.CreatedAt.IsZero() {
-			accountCreatedAt = &server.Repository.CreatedAt
-		}
-		// Follower count, profile fields, repo count not directly available
-		// Pass 0 for unknown values (will be treated as suspicious if account is new)
-		maliciousResult := s.maliciousDetector.Detect(
-			server,
-			server.Readme,
-			accountCreatedAt,
-			0, // followerCount - unknown
-			0, // profileFieldCount - unknown
-			0, // repoCount - unknown
-		)
-		if maliciousResult.IsMalicious() {
-			finding := maliciousResult.ToSecurityFinding(server.Repository.URL)
-			key := finding.Type + ":" + finding.Location
-			if !seen[key] {
-				findings = append(findings, finding)
-				seen[key] = true
-			}
-		}
-	}
-	// Compute overall risk level and score impact
-	riskLevel := models.SeverityUnknown
-	if len(findings) == 0 {
-		riskLevel = models.SeverityUnknown
-	} else {
-		for _, f := range findings {
-			if severityRank(f.Severity) > severityRank(riskLevel) {
-				riskLevel = f.Severity
-			}
-		}
-	}
-
-	scoreImpact := calculateScoreImpact(findings)
-
-	return SecurityScanResult{
-		Findings:    findings,
-		RiskLevel:   riskLevel,
-		ScoreImpact: scoreImpact,
+		version:           "1.0.0",
 	}
 }
 
-func (s *Scanner) scanTool(tool models.Tool) []models.SecurityFinding {
+// Scan performs security scanning on an entity.
+func (s *Scanner) Scan(entity *models.Entity) *models.SecurityStatusDetail {
+	findings := []models.SecurityFinding{}
+	scannedAt := time.Now().UTC()
+
+	// 1. Static analysis patterns (from spec §33)
+	findings = append(findings, s.staticAnalysis(entity)...)
+
+	// 2. Hardcoded secrets detection
+	findings = append(findings, s.detectSecrets(entity)...)
+
+	// 3. Malicious repository detection (T060)
+	maliciousResult := s.maliciousDetector.Detect(entity.RawContent, RepositoryInfo{
+		OwnerCreatedAt: toTimePtr(entity.Repository.CreatedAt),
+		OwnerFollowers: nil, // Not available in RepositoryInfo
+		OwnerBio:       nil, // Not available in RepositoryInfo
+		OwnerRepos:     nil, // Not available in RepositoryInfo
+	})
+	findings = append(findings, s.maliciousResultToFindings(maliciousResult, entity)...)
+
+	// Determine overall security status
+	status := s.determineStatus(findings)
+
+	// Calculate confidence
+	confidence := s.calculateConfidence(findings)
+
+	return &models.SecurityStatusDetail{
+		Status:          status,
+		Findings:        findings,
+		ScannedAt:       models.RFC3339Time(scannedAt),
+		ScannerVersion:  s.version,
+		Confidence:      confidence,
+	}
+}
+// staticAnalysis checks for dangerous code patterns.
+func (s *Scanner) staticAnalysis(entity *models.Entity) []models.SecurityFinding {
 	var findings []models.SecurityFinding
 
-	// Check tool name and description for suspicious patterns and keywords
-	combined := strings.ToLower(tool.Name + " " + tool.Description)
-	for _, pattern := range s.dangerousPatterns {
-		if pattern.MatchString(combined) {
+	// Patterns from spec §33
+	patterns := []struct {
+		findingType string
+		pattern     string
+		severity    string
+		source      string
+		rule        string
+	}{
+		// Shell execution
+		{"shell_execution", `exec\s*\(|shell\s*\(|subprocess\s*\(|child_process\s*\(|os\.system\s*\(`, "HIGH", "source_code", "shell_exec_pattern"},
+		// Filesystem write
+		{"filesystem_write", `os\.WriteFile|ioutil\.WriteFile|fs\.writeFile|open\(.*O_WRONLY|open\(.*O_CREATE`, "HIGH", "source_code", "fs_write_pattern"},
+		// Credential collection
+		{"credential_extraction", `password|secret|token|api[_-]?key|access[_-]?key|private[_-]?key`, "CRITICAL", "source_code", "credential_pattern"},
+		// Arbitrary URL fetch
+		{"arbitrary_url_fetch", `http\.Get\(|requests\.get\(|fetch\(|axios\.get\(|curl\s+`, "MEDIUM", "source_code", "url_fetch_pattern"},
+		// Browser automation
+		{"browser_automation", `chromedp|puppeteer|playwright|selenium`, "MEDIUM", "source_code", "browser_automation_pattern"},
+		// RCE patterns
+		{"rce_pattern", `eval\s*\(|Function\s*\(|exec\s*\(|subprocess\.run|os\.popen`, "CRITICAL", "source_code", "rce_pattern"},
+	}
+
+	content := entity.RawContent
+
+	for _, p := range patterns {
+		re := regexp.MustCompile(`(?i)` + p.pattern)
+		matches := re.FindAllStringIndex(content, -1)
+		for _, match := range matches {
+			start := match[0]
+			end := match[1]
+			// Get context around match
+			contextStart := max(0, start-50)
+			contextEnd := min(len(content), end+50)
+			evidence := content[contextStart:contextEnd]
+
 			findings = append(findings, models.SecurityFinding{
-				Type:     "suspicious_tool_name",
-				Severity: models.SeverityHigh,
-				Source:   "security.scanner",
-				Location: "tool:" + tool.Name,
-				Evidence: "Potentially dangerous function call pattern detected in tool metadata",
+				Type:        p.findingType,
+				Severity:    p.severity,
+				Source:      p.source,
+				Location:    "readme/source",
+				Evidence:    evidence,
+				Rule:        p.rule,
+				Confidence:  0.7,
 			})
-			break
-		}
-	}
-
-	// Also check for dangerous keywords in tool name
-	if s.hasDangerousKeyword(combined) {
-		findings = append(findings, models.SecurityFinding{
-			Type:     "suspicious_tool_name",
-			Severity: models.SeverityMedium,
-			Source:   "security.scanner",
-			Location: "tool:" + tool.Name,
-			Evidence: "Potentially dangerous keyword detected in tool metadata",
-		})
-	}
-
-	// Check input_schema for code execution hints
-	if raw, ok := tool.InputSchema["properties"]; ok {
-		if propsStr, ok := raw.(string); ok {
-			for _, pattern := range s.dangerousPatterns {
-				if pattern.MatchString(strings.ToLower(propsStr)) {
-					findings = append(findings, models.SecurityFinding{
-						Type:     "unsafe_input_schema",
-						Severity: models.SeverityHigh,
-						Source:   "security.scanner",
-						Location: "tool:" + tool.Name + ".input_schema",
-						Evidence: "Unsafe deserialization or code execution pattern in input schema",
-					})
-					break
-				}
-			}
 		}
 	}
 
 	return findings
 }
 
-func (s *Scanner) scanEndpoint(ep models.Endpoint) []models.SecurityFinding {
+// detectSecrets checks for hardcoded secrets.
+func (s *Scanner) detectSecrets(entity *models.Entity) []models.SecurityFinding {
 	var findings []models.SecurityFinding
 
-	// Check for insecure HTTP (not HTTPS) endpoints
-	if !ep.TLS && strings.HasPrefix(strings.ToLower(ep.URL), "http://") {
-		findings = append(findings, models.SecurityFinding{
-			Type:     "insecure_transport",
-			Severity: models.SeverityLow,
-			Source:   "security.scanner",
-			Location: "endpoint:" + ep.URL,
-			Evidence: "Endpoint uses HTTP without TLS",
-		})
+	content := entity.RawContent
+
+	// Secret patterns
+	secretPatterns := []struct {
+		pattern string
+		rule    string
+	}{
+		{`(?i)(api[_-]?key|apikey)\s*[:=]\s*["']?[a-zA-Z0-9_\-]{20,}["']?`, "api_key_pattern"},
+		{`(?i)(password|passwd)\s*[:=]\s*["']?[^"'\s]{8,}["']?`, "password_pattern"},
+		{`(?i)(token|access[_-]?token)\s*[:=]\s*["']?[a-zA-Z0-9_\-]{20,}["']?`, "token_pattern"},
+		{`(?i)(secret|secret[_-]?key)\s*[:=]\s*["']?[a-zA-Z0-9_\-]{20,}["']?`, "secret_pattern"},
+		{`(?i)(private[_-]?key)\s*[:=]\s*["']?[a-zA-Z0-9_\-]{20,}["']?`, "private_key_pattern"},
+		{`(?:^|\s)(sk|pk)_(live|test)_[a-zA-Z0-9]{24,}(?:\s|$)`, "stripe_key_pattern"},
+		{`(?:^|\s)gh[pousr]_[a-zA-Z0-9]{36,}(?:\s|$)`, "github_token_pattern"},
+		{`(?:^|\s)AIza[0-9A-Za-z\-_]{35}(?:\s|$)`, "google_api_key_pattern"},
 	}
 
-	// Check for localhost/127.0.0.1 endpoints exposed publicly
-	lowerURL := strings.ToLower(ep.URL)
-	if strings.Contains(lowerURL, "127.0.0.1") || strings.Contains(lowerURL, "localhost") {
+	for _, p := range secretPatterns {
+		re := regexp.MustCompile(p.pattern)
+		matches := re.FindAllStringIndex(content, -1)
+		for _, match := range matches {
+			start := match[0]
+			end := match[1]
+			contextStart := max(0, start-30)
+			contextEnd := min(len(content), end+30)
+			evidence := content[contextStart:contextEnd]
+
+			findings = append(findings, models.SecurityFinding{
+				Type:        "hardcoded_secret",
+				Severity:    "CRITICAL",
+				Source:      "source_code",
+				Location:    "readme/source",
+				Evidence:    evidence,
+				Rule:        p.rule,
+				Confidence:  0.8,
+			})
+		}
+	}
+
+	return findings
+}
+
+// maliciousResultToFindings converts MaliciousResult to SecurityFinding.
+func (s *Scanner) maliciousResultToFindings(result MaliciousResult, entity *models.Entity) []models.SecurityFinding {
+	var findings []models.SecurityFinding
+
+	for _, signal := range result.Signals {
+		severity := string(signal.Severity)
+		// Map malicious risk levels to security severity
+		switch signal.Severity {
+		case RiskLevelCritical:
+			severity = "CRITICAL"
+		case RiskLevelHigh:
+			severity = "HIGH"
+		case RiskLevelMedium:
+			severity = "MEDIUM"
+		case RiskLevelLow:
+			severity = "LOW"
+		}
+
 		findings = append(findings, models.SecurityFinding{
-			Type:     "localhost_exposure",
-			Severity: models.SeverityLow,
-			Source:   "security.scanner",
-			Location: "endpoint:" + ep.URL,
-			Evidence: "Endpoint binds to localhost — may not be accessible",
+			Type:        "malicious_repository",
+			Severity:    severity,
+			Source:      "malicious_detector",
+			Location:    "readme/account",
+			Evidence:    signal.Evidence,
+			Rule:        signal.Type,
+			Confidence:  signal.Confidence,
 		})
 	}
 
 	return findings
 }
 
-func (s *Scanner) scanRepository(repo *models.RepositoryInfo) []models.SecurityFinding {
-	var findings []models.SecurityFinding
-
-	// Check if it's a fork that might be a malicious copy
-	if repo.Fork {
-		findings = append(findings, models.SecurityFinding{
-			Type:     "fork_repository",
-			Severity: models.SeverityLow,
-			Source:   "security.scanner",
-			Location: "repository:" + repo.URL,
-			Evidence: "Repository is a fork — verify upstream authenticity",
-		})
+// determineStatus determines overall security status from findings.
+func (s *Scanner) determineStatus(findings []models.SecurityFinding) models.SecurityStatus {
+	if len(findings) == 0 {
+		return models.SecurityStatusClean
 	}
 
-	return findings
-}
+	hasCritical := false
+	hasHigh := false
+	hasMedium := false
 
-func severityRank(s models.SecuritySeverity) int {
-	switch s {
-	case models.SeverityCritical:
-		return 4
-	case models.SeverityHigh:
-		return 3
-	case models.SeverityMedium:
-		return 2
-	case models.SeverityLow:
-		return 1
-	default:
-		return 0
-	}
-}
-
-func calculateScoreImpact(findings []models.SecurityFinding) float64 {
-	impact := 0.0
 	for _, f := range findings {
-		switch f.Severity {
-		case models.SeverityCritical:
-			impact -= 5
-		case models.SeverityHigh:
-			impact -= 3
-		case models.SeverityMedium:
-			impact -= 1
-		case models.SeverityLow:
-			impact -= 0.5
+		switch strings.ToUpper(f.Severity) {
+		case "CRITICAL":
+			hasCritical = true
+		case "HIGH":
+			hasHigh = true
+		case "MEDIUM":
+			hasMedium = true
 		}
 	}
-	if impact < 0 {
-		impact = 0
+
+	if hasCritical {
+		return models.SecurityStatusQuarantined // or Blocked for confirmed
 	}
-	return impact
+	if hasHigh {
+		return models.SecurityStatusQuarantined
+	}
+	if hasMedium {
+		return models.SecurityStatusSuspicious
+	}
+
+	return models.SecurityStatusClean
 }
 
-// dangerousKeywords are suspicious substrings commonly found in risky tool names.
-var dangerousKeywords = []string{
-	"eval", "exec", "system", "shell", "subprocess", "spawn",
-	"child_process", "os.system", "os.popen", "runtime.exec",
+// calculateConfidence calculates overall confidence from findings.
+func (s *Scanner) calculateConfidence(findings []models.SecurityFinding) float64 {
+	if len(findings) == 0 {
+		return 1.0
+	}
+
+	total := 0.0
+	for _, f := range findings {
+		total += f.Confidence
+	}
+	return total / float64(len(findings))
 }
 
-func (s *Scanner) hasDangerousKeyword(s_combined string) bool {
-	for _, kw := range dangerousKeywords {
-		if strings.Contains(s_combined, kw) {
-			return true
-		}
+// Helper functions
+func max(a, b int) int {
+	if a > b {
+		return a
 	}
-	return false
+	return b
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// toTimePtr converts RFC3339Time to *time.Time
+func toTimePtr(t models.RFC3339Time) *time.Time {
+	tm := time.Time(t)
+	return &tm
 }

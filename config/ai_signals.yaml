@@ -1,0 +1,57 @@
+core_ai_keywords:
+  - AI
+  - "Artificial Intelligence"
+  - LLM
+  - "Large Language Model"
+  - "Generative AI"
+  - GenAI
+  - "Machine Learning"
+  - "Deep Learning"
+
+agent_keywords:
+  - agent
+  - agentic
+  - "AI agent"
+  - "AI assistant"
+  - "autonomous agent"
+
+rag_keywords:
+  - RAG
+  - retrieval
+  - embedding
+  - vector
+  - "vector database"
+  - "semantic search"
+
+llm_provider_keywords:
+  - Claude
+  - ChatGPT
+  - Gemini
+  - OpenAI
+  - Anthropic
+  - Cohere
+  - Mistral
+  - Llama
+
+mcp_keywords:
+  - MCP
+  - "Model Context Protocol"
+  - "tool calling"
+  - "function calling"
+  - "AI workflow"
+
+framework_keywords:
+  - LangChain
+  - LlamaIndex
+  - AutoGen
+  - CrewAI
+  - Semantic Kernel
+  - LangGraph
+
+package_patterns:
+  - "@modelcontextprotocol/"
+  - "langchain"
+  - "llamaindex"
+  - "openai"
+  - "anthropic"
+  - "google-generativeai"

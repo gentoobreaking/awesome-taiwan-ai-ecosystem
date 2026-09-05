@@ -61,7 +61,7 @@ type urlSet struct {
 // get fetches URL as bytes.
 func (a *Adapter) get(ctx context.Context, target string) ([]byte, error) {
 	if a.HTTPClient != nil {
-		data, status, err := a.HTTPClient.Get(ctx, target, map[string]string{"User-Agent": "github.com/david/awesome-taiwan-mcp/1.0"})
+		data, status, err := a.HTTPClient.Get(ctx, target, map[string]string{"User-Agent": "awesome-taiwan-ai-ecosystem/1.0"})
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +78,7 @@ func (a *Adapter) get(ctx context.Context, target string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "github.com/david/awesome-taiwan-mcp/1.0")
+	req.Header.Set("User-Agent", "awesome-taiwan-ai-ecosystem/1.0")
 	req.Header.Set("Accept", "application/xml, text/xml, */*")
 	resp, err := client.Do(req)
 	if err != nil {
@@ -234,7 +234,8 @@ func canonicalSlug(raw string) string {
 	return slug
 }
 
-func (a *Adapter) Fetch(ctx context.Context, candidate models.RawCandidate) (*sources.RawRecord, error) {
+// Fetch retrieves detail HTML and extracts GitHub URL, homepage, and readme.
+func (a *Adapter) Fetch(ctx context.Context, candidate models.RawCandidate) (*models.RawRecord, error) {
 	target := candidate.SourceURL
 	if target == "" {
 		return nil, fmt.Errorf("empty SourceURL")
@@ -365,21 +366,14 @@ func (a *Adapter) Fetch(ctx context.Context, candidate models.RawCandidate) (*so
 	readme := strings.Join(readmeParts, "\n\n")
 
 	// Build record
-	rec := &sources.RawRecord{
-		Candidate:    candidate,
+	rec := &models.RawRecord{
+		RawCandidate: candidate,
 		Readme:       readme,
-		Repository:   nil,
-		Manifest:     nil,
-		Tools:        nil,
-		Resources:    nil,
-		Prompts:      nil,
-		Endpoints:    nil,
-		Transport:    nil,
-		PackageFiles: nil,
 	}
+	// Update candidate's RepositoryURL for downstream dedup
 	if repoURL != "" {
-		rec.Candidate.RepositoryURL = repoURL
-		rec.Repository = &models.RepositoryInfo{
+		rec.RawCandidate.RepositoryURL = repoURL
+		rec.Repository = models.RepositoryInfo{
 			URL:  repoURL,
 			Host: "github.com",
 		}
@@ -392,9 +386,7 @@ func (a *Adapter) Fetch(ctx context.Context, candidate models.RawCandidate) (*so
 			}
 		}
 	} else if homepage != "" {
-		rec.Candidate.HomepageURL = homepage
-	} else {
-		// keep original
+		rec.RawCandidate.HomepageURL = homepage
 	}
 
 	return rec, nil

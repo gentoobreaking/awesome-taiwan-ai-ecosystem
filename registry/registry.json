@@ -16959,8 +16959,8 @@
     },
     {
       "id": "4f499f263f5063e74326266958b26547e3043d0961c201d24c1419e7fd9d1263",
-      "name": "awesome-taiwan-mcp",
-      "slug": "awesome-taiwan-mcp",
+      "name": "awesome-taiwan-ai-ecosystem",
+      "slug": "awesome-taiwan-ai-ecosystem",
       "description": "\u003cdiv align=\"center\"\u003e",
       "region": null,
       "category": null,
@@ -16983,10 +16983,10 @@
         ]
       },
       "repository": {
-        "url": "https://github.com/gentoobreaking/awesome-taiwan-mcp",
+        "url": "https://github.com/gentoobreaking/awesome-taiwan-ai-ecosystem",
         "host": "github.com",
         "owner": "gentoobreaking",
-        "name": "awesome-taiwan-mcp",
+        "name": "awesome-taiwan-ai-ecosystem",
         "stars": 0,
         "forks": 0,
         "watchers": 0,
@@ -17036,7 +17036,7 @@
       "sources": [
         {
           "source": "github",
-          "url": "https://github.com/gentoobreaking/awesome-taiwan-mcp",
+          "url": "https://github.com/gentoobreaking/awesome-taiwan-ai-ecosystem",
           "discovered_at": "0001-01-01T00:00:00Z",
           "last_seen": "0001-01-01T00:00:00Z",
           "trust_score": 0

@@ -127,7 +127,7 @@ go build -o crawler ./cmd/crawler
 ### Docker
 
 ```bash
-docker build -t awesome-taiwan-mcp .
+docker build -t awesome-taiwan-ai-ecosystem .
 ```
 
 ## Configuration
@@ -361,7 +361,7 @@ go vet ./...
 go mod verify
 
 # Docker
-docker build -t awesome-taiwan-mcp .
+docker build -t awesome-taiwan-ai-ecosystem .
 docker compose up
 ```
 
@@ -374,11 +374,11 @@ The Dockerfile uses multi-stage build:
 Security: non-root user (uid 1000), no privileged, resource limits.
 
 ```bash
-docker build -t awesome-taiwan-mcp .
+docker build -t awesome-taiwan-ai-ecosystem .
 docker run --rm \
   -e GITHUB_TOKEN=your_token \
   -v $(pwd)/data:/data \
-  awesome-taiwan-mcp crawl --db /data/registry.db
+  awesome-taiwan-ai-ecosystem crawl --db /data/registry.db
 ```
 
 ## Development
