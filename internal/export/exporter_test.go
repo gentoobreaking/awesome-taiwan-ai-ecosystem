@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
@@ -319,5 +320,56 @@ func TestExportMarkdown_LevelDescriptions(t *testing.T) {
 	// Verify functional category grouping
 	if !strings.Contains(md, "💰 Finance & Fintech") {
 		t.Error("Markdown missing functional category")
+	}
+}
+
+func TestExportMarkdown_UTF8Sanitization(t *testing.T) {
+	servers := []models.MCPServer{
+		{
+			ID:          "utf8-test",
+			Name:        "Test UTF8",
+			Category:    []string{"finance"},
+			Description: "測試台灣法律 RAG \xff\xfe非法字元",
+			Repository: models.RepositoryInfo{
+				Name: "test-utf8",
+				URL:  "https://github.com/test/utf8",
+			},
+			TaiwanRelevance: models.TaiwanRelevance{
+				Level:      "T3",
+				Score:      60,
+				Confidence: 0.9,
+			},
+			Health:  models.HealthHealthy,
+			Quality: models.QualityScore{Grade: "B", Score: 75},
+		},
+	}
+
+	re := New()
+	tmpDir := t.TempDir()
+	mdPath := filepath.Join(tmpDir, "REGISTRY.md")
+
+	if err := re.ExportMarkdown(mdPath, servers); err != nil {
+		t.Fatalf("ExportMarkdown error: %v", err)
+	}
+
+	// Verify the file is valid UTF-8
+	data, err := os.ReadFile(mdPath)
+	if err != nil {
+		t.Fatalf("ReadFile error: %v", err)
+	}
+
+	// Invalid UTF-8 bytes should be stripped, valid UTF-8 preserved
+	if !utf8.Valid(data) {
+		t.Error("Markdown file contains invalid UTF-8")
+	}
+
+	// The Chinese text should be preserved
+	if !strings.Contains(string(data), "測試台灣") {
+		t.Error("Markdown missing UTF-8 content")
+	}
+
+	// Invalid bytes should be gone
+	if strings.Contains(string(data), "\xff\xfe") {
+		t.Error("Markdown contains invalid UTF-8 bytes")
 	}
 }

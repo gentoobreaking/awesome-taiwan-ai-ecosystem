@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -174,10 +175,28 @@ func computeStatistics(servers []models.MCPServer) Statistics {
 }
 
 func writeFile(path string, data []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return fmt.Errorf("create dir: %w", err)
 	}
-	return os.WriteFile(path, data, 0644)
+	// Ensure UTF-8 encoding (strip invalid bytes from source data)
+	data = sanitizeUTF8(data)
+	return os.WriteFile(path, data, 0o644)
+}
+
+// sanitizeUTF8 removes invalid UTF-8 sequences from byte data
+func sanitizeUTF8(data []byte) []byte {
+	s := strings.ToValidUTF8(string(data), "")
+	return []byte(s)
+}
+// stripHTMLTags removes HTML tags for clean markdown display.
+func stripHTMLTags(s string) string {
+	// Remove HTML tags like <div align="center">
+	re := regexp.MustCompile(`<[^>]+>`)
+	s = re.ReplaceAllString(s, "")
+	// Remove HTML comments like <!--lint disable-->
+	re2 := regexp.MustCompile(`<!--[^>]*-->`)
+	s = re2.ReplaceAllString(s, "")
+	return strings.TrimSpace(s)
 }
 
 func writeJSON(path string, v interface{}, indent bool) error {
@@ -323,7 +342,7 @@ func serverMarkdown(s models.MCPServer) string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("**%s**", s.Name))
 	if s.Description != "" {
-		desc := s.Description
+		desc := stripHTMLTags(s.Description)
 		if len(desc) > 150 {
 			desc = desc[:150] + "..."
 		}
@@ -376,7 +395,7 @@ func serverMarkdownIntl(s models.MCPServer) string {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("**%s**", s.Name))
 	if s.Description != "" {
-		desc := s.Description
+		desc := stripHTMLTags(s.Description)
 		if len(desc) > 150 {
 			desc = desc[:150] + "..."
 		}
