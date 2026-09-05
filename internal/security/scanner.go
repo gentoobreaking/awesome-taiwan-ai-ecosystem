@@ -1,9 +1,9 @@
-// Package security implements security scanning for MCP server discovery.
 package security
 
 import (
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
@@ -11,11 +11,12 @@ import (
 // Scanner scans for security issues in MCP server configuration (§33, §34).
 type Scanner struct {
 	dangerousPatterns []*regexp.Regexp
+	maliciousDetector *MaliciousDetector
 }
 
 // New creates a new security Scanner.
 func New() *Scanner {
-	return &Scanner{
+	s := &Scanner{
 		dangerousPatterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)\beval\s*\(`),
 			regexp.MustCompile(`(?i)\bexec(?:_|\s*)\(`),
@@ -31,7 +32,9 @@ func New() *Scanner {
 			regexp.MustCompile(`(?i)subprocess_run`),
 			regexp.MustCompile(`(?i)run_exec`),
 		},
+		maliciousDetector: NewMaliciousDetector(),
 	}
+	return s
 }
 
 // SecurityScanResult holds the results of scanning an MCPServer.
@@ -78,6 +81,33 @@ func (s *Scanner) ScanServer(server *models.MCPServer) SecurityScanResult {
 		}
 	}
 
+	// Scan for malicious repository patterns (§33.4: supply chain attack detection)
+	if s.maliciousDetector != nil {
+		// Use server.Readme for README content
+		// For account metadata, use what's available from RepositoryInfo
+		var accountCreatedAt *time.Time
+		if !server.Repository.CreatedAt.IsZero() {
+			accountCreatedAt = &server.Repository.CreatedAt
+		}
+		// Follower count, profile fields, repo count not directly available
+		// Pass 0 for unknown values (will be treated as suspicious if account is new)
+		maliciousResult := s.maliciousDetector.Detect(
+			server,
+			server.Readme,
+			accountCreatedAt,
+			0, // followerCount - unknown
+			0, // profileFieldCount - unknown
+			0, // repoCount - unknown
+		)
+		if maliciousResult.IsMalicious() {
+			finding := maliciousResult.ToSecurityFinding(server.Repository.URL)
+			key := finding.Type + ":" + finding.Location
+			if !seen[key] {
+				findings = append(findings, finding)
+				seen[key] = true
+			}
+		}
+	}
 	// Compute overall risk level and score impact
 	riskLevel := models.SeverityUnknown
 	if len(findings) == 0 {

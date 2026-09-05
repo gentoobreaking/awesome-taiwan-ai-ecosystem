@@ -42,10 +42,15 @@ var (
 	jsonOutput     bool
 	minScore       int
 	levelFilter    string
-	catFilter      string
-	capabilityFlag string
-	markdownExport bool
-	maxPerSource   int
+	catFilter       string
+	capabilityFlag  string
+	markdownExport  bool
+	maliciousReport bool
+	maliciousDir    string
+	maliciousThreshold string
+	injectionReport bool
+	injectionDir    string
+	maxPerSource    int
 )
 
 func main() {
@@ -107,7 +112,10 @@ func main() {
 	rootCmd.PersistentFlags().IntVar(&minScore, "min-score", 0, "minimum quality score filter")
 	rootCmd.PersistentFlags().StringVar(&capabilityFlag, "capability", "", "search by capability keywords")
 	rootCmd.PersistentFlags().StringVar(&catFilter, "category", "", "filter by category")
-
+	rootCmd.PersistentFlags().BoolVar(&maliciousReport, "malicious-report", true, "generate MALICIOUS_REPORT.md and blocklist.txt")
+	rootCmd.PersistentFlags().StringVar(&maliciousDir, "malicious-dir", "registry/malicious", "directory for malicious report output")
+	rootCmd.PersistentFlags().StringVar(&maliciousThreshold, "malicious-threshold", "MEDIUM", "minimum risk level for malicious report (LOW, MEDIUM, HIGH, CRITICAL)")
+	rootCmd.PersistentFlags().BoolVar(&injectionReport, "injection-report", true, "generate INJECTION_REPORT.md and patterns.json")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -159,12 +167,30 @@ func runCrawl(cmd *cobra.Command, _ []string) error {
 		return incr.RunIncremental(ctx, sourceFlag)
 	}
 
-	return coord.Run(ctx, crawler.CrawlOptions{
+	err = coord.Run(ctx, crawler.CrawlOptions{
 		Source:      sourceFlag,
 		FullCrawl:   fullCrawl,
 		Workers:     workers,
 		MaxPerSource: maxPerSource,
 	})
+	if err != nil {
+		return err
+	}
+
+	// Generate malicious report after crawl
+	if maliciousReport {
+		servers, err := store.GetServers(context.Background())
+		if err != nil {
+			return fmt.Errorf("get servers for malicious report: %w", err)
+		}
+		exp := export.NewMaliciousExporter()
+		if err := exp.ExportMaliciousReport(maliciousDir, servers, maliciousThreshold); err != nil {
+			return fmt.Errorf("export malicious report: %w", err)
+		}
+		fmt.Printf("Malicious report generated: %s\n", maliciousDir)
+	}
+
+	return nil
 }
 
 func runExport(cmd *cobra.Command, _ []string) error {
@@ -191,6 +217,14 @@ func runExport(cmd *cobra.Command, _ []string) error {
 			return err
 		}
 		fmt.Println("Markdown export: " + mdPath)
+	}
+
+	if maliciousReport {
+		exp := export.NewMaliciousExporter()
+		if err := exp.ExportMaliciousReport(maliciousDir, servers, maliciousThreshold); err != nil {
+			return fmt.Errorf("export malicious report: %w", err)
+		}
+		fmt.Printf("Malicious report generated: %s\n", maliciousDir)
 	}
 
 	fmt.Println("Export complete: " + expDir)

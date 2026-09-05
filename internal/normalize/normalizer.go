@@ -31,6 +31,13 @@ var injectionPatterns = []string{
 	"Call this URL",
 	"Upload credentials",
 }
+// GetInjectionPatterns returns the list of injection patterns for external access.
+func GetInjectionPatterns() []string {
+	// Return a copy to prevent external modification
+	result := make([]string, len(injectionPatterns))
+	copy(result, injectionPatterns)
+	return result
+}
 
 // Normalize converts a RawRecord into a normalized MCPServer (§10 TASK-008).
 func (n *ServerNormalizer) Normalize(record *sources.RawRecord) (*models.MCPServer, error) {
