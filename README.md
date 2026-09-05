@@ -1,39 +1,116 @@
-# Taiwan MCP Crawler
+# Awesome Taiwan MCP
 
 Automated crawler for discovering, analyzing, and verifying Taiwan-related MCP Servers.
 
 ## Overview
 
-The Taiwan MCP Crawler continuously discovers MCP Servers from multiple sources (GitHub, Official Registry), normalizes them, deduplicates, classifies Taiwan relevance, verifies health, scores quality, and exports a standardized registry.
+**Awesome Taiwan MCP** crawls multiple sources (GitHub, official registries) to discover MCP (Model Context Protocol) servers with Taiwan relevance, normalizes them, deduplicates, classifies Taiwan relevance, verifies health and protocols, scores quality, and exports a standardized registry.
 
-**Pipeline:** `Discovery → Candidate → Normalize → Deduplicate → Taiwan Relevance Detection → Repository/Endpoint Verification → Capability Extraction → Health Check → Quality Scoring → Registry`
+The crawler identifies servers related to Taiwan through keyword matching, official domains (e.g. `.gov.tw`, `.org.tw`), government APIs, financial APIs (TWSE, TPEx), real estate data, and Traditional Chinese language detection.
 
-## Quick Start
+**Pipeline:** Discovery → Normalize → Taiwan Scoring → LLM Classification → Dedup → Verify → Health Check → Quality Score → Persist → Export
 
-```bash
-# Build
-go build ./cmd/crawler
+## Features
 
-# Run a crawl
-./crawler crawl --source github --workers 4
+- **Multi-source discovery**: GitHub repositories, official MCP registries
+- **Taiwan classification**: 6-level relevance (T0-T5) based on official domains, government APIs, financial data, language detection
+- **Quality scoring**: 10-component quality assessment (A-F grade)
+- **Security scanning**: Injection patterns, unsafe transport, fork detection
+- **Protocol verification**: Full MCP protocol (initialize, tools/list, resources/list, prompts/list)
+- **Health checking**: Endpoint latency and availability monitoring
+- **Incremental crawling**: `--incremental` flag only re-crawls changed candidates
+- **LLM classification**: Ambiguous candidates (score 20-55) are classified via OpenAI-compatible LLM API
+- **JSON registry export**: registry.json, registry.min.json, categories.json, sources.json, statistics.json, health.json
+- **Markdown export**: Human-readable REGISTRY.md with full server details
+- **Search**: Text search and capability-based search
+- **SQLite persistence**: All data stored in SQLite (modernc.org/sqlite, pure Go)
 
-# Export registry
-./crawler export
+## Architecture
 
-# Search servers
-./crawler search "taiwan"
-
-# View stats
-./crawler stats
 ```
+┌─────────────────────────────────────────────────────────────┐
+│                        CLI (cmd/crawler)                      │
+│              Commands: crawl, export, search, stats         │
+└─────────────┬───────────────────────────────────────────────┘
+              │
+┌─────────────▼───────────────────────────────────────────────┐
+│                   CrawlCoordinator                           │
+│  Orchestrates the full pipeline (8 stages):                   │
+│  1. Discover + Fetch  2. Normalize  3. Taiwan Score           │
+│  3b. LLM Classification  4. Quality Score  5. Identity        │
+│  6. Dedup  6.5. Verify  7. Persist  8. Finish                │
+└───────────────────────────────────────────────────────────────┘
+              │
+    ┌─────────┴─────────┬──────────────────┬──────────────────┐
+    │                   │                  │                  │
+    ▼                   ▼                  ▼                  ▼
+  Sources           Storage            Verify           Export
+  (adapters)    (SQLite store)      (repo/proto)     (JSON + MD)
+    │                   │                  │
+    ▼                   ▼                  ▼
+  GitHub          SQLite DB           Health
+  Registry                           Security
+                                          │
+                                          ▼
+                                       Scoring
+```
+
+## Project Structure
+
+```
+├── cmd/crawler/
+│   └── main.go               # CLI entry point (cobra)
+├── internal/
+│   ├── classify/             # Taiwan relevance classification
+│   │   ├── keywords.go       # Keyword matching (embedded config)
+│   │   ├── llm.go            # LLM classifier (OpenAI-compatible API)
+│   │   └── rules.go          # Scoring rules (official domain, gov API, etc.)
+│   ├── crawler/              # Pipeline orchestration
+│   │   ├── coordinator.go    # CrawlCoordinator (8-stage pipeline)
+│   │   ├── incremental.go    # IncrementalCrawler
+│   │   └── run/              # Crawl run management
+│   ├── dedupe/               # Deduplication engine
+│   ├── evidence/             # Evidence collection
+│   ├── health/               # Endpoint health checking
+│   ├── manifest/             # MCP manifest detection
+│   ├── metrics/              # Structured logging + crawl metrics
+│   ├── models/               # Data models (MCPServer, etc.)
+│   ├── normalize/            # Normalizer (RawRecord → MCPServer)
+│   ├── retry/                # Retry client with exponential backoff
+│   ├── scoring/              # Quality scoring engine (10 components)
+│   ├── search/               # Search engine (text + capability)
+│   ├── security/             # Security scanner
+│   ├── sources/              # Source adapters
+│   │   ├── github/           # GitHub repo discovery
+│   │   └── registry/         # Official registry adapter
+│   ├── storage/              # SQLite persistence
+│   └── verify/               # Repository + MCP protocol verification
+├── config/
+│   ├── keywords.yaml         # Taiwan keyword matrix
+│   └── domains.yaml          # Official Taiwan domains
+├── tests/
+│   ├── fixtures/             # JSON test fixtures
+│   ├── integration/          # E2E pipeline tests
+│   ├── unit/                 # Unit + golden regression tests
+│   └── benchmarks/           # Performance benchmarks
+├── Dockerfile                # Multi-stage: golang:1.26-alpine → alpine:latest
+├── docker-compose.yaml       # crawler service
+└── .golangci.yml             # Linter config
+```
+
+## Requirements
+
+- **Go** 1.25+
+- **GITHUB_TOKEN** — GitHub API token for repository discovery
+- **OPENAI_API_KEY** — (optional) For LLM classification of ambiguous candidates
+- **OPENAI_BASE_URL** — (optional) OpenAI-compatible API endpoint, defaults to `https://api.openai.com/v1`
+- **Docker** — For container builds
 
 ## Installation
 
-### From source
+### Build from source
 
 ```bash
-git clone <repo>
-cd awesome-taiwan-mcp
 go build -o crawler ./cmd/crawler
 ```
 
@@ -41,113 +118,267 @@ go build -o crawler ./cmd/crawler
 
 ```bash
 docker build -t awesome-taiwan-mcp .
-docker run --rm awesome-taiwan-mcp version
 ```
 
-### Docker Compose
+## Configuration
+
+| Environment Variable | Required | Default | Description |
+|---|---|---|---|
+| `GITHUB_TOKEN` | Yes | — | GitHub API token for repository search and fetch |
+| `OPENAI_API_KEY` | No | — | OpenAI-compatible API key for LLM classification |
+| `OPENAI_BASE_URL` | No | `https://api.openai.com/v1` | OpenAI-compatible API base URL |
+| `OPENAI_MODEL` | No | — | Override model (fallback chain: `opencode/muse-spark-1.2-contributor-free` → `opencopen/nemotron-3-ultra-free`) |
+
+CLI flags:
+
+| Flag | Default | Description |
+|---|---|---|
+| `--source` | `all` | Source to crawl: `github`, `registry`, or `all` |
+| `--workers` | `4` | Number of workers per source |
+| `--max-per-source` | `10` | Max candidates to fetch per source (0=unlimited) |
+| `--full` | `false` | Force full crawl |
+| `--incremental` | `false` | Run incremental crawl (checks last crawl time) |
+| `--db` | `./data/registry.db` | SQLite database path |
+| `--config` | `config/sources.yaml` | Config file path |
+| `--markdown` | `false` | (export subcommand) Also generate REGISTRY.md |
+| `--capability` | — | (search subcommand) Search by capability keywords |
+| `--min-score` | `0` | Minimum quality score filter |
+| `--level` | — | Filter by Taiwan relevance level (T0-T5) |
+| `--category` | — | Filter by category |
+
+## Quick Start
 
 ```bash
-docker compose up -d
+# 1. Crawl Taiwan MCP servers
+export GITHUB_TOKEN=your_github_token_here
+./crawler crawl --source github --workers 4 --max-per-source 10
+
+# 2. Export registry
+./crawler export --markdown
+
+# 3. Search servers
+./crawler search "taiwan"
+./crawler search --capability "filesystem"
+
+# 4. View stats
+./crawler stats
 ```
 
-## Commands
+## Usage
 
-| Command | Description |
-|---------|-------------|
-| `crawl` | Run a crawl with options for source, workers, full/incremental |
-| `export` | Export registry as JSON files |
-| `search` | Search servers by text query |
-| `stats` | Show crawl statistics |
-| `version` | Print version information |
+### Crawl
 
-### Crawl flags
+```bash
+# Full crawl (force refresh all)
+./crawler crawl --full --source all
 
+# Incremental crawl (only check for updates)
+./crawler crawl --incremental --source github
+
+# Limit candidates per source
+./crawler crawl --source github --max-per-source 20
 ```
-crawler crawl [--source <github\|registry\|all>] [--workers N] [--full] [--db <path>]
+
+### Export
+
+```bash
+# Export JSON registry (6 files)
+./crawler export
+
+# Also generate human-readable markdown
+./crawler export --markdown
 ```
 
-## Architecture
+Output files in `registry/`:
+- `registry.json` — Full registry with all server data
+- `registry.min.json` — Compact version for web clients
+- `categories.json` — Category distribution
+- `sources.json` — Source distribution
+- `statistics.json` — Aggregate statistics
+- `health.json` — Health status per server
+- `REGISTRY.md` — Human-readable markdown (with `--markdown`)
 
+### Search
+
+```bash
+# Text search
+./crawler search "financial"
+./crawler search --level T3
+
+# Capability search
+./crawler search --capability "filesystem"
+./crawler search --capability "database"
+
+# Filter by quality
+./crawler search --min-score 70
+
+# JSON output
+./crawler search "taiwan" --json
 ```
-cmd/crawler/          CLI entry point (cobra)
-internal/
-  classify/     Taiwan relevance classification (T0–T5)
-  dedupe/       Deduplication engine
-  evidence/     Evidence collection
-  health/       Endpoint health checks
-  manifest/     Server manifest detection
-  metrics/      Structured logging + metrics
-  models/       Core data models
-  normalize/    Raw→canonical normalization
-  retry/        Exponential backoff retry
-  scoring/      Quality scoring (10 components)
-  search/       Search engine with ranking
-  security/     Security scanning
-  sources/      Source adapters (github, registry)
-  storage/      SQLite persistence (modernc.org/sqlite)
-  verify/       Repository + MCP protocol verification
-config/         keywords.yaml, domains.yaml
-Dockerfile      Multi-stage build (golang:1.26-alpine → alpine)
-docker-compose.yaml  Production compose
-tests/fixtures/ Test fixtures for all scenarios
+
+### Stats
+
+```bash
+./crawler stats
 ```
 
 ## Data Model
 
-Each MCP Server is represented as `models.MCPServer` with:
+### MCPServer
 
-- **Repository**: URL, owner, name, language, stars, etc.
-- **Taiwan Relevance**: T0–T5 classification with evidence
-- **Quality Score**: 0–100 across 10 components
-- **Health Status**: healthy, degraded, or unavailable
-- **Tools**: Available tools extracted from the MCP server
-- **Resources**: Available resources
-- **Security**: Findings from security scanner
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | SHA256 of normalized repo URL (CanonicalID) |
+| `name` | `string` | Display name |
+| `slug` | `string` | URL-safe slug |
+| `description` | `string` | Short description |
+| `taiwan_relevance` | `TaiwanRelevance` | Taiwan classification (level T0-T5, score, confidence, evidence) |
+| `repository` | `RepositoryInfo` | GitHub repository metadata |
+| `endpoints` | `[]Endpoint` | MCP endpoints (URL, transport, TLS) |
+| `tools` | `[]Tool` | Extracted tools |
+| `resources` | `[]Resource` | Extracted resources |
+| `prompts` | `[]Prompt` | Extracted prompts |
+| `quality` | `QualityScore` | 100-point quality assessment (score, grade A-F) |
+| `security` | `[]SecurityFinding` | Security findings |
+| `health` | `HealthStatus` | HEALTHY, DEGRADED, UNAVAILABLE, UNKNOWN |
 
-## Taiwan Relevance Levels
+## Scoring
 
-| Level | Meaning |
-|-------|---------|
-| T5 | Explicitly Taiwan-focused (gov API, .tw domain) |
-| T4 | Strong Taiwan connection (TW entity, Taiwan org) |
-| T3 | Moderate Taiwan connection |
-| T2 | Some Taiwan connection |
-| T1 | Possible Taiwan connection |
-| T0 | No Taiwan connection |
+### Taiwan Relevance (§17)
 
-## Quality Scoring
+| Rule | Score | Evidence Type |
+|---|---|---|
+| Official Taiwan domain (.gov.tw, .org.tw) | +40 | `official_domain` |
+| Taiwan government API detected | +40 | `official_gov_api` |
+| Taiwan financial API (TWSE, TPEx, FinMind) | +35 | `taiwan_financial_api` |
+| Taiwan-specific dataset detected | +30 | `taiwan_dataset` |
+| Taiwan keyword in repo name/description | +20 | `repository_keyword` |
+| Taiwan language (zh-TW, Traditional Chinese) | +15 | `taiwan_language` |
+| Taiwan company/service detected | +15 | `taiwan_company` |
+| README mentions Taiwan | +5 | `readme_mention` |
 
-10 components (total 100 points):
+Levels: T0 (0-19), T1 (20-35), T2 (36-55), T3 (56-70), T4 (71-85), T5 (86-100)
 
-1. Documentation (20 pts)
-2. Description quality (10 pts)
-3. Repository activity (10 pts)
-4. Stars (10 pts)
-5. Forks (5 pts)
-6. License (5 pts)
-7. Issues (5 pts)
-8. Tests (10 pts)
-9. Health status (15 pts)
-10. Schema completeness (15 pts)
+### Quality Score (§31)
+
+10 components scored 0-10 each:
+- Repository stars
+- Repository activity (updated within 90 days)
+- README completeness
+- Documentation (CONTRIBUTING, LICENSE, etc.)
+- Manifest file present (claude.json, config.json, etc.)
+- MCP protocol compliance
+- Transport support (stdio + HTTP)
+- Tool count (>0)
+- Resource count (>0)
+- Prompt count (>0)
+
+Grades: A (90-100), B (80-89), C (70-79), D (60-69), F (0-59)
+
+## Error Handling
+
+- **Rate limiting**: Exponential backoff (1s → 2s → 4s → 8s, capped at 30s, max 3 retries)
+- **Source degradation**: Failed sources are logged and skipped, pipeline continues
+- **LLM failures**: Fallback to deterministic T0 classification, server metadata unchanged
+- **Network timeouts**: Context-cancellable throughout pipeline
+- **SQL errors**: Individual server save failures logged, pipeline continues
 
 ## Testing
 
 ```bash
-go test ./...
+# All tests
+go test ./... -count=1 -timeout=120s
+
+# With race detector
+go test -race ./internal/... -count=1 -timeout=120s
+
+# Coverage (by package)
+go test ./... -count=1 -cover
+
+# Golden regression tests
+go test ./tests/unit/ -v -run Golden
+
+# Benchmarks
+go test ./tests/benchmarks/ -bench=. -benchmem
+
+# Integration tests
+go test ./tests/integration/ -v
 ```
 
-### Coverage
+Coverage by package:
 
-- classify: 92%+
-- dedupe: 90%+
-- scoring: 94%+
-- verify: 92%+
-- health: 91%+
-- security: 93%+
+| Package | Coverage |
+|---|---|
+| `internal/classify` | 87.6% |
+| `internal/dedupe` | 90.7% |
+| `internal/evidence` | 100.0% |
+| `internal/export` | 87.0% |
+| `internal/health` | 91.7% |
+| `internal/manifest` | 92.9% |
+| `internal/metrics` | 100.0% |
+| `internal/scoring` | 94.0% |
+| `internal/security` | 93.2% |
+| `internal/storage` | 85.9% |
+| `internal/verify` | 94.7% |
 
----
+## Build
+
+```bash
+# Standard build
+go build ./...
+
+# Vet
+go vet ./...
+
+# Module verification
+go mod verify
+
+# Docker
+docker build -t awesome-taiwan-mcp .
+docker compose up
+```
+
+### Docker
+
+The Dockerfile uses multi-stage build:
+1. **Builder**: `golang:1.26-alpine3.24` — compiles the binary
+2. **Runtime**: `alpine:latest` — runs the binary as non-root user
+
+Security: non-root user (uid 1000), no privileged, resource limits.
+
+```bash
+docker build -t awesome-taiwan-mcp .
+docker run --rm \
+  -e GITHUB_TOKEN=your_token \
+  -v $(pwd)/data:/data \
+  awesome-taiwan-mcp crawl --db /data/registry.db
+```
+
+## Development
+
+```bash
+# Install dependencies
+go mod download
+
+# Run linter
+golangci-lint run
+
+# Format
+gofmt -s -w .
+
+# Run tests with verbose output
+go test ./internal/classify/ -v
+```
+
+## Known Limitations
+
+- **Official registry source**: `api.mcp-servers.dev` may be unavailable in sandboxed environments (DNS resolution failure)
+- **GitHub rate limits**: 5000 requests/hour per token; 404 keywords × 2s = ~88s for full discovery
+- **LLM classifier**: Requires `OPENAI_API_KEY` env var; gracefully degrades to deterministic classification
+- **Incremental crawl**: Uses last crawl timestamp from SQLite; requires prior crawl data
+- **Docker compose**: Runs `--help` by default; must override command for actual crawling
+- **MCP protocol verification**: Requires publicly accessible HTTP endpoints; local endpoints (localhost) may fail
 
 ## License
 
-Apache 2.0
-
+See `LICENSE` file.
