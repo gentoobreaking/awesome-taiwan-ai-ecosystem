@@ -85,6 +85,7 @@ func (n *ServerNormalizer) Normalize(record *sources.RawRecord) (*models.MCPServ
 
 	// README sanitization (§60)
 	sanitizedReadme := sanitizeReadme(record.Readme)
+	server.Readme = sanitizedReadme
 
 	// Endpoint extraction
 	server.Endpoints = extractEndpoints(sanitizedReadme, record.Manifest, record.Candidate.RawMetadata)
@@ -190,6 +191,12 @@ func firstParagraph(text string) string {
 		return line
 	}
 	return ""
+}
+
+// SanitizeReadme strips injection patterns from README text (§60 LLM Security).
+// It is used before passing README content to the LLM classifier.
+func SanitizeReadme(readme string) string {
+	return sanitizeReadme(readme)
 }
 
 func sanitizeReadme(readme string) string {

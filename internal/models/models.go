@@ -163,9 +163,20 @@ type MCPServer struct {
 	Quality         QualityScore     `json:"quality"`
 	Security        []SecurityFinding `json:"security_findings"`
 	Sources         []SourceReference `json:"sources"`
-	FirstSeen       time.Time        `json:"first_seen_at"`
-	LastSeen        time.Time        `json:"last_seen_at"`
-	LastVerified    time.Time        `json:"last_verified_at"`
+	Readme          string            `json:"readme,omitempty"`
+	FirstSeen       time.Time         `json:"first_seen_at"`
+	LastSeen        time.Time         `json:"last_seen_at"`
+	LastVerified    time.Time         `json:"last_verified_at"`
+}
+
+// GetReadme returns the sanitized README text for LLM classification.
+func (s *MCPServer) GetReadme() string {
+	return s.Readme
+}
+
+// TopicList returns the server's topics.
+func (s *MCPServer) TopicList() []string {
+	return s.Repository.Topics
 }
 
 // TaiwanRelevance holds the Taiwan classification (§14, §17).

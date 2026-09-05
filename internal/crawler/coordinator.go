@@ -30,10 +30,10 @@ type CrawlOptions struct {
 
 // CrawlCoordinator orchestrates the full crawl pipeline (§31).
 type CrawlCoordinator struct {
-	sources      []sources.SourceAdapter
-	normalizer   normalize.Normalizer
-	dedupEngine  *dedupe.DedupEngine
-	scorer       *scoring.QualityScorer
+	sources     []sources.SourceAdapter
+	normalizer  normalize.Normalizer
+	dedupEngine *dedupe.DedupEngine
+	scorer      *scoring.QualityScorer
 	repoVerifier *verify.RepositoryVerifier
 	protoVerifier *verify.ProtocolVerifier
 	healthChecker *health.HealthChecker
@@ -42,6 +42,7 @@ type CrawlCoordinator struct {
 	metrics      *metrics.CrawlMetrics
 	logger       *metrics.Logger
 	workers      int
+	llmClassifier *classify.LLMClassifier
 }
 
 // NewCrawlCoordinator creates a new coordinator.
@@ -64,6 +65,7 @@ func NewCrawlCoordinator(
 		metrics:       metrics.NewCrawlMetrics(),
 		logger:        logger,
 		workers:       4,
+		llmClassifier: classify.NewLLMClassifier(),
 	}
 }
 
@@ -102,6 +104,25 @@ func (c *CrawlCoordinator) Run(ctx context.Context, opts CrawlOptions) error {
 			Score:      result.Score,
 			Confidence: 1.0,
 			Evidence:   result.Evidence,
+		}
+	}
+
+	// Stage 3b: LLM classification for ambiguous candidates (T035)
+	// Only candidates with 20 <= score <= 55 need LLM (§18)
+	// T0/T1 (score < 20) and T4/T5 (score >= 70) are deterministic — zero LLM calls
+	if c.llmClassifier != nil {
+		for i := range servers {
+			if !classify.ShouldClassifyLLM(servers[i].TaiwanRelevance.Score) {
+				continue
+			}
+			llmResult, err := c.llmClassifier.Classify(ctx, servers[i])
+			if err != nil {
+				c.logger.Info(ctx, crawlID, "llm", "classify_error", "server", servers[i].Name, "error", err.Error())
+				continue
+			}
+			if llmResult != nil {
+				servers[i].TaiwanRelevance = *llmResult
+			}
 		}
 	}
 
