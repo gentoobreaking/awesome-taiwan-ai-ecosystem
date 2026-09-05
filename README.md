@@ -1,3 +1,9 @@
+<div align="center">
+
+[English](README.md) | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md)
+
+</div>
+
 # Awesome Taiwan MCP
 
 Automated crawler for discovering, analyzing, and verifying Taiwan-related MCP Servers.

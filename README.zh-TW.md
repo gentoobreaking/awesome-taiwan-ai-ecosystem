@@ -1,3 +1,9 @@
+<div align="center">
+
+[English](README.md) | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md)
+
+</div>
+
 # Awesome Taiwan MCP
 
 自動化爬蟱工具，用於發現、分析和驗證與台灣相關的 MCP Servers。
