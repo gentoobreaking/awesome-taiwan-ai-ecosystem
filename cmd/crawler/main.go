@@ -30,15 +30,17 @@ var (
 	date    = "unknown"
 
 	// Flags
-	configPath  string
-	dbPath      string
-	sourceFlag  string
-	fullCrawl   bool
-	workers     int
-	jsonOutput  bool
-	minScore    int
-	levelFilter string
-	catFilter   string
+	configPath     string
+	dbPath         string
+	sourceFlag     string
+	fullCrawl      bool
+	incremental    bool
+	workers        int
+	jsonOutput     bool
+	minScore       int
+	levelFilter    string
+	catFilter      string
+	capabilityFlag string
 )
 
 func main() {
@@ -92,11 +94,11 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", "config/sources.yaml", "config file path")
 	rootCmd.PersistentFlags().StringVar(&dbPath, "db", "./data/registry.db", "SQLite database path")
 	rootCmd.PersistentFlags().StringVar(&sourceFlag, "source", "all", "source to crawl (github, registry, all)")
-	rootCmd.PersistentFlags().BoolVar(&fullCrawl, "full", false, "force full crawl")
+	rootCmd.PersistentFlags().BoolVar(&incremental, "incremental", false, "run incremental crawl")
 	rootCmd.PersistentFlags().IntVar(&workers, "workers", 4, "number of workers per source")
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "output as JSON")
 	rootCmd.PersistentFlags().IntVar(&minScore, "min-score", 0, "minimum quality score filter")
-	rootCmd.PersistentFlags().StringVar(&levelFilter, "level", "", "filter by Taiwan relevance level (T0-T5)")
+	rootCmd.PersistentFlags().StringVar(&capabilityFlag, "capability", "", "search by capability keywords")
 	rootCmd.PersistentFlags().StringVar(&catFilter, "category", "", "filter by category")
 
 	if err := rootCmd.Execute(); err != nil {
@@ -141,6 +143,11 @@ func runCrawl(cmd *cobra.Command, _ []string) error {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
+
+	if incremental && !fullCrawl {
+		incr := crawler.NewIncrementalCrawler(coord)
+		return incr.RunIncremental(ctx, sourceFlag)
+	}
 
 	return coord.Run(ctx, crawler.CrawlOptions{
 		Source:    sourceFlag,
@@ -224,6 +231,16 @@ func runSearch(cmd *cobra.Command, args []string) error {
 
 	// Use SearchEngine for ranking and filtering (§22, T036, T037)
 	se := search.New(servers)
+
+	// If capability flag is set, use capability search (T037)
+	if capabilityFlag != "" {
+		results, err := se.SearchByCapability(capabilityFlag)
+		if err != nil {
+			return err
+		}
+		return printSearchResults(results, jsonOutput)
+	}
+
 	searchQuery := search.SearchQuery{
 		Text:     query,
 		Level:    levelFilter,
@@ -240,13 +257,17 @@ func runSearch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	return printSearchResults(results, jsonOutput)
+}
+
+func printSearchResults(results []search.SearchResult, jsonOut bool) error {
 	// Convert to plain servers for display
 	displayServers := make([]models.MCPServer, len(results))
 	for i, r := range results {
 		displayServers[i] = r.Server
 	}
 
-	if jsonOutput {
+	if jsonOut {
 		data, _ := json.MarshalIndent(displayServers, "", "  ")
 		fmt.Println(string(data))
 		return nil
@@ -266,6 +287,7 @@ func runSearch(cmd *cobra.Command, args []string) error {
 	w.Flush()
 	return nil
 }
+
 
 type crawlStats struct {
 	TotalServers   int
