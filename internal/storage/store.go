@@ -495,6 +495,21 @@ func (s *Store) CreateCrawlRun(ctx context.Context, crawlID string) error {
 	return err
 }
 
+// GetLastCrawlTime returns the most recent crawl start time.
+func (s *Store) GetLastCrawlTime(ctx context.Context) (time.Time, error) {
+	row := s.db.QueryRowContext(ctx, `
+		SELECT MAX(started_at) FROM crawl_runs
+	`)
+	var ts string
+	if err := row.Scan(&ts); err != nil {
+		return time.Time{}, err
+	}
+	if ts == "" {
+		return time.Time{}, nil
+	}
+	return time.Parse(time.RFC3339, ts)
+}
+
 // InsertEvidence stores evidence for a server.
 func (s *Store) InsertEvidence(ctx context.Context, serverID string, ev *models.Evidence) error {
 	_, err := s.db.ExecContext(ctx, `
