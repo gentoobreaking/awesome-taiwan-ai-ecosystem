@@ -137,7 +137,7 @@ docker build -t awesome-taiwan-mcp .
 | `GITHUB_TOKEN` | Yes | — | GitHub API token for repository search and fetch |
 | `OPENAI_API_KEY` | No | — | OpenAI-compatible API key for LLM classification |
 | `OPENAI_BASE_URL` | No | `https://opencode.ai/zen/v1` | OpenAI-compatible API base URL |
-
+| `OPENAI_MODEL` | No | — | Override model chain for **this crawler instance only** (does not affect other instances). Default fallback chain: `muse-spark-1.2-contributor-free` → `nemotron-3-ultra-free`. opencode.ai/zen/v1 requires bare IDs without `opencode/` prefix. When set, the crawler uses only this single model (no fallback).
 CLI flags:
 
 | Flag | Default | Description |
