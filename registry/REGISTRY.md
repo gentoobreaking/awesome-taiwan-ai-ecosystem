@@ -1,97 +1,128 @@
 # Awesome Taiwan MCP Registry
 
-> Generated on 2026-09-05T01:51:42Z
+> Generated on 2026-09-05T02:16:22Z
 
 ## Statistics
 
 - **Total Servers**: 10
-- **Taiwan Relevant**: 4
+- **Taiwan Relevant**: 7
 - **T5**: 0
-- **T4**: 3
-- **T3**: 0
-- **T2**: 0
-- **T1**: 1
-- **T0**: 6
+- **T4**: 0
+- **T3**: 6
+- **T2**: 1
+- **T1**: 0
+- **T0**: 3
 
 ### By Health
 
 - **HEALTHY**: 9
-- **DEGRADED**: 1
-- **UNAVAILABLE**: 0
+- **DEGRADED**: 0
+- **UNAVAILABLE**: 1
 - **UNKNOWN**: 0
 
 ### By Quality Grade
 
 - **A**: 0
 - **B**: 0
-- **C**: 0
-- **D**: 0
-- **F**: 10
+- **C**: 2
+- **D**: 4
+- **F**: 4
 
 ---
 
-## T4 — 3 servers
+## T3 — 6 servers
 
-### claude-agents
+_T3_: Strong Taiwan relevance — Taiwan-specific data or services (real estate, finance, etc.)
 
-> **Language:** English | [Português (Brasil)](docs/pt-BR/README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md) | [한국어](docs/ko-KR/README.md) | [Türkçe](docs/tr/README.md)
+### tw-prop-mcp
 
-- **Repository**: [https://github.com/dhkong01/claude-agents](https://github.com/dhkong01/claude-agents)
-- **Language**: JavaScript
-- **Taiwan Relevance**: T4 (score: 60.0, confidence: 1.00)
+> > Taiwan Ministry of the Interior real price registration data served as an MCP server. Deterministic, reproducible, and AI-isolated.
+
+- **Repository**: [https://github.com/gentoobreaking/tw-prop-mcp](https://github.com/gentoobreaking/tw-prop-mcp)
+- **Language**: [Go](https://github.com/search?q=tw-prop-mcp+language:Go&type=repositories)
+- **Taiwan Relevance**: T3 (score: 40.0, confidence: 1.00)
+- **Health**: UNAVAILABLE
+- **Quality**: C (score: 72)
+- **License**: Apache-2.0
+- **Endpoint**: `http://localhost:8080/mcp` (transport: http)
+
+### real-estate-actual-price
+
+> 個人用台灣實價登錄查詢 MVP。Web/PWA 與 MCP tools 共用同一個 SQLite 資料庫及查詢邏輯，不需要 OpenAI API key。
+
+- **Repository**: [https://github.com/dksbluesky/real-estate-actual-price](https://github.com/dksbluesky/real-estate-actual-price)
+- **Language**: [Python](https://github.com/search?q=real-estate-actual-price+language:Python&type=repositories)
+- **Taiwan Relevance**: T3 (score: 50.0, confidence: 1.00)
 - **Health**: HEALTHY
-- **Quality**: F (score: 55)
-- **License**: MIT
+- **Quality**: D (score: 61)
+- **License**: UNKNOWN
 
-### Piarium
+### TW_RealEstate_ETL
 
-> English | [简体中文](.github/readme/README.zh-CN.md) | [繁體中文](.github/readme/README.zh-TW.md) | [Français](.github/readme/README.fr.md) | [日本語](.github/readme/README.ja.md)
+> 台灣內政部**實價登錄**開放資料自動化 ETL pipeline。
 
-- **Repository**: [https://github.com/Youzini-afk/Piarium](https://github.com/Youzini-afk/Piarium)
-- **Stars**: 13
-- **Language**: TypeScript
-- **Taiwan Relevance**: T4 (score: 60.0, confidence: 1.00)
+- **Repository**: [https://github.com/tonycheng-0118/TW_RealEstate_ETL](https://github.com/tonycheng-0118/TW_RealEstate_ETL)
+- **Stars**: 2
+- **Language**: [Python](https://github.com/search?q=TW_RealEstate_ETL+language:Python&type=repositories)
+- **Taiwan Relevance**: T3 (score: 45.0, confidence: 1.00)
 - **Health**: HEALTHY
-- **Quality**: F (score: 50)
-- **License**: AGPL-3.0
+- **Quality**: D (score: 61)
+- **License**: UNKNOWN
 
-### sd0x-harness
+### moksa-for-woocommerce
 
-> **Language**: English | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md)
+> Moksa for WooCommerce — Taiwan e-commerce toolkit for WooCommerce: payment, shipping and e-invoice integrations (ECPay, NewebPay, PAYUNi, SmilePay, LINE Pay, PayNow, PChomePay, TapPay, Shopline Payments, ezPay, AMEGO). HPOS-ready, Block Checkout-ready.
 
-- **Repository**: [https://github.com/sd0xdev/sd0x-harness](https://github.com/sd0xdev/sd0x-harness)
-- **Stars**: 188
-- **Language**: JavaScript
-- **Taiwan Relevance**: T4 (score: 60.0, confidence: 1.00)
-- **Health**: HEALTHY
-- **Quality**: F (score: 55)
-- **License**: MIT
-
-## T1 — 1 servers
-
-### LazyPromotion
-
-> [English](README.md) · [العربية](i18n/README.ar.md) · [Español](i18n/README.es.md) · [Français](i18n/README.fr.md) · [日本語](i18n/README.ja.md) · [한국어](i18n/README.ko.md) · [Tiếng Việt](i18n/README.vi.md) · [中文 (简体)](i18n/README.zh-Hans.md) · [中文（繁體）](i18n/README.zh-Hant.md) · [Deutsch](i18n/README.de.md) · [Русский](i18n/README.ru.md)
-
-- **Repository**: [https://github.com/lachlanchen/LazyPromotion](https://github.com/lachlanchen/LazyPromotion)
-- **Language**: Python
-- **Taiwan Relevance**: T1 (score: 15.0, confidence: 1.00)
-- **Health**: HEALTHY
-- **Quality**: F (score: 55)
-- **License**: MIT
-
-## T0 — 6 servers
-
-### aaron-marketing-skills
-
-> <div align="center">
-
-- **Repository**: [https://github.com/JatinyKatyal/aaron-marketing-skills](https://github.com/JatinyKatyal/aaron-marketing-skills)
-- **Language**: Python
-- **Taiwan Relevance**: T0 (score: 0.0, confidence: 1.00)
+- **Repository**: [https://github.com/Moksa1123/moksa-for-woocommerce](https://github.com/Moksa1123/moksa-for-woocommerce)
+- **Stars**: 3
+- **Language**: [PHP](https://github.com/search?q=moksa-for-woocommerce+language:PHP&type=repositories)
+- **Taiwan Relevance**: T3 (score: 40.0, confidence: 1.00)
 - **Health**: HEALTHY
 - **Quality**: F (score: 49)
+- **License**: GPL-3.0
+
+### taiwan-property-price-cli
+
+> [![npm version](https://img.shields.io/npm/v/tw-lvr-cli.svg)](https://www.npmjs.com/package/tw-lvr-cli) [![license](https://img.shields.io/npm/l/tw-lvr-cli.svg)](./LICENSE) [![node](https://img.shields.io/node/v/tw-lvr-cli.svg)](https://nodejs.org)
+
+- **Repository**: [https://github.com/felixfu824/taiwan-property-price-cli](https://github.com/felixfu824/taiwan-property-price-cli)
+- **Language**: [TypeScript](https://github.com/search?q=taiwan-property-price-cli+language:TypeScript&type=repositories)
+- **Taiwan Relevance**: T3 (score: 45.0, confidence: 1.00)
+- **Health**: HEALTHY
+- **Quality**: C (score: 72)
 - **License**: Apache-2.0
+
+### tw-cadastral-mcp
+
+> MCP server for querying Taiwan cadastral (land registry) data.
+
+- **Repository**: [https://github.com/KCTW/tw-cadastral-mcp](https://github.com/KCTW/tw-cadastral-mcp)
+- **Language**: [JavaScript](https://github.com/search?q=tw-cadastral-mcp+language:JavaScript&type=repositories)
+- **Taiwan Relevance**: T3 (score: 40.0, confidence: 1.00)
+- **Health**: HEALTHY
+- **Quality**: D (score: 63)
+- **License**: MIT
+
+## T2 — 1 servers
+
+_T2_: Moderate Taiwan relevance — some Taiwan content or keywords detected
+
+### mcp-tw-lvr
+
+> [![PyPI version](https://img.shields.io/pypi/v/mcp-tw-lvr)](https://pypi.org/project/mcp-tw-lvr/)
+
+- **Repository**: [https://github.com/asgard-ai-platform/mcp-tw-lvr](https://github.com/asgard-ai-platform/mcp-tw-lvr)
+- **Stars**: 1
+- **Language**: [Python](https://github.com/search?q=mcp-tw-lvr+language:Python&type=repositories)
+- **Taiwan Relevance**: T2 (score: 30.0, confidence: 1.00)
+- **Health**: HEALTHY
+- **Quality**: D (score: 67)
+- **License**: MIT
+- **Endpoint**: `https://github.com/asgard-ai-platform/mcp-tw-lvr.git` (transport: http)
+
+## T0 — 3 servers
+
+_T0_: No Taiwan relevance — international or general-purpose server
 
 ### chengjing-notes
 
@@ -99,58 +130,31 @@
 
 - **Repository**: [https://github.com/Coyoter/chengjing-notes](https://github.com/Coyoter/chengjing-notes)
 - **Stars**: 13
-- **Language**: TypeScript
+- **Language**: [TypeScript](https://github.com/search?q=chengjing-notes+language:TypeScript&type=repositories)
 - **Taiwan Relevance**: T0 (score: 0.0, confidence: 1.00)
 - **Health**: HEALTHY
 - **Quality**: F (score: 51)
 - **License**: NOASSERTION
 
-### comfyui-mcp-panel
+### psyflow
 
-> > ### 📦 On ComfyUI-Manager & the [Comfy Registry](https://registry.comfy.org/nodes/comfyui-agent-panel) as `comfyui-agent-panel`
+> 從零開始建立一套完整、可複製的 Claude Code 工作環境——從訂閱、安裝，
 
-- **Repository**: [https://github.com/artokun/comfyui-mcp-panel](https://github.com/artokun/comfyui-mcp-panel)
-- **Stars**: 105
-- **Language**: JavaScript
-- **Taiwan Relevance**: T0 (score: 0.0, confidence: 1.00)
-- **Health**: DEGRADED
-- **Quality**: F (score: 55)
-- **License**: MIT
-- **Endpoint**: `https://github.com/artokun/comfyui-mcp-panel`` (transport: http)
-- **Endpoint**: `https://github.com/artokun/comfyui-mcp-panel` (transport: http)
-
-### LibreChat
-
-> <p align="center">
-
-- **Repository**: [https://github.com/danny-avila/LibreChat](https://github.com/danny-avila/LibreChat)
-- **Stars**: 42826
-- **Language**: TypeScript
+- **Repository**: [https://github.com/miki519/psyflow](https://github.com/miki519/psyflow)
+- **Language**: [Shell](https://github.com/search?q=psyflow+language:Shell&type=repositories)
 - **Taiwan Relevance**: T0 (score: 0.0, confidence: 1.00)
 - **Health**: HEALTHY
-- **Quality**: F (score: 55)
-- **License**: MIT
+- **Quality**: F (score: 41)
+- **License**: UNKNOWN
 
-### Zoo-Code
+### ai-island-web
 
-> <p align="center">
+> 從靜態 HTML 升級成完整 Next.js 15 + Supabase 應用：**80 章免費課程 + 遊戲化學習引擎 + 綠寶 AI 導師 + 部落格 / 討論區 + 創作者島嶼（AI 內容工作室）+ Z 幣 / Pro 金流 + RBAC 後台 ERP**。
 
-- **Repository**: [https://github.com/Zoo-Code-Org/Zoo-Code](https://github.com/Zoo-Code-Org/Zoo-Code)
-- **Stars**: 1796
-- **Language**: TypeScript
+- **Repository**: [https://github.com/luffysky/ai-island-web](https://github.com/luffysky/ai-island-web)
+- **Language**: [TypeScript](https://github.com/search?q=ai-island-web+language:TypeScript&type=repositories)
 - **Taiwan Relevance**: T0 (score: 0.0, confidence: 1.00)
 - **Health**: HEALTHY
-- **Quality**: F (score: 51)
-- **License**: Apache-2.0
-
-### powerx
-
-> <picture>
-
-- **Repository**: [https://github.com/Arinze-eng/powerx](https://github.com/Arinze-eng/powerx)
-- **Language**: Python
-- **Taiwan Relevance**: T0 (score: 0.0, confidence: 1.00)
-- **Health**: HEALTHY
-- **Quality**: F (score: 50)
-- **License**: MIT
+- **Quality**: F (score: 46)
+- **License**: UNKNOWN
 

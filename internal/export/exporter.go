@@ -235,7 +235,7 @@ func (re *RegistryExporter) ExportMarkdown(path string, servers []models.MCPServ
 		// Add level description
 		levelDesc := levelDescription(level)
 		if levelDesc != "" {
-			sb.WriteString(fmt.Sprintf("_**%s**: %s_\n\n", level, levelDesc))
+			sb.WriteString(fmt.Sprintf("_%s_: %s\n\n", level, levelDesc))
 		}
 		
 		for _, s := range levelServers {

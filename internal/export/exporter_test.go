@@ -283,7 +283,7 @@ func TestExportMarkdown_LevelDescriptions(t *testing.T) {
 
 	// Verify level description for T3 only (only T3 server exists)
 	desc := levelDescription("T3")
-	expected := fmt.Sprintf("_**T3**: %s_", desc)
+	expected := fmt.Sprintf("_T3_: %s", desc)
 	if !strings.Contains(md, expected) {
 		t.Errorf("Markdown missing level description for T3: %s", expected)
 	}

@@ -1,103 +1,29 @@
 {
   "schema_version": "0.1",
   "registry_version": "v1.2026.09.05",
-  "generated_at": "2026-09-05T01:51:42Z",
+  "generated_at": "2026-09-05T02:16:22Z",
   "crawler_version": "v1.0.0",
   "total_servers": 10,
-  "taiwan_relevant": 4,
+  "taiwan_relevant": 7,
   "statistics": {
     "total_servers": 10,
-    "taiwan_relevant": 4,
+    "taiwan_relevant": 7,
     "by_level": {
-      "T0": 6,
-      "T1": 1,
-      "T4": 3
+      "T0": 3,
+      "T2": 1,
+      "T3": 6
     },
     "by_health": {
-      "DEGRADED": 1,
-      "HEALTHY": 9
+      "HEALTHY": 9,
+      "UNAVAILABLE": 1
     },
     "quality_distribution": {
-      "F": 10
+      "C": 2,
+      "D": 4,
+      "F": 4
     }
   },
   "servers": [
-    {
-      "id": "0b0160a34b66f86b87216100b57fcc1fe5626992f4eaf90a4d362784f2c5be67",
-      "name": "aaron-marketing-skills",
-      "slug": "aaron-marketing-skills",
-      "description": "\u003cdiv align=\"center\"\u003e",
-      "region": null,
-      "category": null,
-      "taiwan_relevance": {
-        "level": "T0",
-        "score": 0,
-        "confidence": 1,
-        "evidence": null
-      },
-      "repository": {
-        "url": "https://github.com/JatinyKatyal/aaron-marketing-skills",
-        "host": "github.com",
-        "owner": "JatinyKatyal",
-        "name": "aaron-marketing-skills",
-        "stars": 0,
-        "forks": 0,
-        "watchers": 0,
-        "open_issues": 0,
-        "language": "Python",
-        "license": "Apache-2.0",
-        "topics": [],
-        "default_branch": "main",
-        "archived": false,
-        "fork": false,
-        "homepage": "",
-        "created_at": "2026-08-28T09:50:33Z",
-        "updated_at": "2026-09-05T01:37:32Z",
-        "pushed_at": "2026-09-05T01:37:28Z",
-        "last_commit_at": "2026-09-05T01:37:28Z"
-      },
-      "endpoints": null,
-      "transport": [
-        "sse",
-        "http"
-      ],
-      "tools": null,
-      "resources": null,
-      "prompts": null,
-      "data_sources": null,
-      "license": "Apache-2.0",
-      "status": "ACTIVE",
-      "health": "HEALTHY",
-      "quality": {
-        "score": 49,
-        "grade": "F",
-        "components": {
-          "data_source": 0,
-          "maintenance": 15,
-          "documentation": 0,
-          "mcp_compliance": 11,
-          "tool_schema": 0,
-          "health": 10,
-          "repository": 3,
-          "license": 5,
-          "security": 5,
-          "community": 0
-        }
-      },
-      "security_findings": null,
-      "sources": [
-        {
-          "source": "github",
-          "url": "https://github.com/JatinyKatyal/aaron-marketing-skills",
-          "discovered_at": "0001-01-01T00:00:00Z",
-          "last_seen": "0001-01-01T00:00:00Z",
-          "trust_score": 0
-        }
-      ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
-    },
     {
       "id": "0b28ebb5d976c4c7c0d7e302846aec4e5e946f5c3dc9d74194e7026adcef46a0",
       "name": "chengjing-notes",
@@ -137,9 +63,9 @@
         "fork": false,
         "homepage": "https://github.com/Coyoter/chengjing-notes/releases/latest",
         "created_at": "2026-08-25T23:05:59Z",
-        "updated_at": "2026-09-05T01:37:09Z",
-        "pushed_at": "2026-09-05T01:37:05Z",
-        "last_commit_at": "2026-09-05T01:37:05Z"
+        "updated_at": "2026-09-05T01:55:21Z",
+        "pushed_at": "2026-09-05T01:55:17Z",
+        "last_commit_at": "2026-09-05T01:55:17Z"
       },
       "endpoints": null,
       "transport": [
@@ -179,15 +105,15 @@
           "trust_score": 0
         }
       ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
     },
     {
-      "id": "1d2582fa3176dec6496a7cc794db9659c28b4bed7b54fe9666fc74e8daa9cd7c",
-      "name": "comfyui-mcp-panel",
-      "slug": "comfyui-mcp-panel",
-      "description": "\u003e ### 📦 On ComfyUI-Manager \u0026 the [Comfy Registry](https://registry.comfy.org/nodes/comfyui-agent-panel) as `comfyui-agent-panel`",
+      "id": "2fed9a648d58c4873c7d7f06c5cc2908795f1dbd1e2ce15a589e4e05dfb42589",
+      "name": "psyflow",
+      "slug": "psyflow",
+      "description": "從零開始建立一套完整、可複製的 Claude Code 工作環境——從訂閱、安裝，",
       "region": null,
       "category": null,
       "taiwan_relevance": {
@@ -197,166 +123,458 @@
         "evidence": null
       },
       "repository": {
-        "url": "https://github.com/artokun/comfyui-mcp-panel",
+        "url": "https://github.com/miki519/psyflow",
         "host": "github.com",
-        "owner": "artokun",
-        "name": "comfyui-mcp-panel",
-        "stars": 105,
-        "forks": 22,
-        "watchers": 1,
-        "open_issues": 36,
-        "language": "JavaScript",
-        "license": "MIT",
-        "topics": [
-          "ai-agent",
-          "ai-assistant",
-          "chatgpt",
-          "claude-code",
-          "codex",
-          "comfyui",
-          "comfyui-agent",
-          "comfyui-custom-node",
-          "comfyui-extension",
-          "comfyui-mcp",
-          "copilot",
-          "image-generation",
-          "litegraph",
-          "local-first",
-          "local-llm",
-          "mcp",
-          "offline",
-          "ollama",
-          "self-hosted",
-          "sidebar"
-        ],
+        "owner": "miki519",
+        "name": "psyflow",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "Shell",
+        "license": "",
+        "topics": [],
         "default_branch": "main",
         "archived": false,
         "fork": false,
-        "homepage": "https://comfyui-mcp.artokun.io/docs/panel",
-        "created_at": "2026-06-12T18:48:45Z",
-        "updated_at": "2026-09-05T01:41:12Z",
-        "pushed_at": "2026-09-05T01:42:26Z",
-        "last_commit_at": "2026-09-05T01:42:26Z"
+        "homepage": "",
+        "created_at": "2026-07-30T21:51:26Z",
+        "updated_at": "2026-09-01T22:39:53Z",
+        "pushed_at": "2026-09-01T22:39:49Z",
+        "last_commit_at": "2026-09-01T22:39:49Z"
       },
-      "endpoints": [
-        {
-          "url": "https://github.com/artokun/comfyui-mcp-panel`",
-          "transport": "http",
-          "protocol_version": "",
-          "authentication": {
-            "required": false,
-            "type": ""
-          },
-          "tls": true,
-          "status": ""
-        },
-        {
-          "url": "https://github.com/artokun/comfyui-mcp-panel",
-          "transport": "http",
-          "protocol_version": "",
-          "authentication": {
-            "required": false,
-            "type": ""
-          },
-          "tls": true,
-          "status": ""
-        }
-      ],
+      "endpoints": null,
       "transport": [
-        "sse",
         "http"
       ],
       "tools": null,
       "resources": null,
       "prompts": null,
       "data_sources": null,
-      "license": "MIT",
+      "license": "UNKNOWN",
       "status": "ACTIVE",
-      "health": "DEGRADED",
+      "health": "HEALTHY",
       "quality": {
-        "score": 55,
+        "score": 41,
         "grade": "F",
         "components": {
           "data_source": 0,
           "maintenance": 15,
           "documentation": 0,
-          "mcp_compliance": 11,
+          "mcp_compliance": 8,
           "tool_schema": 0,
           "health": 10,
-          "repository": 4,
-          "license": 5,
+          "repository": 3,
+          "license": 0,
           "security": 5,
-          "community": 5
+          "community": 0
         }
       },
       "security_findings": null,
       "sources": [
         {
           "source": "github",
-          "url": "https://github.com/artokun/comfyui-mcp-panel",
+          "url": "https://github.com/miki519/psyflow",
           "discovered_at": "0001-01-01T00:00:00Z",
           "last_seen": "0001-01-01T00:00:00Z",
           "trust_score": 0
         }
       ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
     },
     {
-      "id": "1f160d50fa78fe7fdf7a980bb56745f81d16196464d2aa05163b541db224483d",
-      "name": "LibreChat",
-      "slug": "librechat",
-      "description": "\u003cp align=\"center\"\u003e",
+      "id": "4d9fe63745662217aa68fc047c8e89b061ae75dc1de6fcb5eaf1ef0650abaf1d",
+      "name": "tw-prop-mcp",
+      "slug": "tw-prop-mcp",
+      "description": "\u003e Taiwan Ministry of the Interior real price registration data served as an MCP server. Deterministic, reproducible, and AI-isolated.",
       "region": null,
       "category": null,
       "taiwan_relevance": {
-        "level": "T0",
-        "score": 0,
+        "level": "T3",
+        "score": 40,
         "confidence": 1,
-        "evidence": null
+        "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "Taiwan",
+            "content_hash": "f1623299",
+            "matched_text": "Taiwan",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486613Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "TW",
+            "content_hash": "29f5707c",
+            "matched_text": "TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486613Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "gov.tw",
+            "content_hash": "30beb2ee",
+            "matched_text": "gov.tw",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486614Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "moi.gov.tw",
+            "content_hash": "2c8d8671",
+            "matched_text": "moi.gov.tw",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486614Z"
+          }
+        ]
       },
       "repository": {
-        "url": "https://github.com/danny-avila/LibreChat",
+        "url": "https://github.com/gentoobreaking/tw-prop-mcp",
         "host": "github.com",
-        "owner": "danny-avila",
-        "name": "LibreChat",
-        "stars": 42826,
-        "forks": 8866,
-        "watchers": 208,
-        "open_issues": 732,
-        "language": "TypeScript",
-        "license": "MIT",
-        "topics": [
-          "ai",
-          "anthropic",
-          "artifacts",
-          "aws",
-          "azure",
-          "chatgpt",
-          "chatgpt-clone",
-          "claude",
-          "clone",
-          "deepseek",
-          "gemini",
-          "google",
-          "gpt-5",
-          "librechat",
-          "mcp",
-          "o1",
-          "openai",
-          "responses-api",
-          "vision",
-          "webui"
-        ],
+        "owner": "gentoobreaking",
+        "name": "tw-prop-mcp",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "Go",
+        "license": "Apache-2.0",
+        "topics": [],
         "default_branch": "main",
         "archived": false,
         "fork": false,
-        "homepage": "https://librechat.ai/",
-        "created_at": "2023-02-12T01:06:52Z",
-        "updated_at": "2026-09-05T01:41:41Z",
-        "pushed_at": "2026-09-05T01:36:06Z",
-        "last_commit_at": "2026-09-05T01:36:06Z"
+        "homepage": "",
+        "created_at": "2026-09-03T03:36:05Z",
+        "updated_at": "2026-09-04T07:51:55Z",
+        "pushed_at": "2026-09-04T07:50:45Z",
+        "last_commit_at": "2026-09-04T07:50:45Z"
+      },
+      "endpoints": [
+        {
+          "url": "http://localhost:8080/mcp",
+          "transport": "http",
+          "protocol_version": "",
+          "authentication": {
+            "required": false,
+            "type": ""
+          },
+          "tls": false,
+          "status": ""
+        }
+      ],
+      "transport": [
+        "stdio",
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": [
+        {
+          "name": "moi.gov.tw",
+          "type": "official-government-api",
+          "url": "",
+          "country": "TW",
+          "official": true,
+          "access_method": ""
+        }
+      ],
+      "license": "Apache-2.0",
+      "status": "ACTIVE",
+      "health": "UNAVAILABLE",
+      "quality": {
+        "score": 72,
+        "grade": "C",
+        "components": {
+          "data_source": 20,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 14,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 3,
+          "license": 5,
+          "security": 5,
+          "community": 0
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/gentoobreaking/tw-prop-mcp",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
+    },
+    {
+      "id": "7c2517e9780c8431cd831e367788834fb7079438636f44f945cf4487c7134b62",
+      "name": "real-estate-actual-price",
+      "slug": "real-estate-actual-price",
+      "description": "個人用台灣實價登錄查詢 MVP。Web/PWA 與 MCP tools 共用同一個 SQLite 資料庫及查詢邏輯，不需要 OpenAI API key。",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T3",
+        "score": 50,
+        "confidence": 1,
+        "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "台灣",
+            "content_hash": "c6fd29e4",
+            "matched_text": "台灣",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486161Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "TW",
+            "content_hash": "29f5707c",
+            "matched_text": "TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486162Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "data.gov.tw",
+            "content_hash": "6373197a",
+            "matched_text": "data.gov.tw",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486163Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "gov.tw",
+            "content_hash": "30beb2ee",
+            "matched_text": "gov.tw",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486164Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "moi.gov.tw",
+            "content_hash": "2c8d8671",
+            "matched_text": "moi.gov.tw",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486164Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "實價登錄",
+            "content_hash": "dc0cea1f",
+            "matched_text": "實價登錄",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486165Z"
+          }
+        ]
+      },
+      "repository": {
+        "url": "https://github.com/dksbluesky/real-estate-actual-price",
+        "host": "github.com",
+        "owner": "dksbluesky",
+        "name": "real-estate-actual-price",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "Python",
+        "license": "",
+        "topics": [],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "2026-08-21T14:16:33Z",
+        "updated_at": "2026-08-21T14:47:54Z",
+        "pushed_at": "2026-08-21T14:46:52Z",
+        "last_commit_at": "2026-08-21T14:46:52Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": [
+        {
+          "name": "data.gov.tw",
+          "type": "official-government-api",
+          "url": "",
+          "country": "TW",
+          "official": true,
+          "access_method": ""
+        },
+        {
+          "name": "moi.gov.tw",
+          "type": "official-government-api",
+          "url": "",
+          "country": "TW",
+          "official": true,
+          "access_method": ""
+        }
+      ],
+      "license": "UNKNOWN",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 61,
+        "grade": "D",
+        "components": {
+          "data_source": 20,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 8,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 3,
+          "license": 0,
+          "security": 5,
+          "community": 0
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/dksbluesky/real-estate-actual-price",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
+    },
+    {
+      "id": "a384790e1b020d8ac5e9a6f8efbec0f1589b659c072dda6bdcd5ead9b2d64922",
+      "name": "TW_RealEstate_ETL",
+      "slug": "tw-realestate-etl",
+      "description": "台灣內政部**實價登錄**開放資料自動化 ETL pipeline。",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T3",
+        "score": 45,
+        "confidence": 1,
+        "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "台灣",
+            "content_hash": "c6fd29e4",
+            "matched_text": "台灣",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.48648Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "TW",
+            "content_hash": "29f5707c",
+            "matched_text": "TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.48648Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "gov.tw",
+            "content_hash": "30beb2ee",
+            "matched_text": "gov.tw",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486481Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "moi.gov.tw",
+            "content_hash": "2c8d8671",
+            "matched_text": "moi.gov.tw",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486481Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "實價登錄",
+            "content_hash": "dc0cea1f",
+            "matched_text": "實價登錄",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486481Z"
+          }
+        ]
+      },
+      "repository": {
+        "url": "https://github.com/tonycheng-0118/TW_RealEstate_ETL",
+        "host": "github.com",
+        "owner": "tonycheng-0118",
+        "name": "TW_RealEstate_ETL",
+        "stars": 2,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "Python",
+        "license": "",
+        "topics": [],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "2026-03-27T13:08:44Z",
+        "updated_at": "2026-04-06T04:33:25Z",
+        "pushed_at": "2026-04-06T04:34:54Z",
+        "last_commit_at": "2026-04-06T04:34:54Z"
       },
       "endpoints": null,
       "transport": [
@@ -366,50 +584,179 @@
       "tools": null,
       "resources": null,
       "prompts": null,
-      "data_sources": null,
-      "license": "MIT",
-      "status": "ACTIVE",
+      "data_sources": [
+        {
+          "name": "moi.gov.tw",
+          "type": "official-government-api",
+          "url": "",
+          "country": "TW",
+          "official": true,
+          "access_method": ""
+        }
+      ],
+      "license": "UNKNOWN",
+      "status": "MAINTENANCE",
       "health": "HEALTHY",
       "quality": {
-        "score": 55,
-        "grade": "F",
+        "score": 61,
+        "grade": "D",
         "components": {
-          "data_source": 0,
-          "maintenance": 15,
+          "data_source": 20,
+          "maintenance": 12,
           "documentation": 0,
           "mcp_compliance": 11,
           "tool_schema": 0,
           "health": 10,
-          "repository": 4,
-          "license": 5,
+          "repository": 3,
+          "license": 0,
           "security": 5,
-          "community": 5
+          "community": 0
         }
       },
       "security_findings": null,
       "sources": [
         {
           "source": "github",
-          "url": "https://github.com/danny-avila/LibreChat",
+          "url": "https://github.com/tonycheng-0118/TW_RealEstate_ETL",
           "discovered_at": "0001-01-01T00:00:00Z",
           "last_seen": "0001-01-01T00:00:00Z",
           "trust_score": 0
         }
       ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
     },
     {
-      "id": "3e958bb21635b96c593777522faabd5f906915d4df65b4620e4130b419b8ebf7",
-      "name": "claude-agents",
-      "slug": "claude-agents",
-      "description": "**Language:** English | [Português (Brasil)](docs/pt-BR/README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md) | [한국어](docs/ko-KR/README.md) | [Türkçe](docs/tr/README.md)",
+      "id": "b1176af06ae23371e85778094d409602a2dfd600f113c342ebf0225e0451f1ba",
+      "name": "moksa-for-woocommerce",
+      "slug": "moksa-for-woocommerce",
+      "description": "Moksa for WooCommerce — Taiwan e-commerce toolkit for WooCommerce: payment, shipping and e-invoice integrations (ECPay, NewebPay, PAYUNi, SmilePay, LINE Pay, PayNow, PChomePay, TapPay, Shopline Payments, ezPay, AMEGO). HPOS-ready, Block Checkout-ready.",
       "region": null,
       "category": null,
       "taiwan_relevance": {
-        "level": "T4",
-        "score": 60,
+        "level": "T3",
+        "score": 40,
+        "confidence": 1,
+        "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "Taiwan",
+            "content_hash": "f1623299",
+            "matched_text": "Taiwan",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486739Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "ECPay",
+            "content_hash": "3e6208e5",
+            "matched_text": "ECPay",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.48674Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "NewebPay",
+            "content_hash": "ee48e2fc",
+            "matched_text": "NewebPay",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.48674Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "SHOPLINE",
+            "content_hash": "fa139f73",
+            "matched_text": "SHOPLINE",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486741Z"
+          }
+        ]
+      },
+      "repository": {
+        "url": "https://github.com/Moksa1123/moksa-for-woocommerce",
+        "host": "github.com",
+        "owner": "Moksa1123",
+        "name": "moksa-for-woocommerce",
+        "stars": 3,
+        "forks": 2,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "PHP",
+        "license": "GPL-3.0",
+        "topics": [],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "2026-05-29T07:29:41Z",
+        "updated_at": "2026-09-02T11:48:54Z",
+        "pushed_at": "2026-09-02T11:45:43Z",
+        "last_commit_at": "2026-09-02T11:45:43Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "stdio"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "GPL-3.0",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 49,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 5,
+          "mcp_compliance": 8,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 3,
+          "license": 3,
+          "security": 5,
+          "community": 0
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/Moksa1123/moksa-for-woocommerce",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
+    },
+    {
+      "id": "cb9e8049b0d8fe3da84daed9c86e8a07dd2db09eb69ec76e817ce1b05f692a11",
+      "name": "mcp-tw-lvr",
+      "slug": "mcp-tw-lvr",
+      "description": "[![PyPI version](https://img.shields.io/pypi/v/mcp-tw-lvr)](https://pypi.org/project/mcp-tw-lvr/)",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T2",
+        "score": 30,
         "confidence": 1,
         "evidence": [
           {
@@ -421,200 +768,49 @@
             "rule": "taiwan_keyword",
             "score": 15,
             "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.776285Z"
+            "timestamp": "2026-09-05T02:16:14.486543Z"
           },
           {
             "type": "repository_keyword",
             "source": "repository",
-            "location": "zh-TW",
-            "content_hash": "ecd71043",
-            "matched_text": "zh-TW",
+            "location": "gov.tw",
+            "content_hash": "30beb2ee",
+            "matched_text": "gov.tw",
             "rule": "taiwan_keyword",
-            "score": 15,
+            "score": 5,
             "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.776285Z"
+            "timestamp": "2026-09-05T02:16:14.486543Z"
           },
           {
             "type": "repository_keyword",
             "source": "repository",
-            "location": "繁體中文",
-            "content_hash": "4539dc68",
-            "matched_text": "繁體中文",
+            "location": "moi.gov.tw",
+            "content_hash": "2c8d8671",
+            "matched_text": "moi.gov.tw",
             "rule": "taiwan_keyword",
-            "score": 15,
+            "score": 5,
             "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.776286Z"
+            "timestamp": "2026-09-05T02:16:14.486544Z"
           },
           {
             "type": "repository_keyword",
             "source": "repository",
-            "location": "繁體",
-            "content_hash": "65265bc8",
-            "matched_text": "繁體",
+            "location": "LVR",
+            "content_hash": "8769d90f",
+            "matched_text": "LVR",
             "rule": "taiwan_keyword",
-            "score": 15,
+            "score": 5,
             "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.776286Z"
+            "timestamp": "2026-09-05T02:16:14.486545Z"
           }
         ]
       },
       "repository": {
-        "url": "https://github.com/dhkong01/claude-agents",
+        "url": "https://github.com/asgard-ai-platform/mcp-tw-lvr",
         "host": "github.com",
-        "owner": "dhkong01",
-        "name": "claude-agents",
-        "stars": 0,
-        "forks": 0,
-        "watchers": 0,
-        "open_issues": 7,
-        "language": "JavaScript",
-        "license": "MIT",
-        "topics": [],
-        "default_branch": "main",
-        "archived": false,
-        "fork": false,
-        "homepage": "",
-        "created_at": "2026-05-30T13:08:56Z",
-        "updated_at": "2026-09-05T01:48:00Z",
-        "pushed_at": "2026-09-05T01:47:57Z",
-        "last_commit_at": "2026-09-05T01:47:57Z"
-      },
-      "endpoints": null,
-      "transport": [
-        "sse",
-        "http"
-      ],
-      "tools": null,
-      "resources": null,
-      "prompts": null,
-      "data_sources": null,
-      "license": "MIT",
-      "status": "ACTIVE",
-      "health": "HEALTHY",
-      "quality": {
-        "score": 55,
-        "grade": "F",
-        "components": {
-          "data_source": 0,
-          "maintenance": 15,
-          "documentation": 5,
-          "mcp_compliance": 11,
-          "tool_schema": 0,
-          "health": 10,
-          "repository": 3,
-          "license": 5,
-          "security": 5,
-          "community": 1
-        }
-      },
-      "security_findings": null,
-      "sources": [
-        {
-          "source": "github",
-          "url": "https://github.com/dhkong01/claude-agents",
-          "discovered_at": "0001-01-01T00:00:00Z",
-          "last_seen": "0001-01-01T00:00:00Z",
-          "trust_score": 0
-        }
-      ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
-    },
-    {
-      "id": "891af673f3ed4752d8868689029a51449c5297b0da422006aca41d5f6e7d940d",
-      "name": "Zoo-Code",
-      "slug": "zoo-code",
-      "description": "\u003cp align=\"center\"\u003e",
-      "region": null,
-      "category": null,
-      "taiwan_relevance": {
-        "level": "T0",
-        "score": 0,
-        "confidence": 1,
-        "evidence": null
-      },
-      "repository": {
-        "url": "https://github.com/Zoo-Code-Org/Zoo-Code",
-        "host": "github.com",
-        "owner": "Zoo-Code-Org",
-        "name": "Zoo-Code",
-        "stars": 1796,
-        "forks": 270,
-        "watchers": 9,
-        "open_issues": 637,
-        "language": "TypeScript",
-        "license": "Apache-2.0",
-        "topics": [],
-        "default_branch": "main",
-        "archived": false,
-        "fork": false,
-        "homepage": "https://www.zoocode.dev",
-        "created_at": "2026-04-23T22:57:48Z",
-        "updated_at": "2026-09-05T01:45:28Z",
-        "pushed_at": "2026-09-05T01:48:30Z",
-        "last_commit_at": "2026-09-05T01:48:30Z"
-      },
-      "endpoints": null,
-      "transport": [
-        "http"
-      ],
-      "tools": null,
-      "resources": null,
-      "prompts": null,
-      "data_sources": null,
-      "license": "Apache-2.0",
-      "status": "ACTIVE",
-      "health": "HEALTHY",
-      "quality": {
-        "score": 51,
-        "grade": "F",
-        "components": {
-          "data_source": 0,
-          "maintenance": 15,
-          "documentation": 0,
-          "mcp_compliance": 8,
-          "tool_schema": 0,
-          "health": 10,
-          "repository": 4,
-          "license": 5,
-          "security": 5,
-          "community": 4
-        }
-      },
-      "security_findings": null,
-      "sources": [
-        {
-          "source": "github",
-          "url": "https://github.com/Zoo-Code-Org/Zoo-Code",
-          "discovered_at": "0001-01-01T00:00:00Z",
-          "last_seen": "0001-01-01T00:00:00Z",
-          "trust_score": 0
-        }
-      ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
-    },
-    {
-      "id": "af43c5ad9f252f1ea6b8901b2ed9c776b83288d37aba9fd0d074f5722f84a68e",
-      "name": "powerx",
-      "slug": "powerx",
-      "description": "\u003cpicture\u003e",
-      "region": null,
-      "category": null,
-      "taiwan_relevance": {
-        "level": "T0",
-        "score": 0,
-        "confidence": 1,
-        "evidence": null
-      },
-      "repository": {
-        "url": "https://github.com/Arinze-eng/powerx",
-        "host": "github.com",
-        "owner": "Arinze-eng",
-        "name": "powerx",
-        "stars": 0,
+        "owner": "asgard-ai-platform",
+        "name": "mcp-tw-lvr",
+        "stars": 1,
         "forks": 0,
         "watchers": 0,
         "open_issues": 1,
@@ -625,29 +821,50 @@
         "archived": false,
         "fork": false,
         "homepage": "",
-        "created_at": "2026-08-30T04:48:43Z",
-        "updated_at": "2026-09-05T01:41:19Z",
-        "pushed_at": "2026-09-05T01:41:16Z",
-        "last_commit_at": "2026-09-05T01:41:16Z"
+        "created_at": "2026-04-07T14:33:49Z",
+        "updated_at": "2026-04-11T08:07:02Z",
+        "pushed_at": "2026-04-08T15:24:57Z",
+        "last_commit_at": "2026-04-08T15:24:57Z"
       },
-      "endpoints": null,
+      "endpoints": [
+        {
+          "url": "https://github.com/asgard-ai-platform/mcp-tw-lvr.git",
+          "transport": "http",
+          "protocol_version": "",
+          "authentication": {
+            "required": false,
+            "type": ""
+          },
+          "tls": true,
+          "status": ""
+        }
+      ],
       "transport": [
-        "sse",
+        "stdio",
         "http"
       ],
       "tools": null,
       "resources": null,
       "prompts": null,
-      "data_sources": null,
+      "data_sources": [
+        {
+          "name": "moi.gov.tw",
+          "type": "official-government-api",
+          "url": "",
+          "country": "TW",
+          "official": true,
+          "access_method": ""
+        }
+      ],
       "license": "MIT",
-      "status": "ACTIVE",
+      "status": "MAINTENANCE",
       "health": "HEALTHY",
       "quality": {
-        "score": 50,
-        "grade": "F",
+        "score": 67,
+        "grade": "D",
         "components": {
-          "data_source": 0,
-          "maintenance": 15,
+          "data_source": 20,
+          "maintenance": 12,
           "documentation": 0,
           "mcp_compliance": 11,
           "tool_schema": 0,
@@ -662,100 +879,230 @@
       "sources": [
         {
           "source": "github",
-          "url": "https://github.com/Arinze-eng/powerx",
+          "url": "https://github.com/asgard-ai-platform/mcp-tw-lvr",
           "discovered_at": "0001-01-01T00:00:00Z",
           "last_seen": "0001-01-01T00:00:00Z",
           "trust_score": 0
         }
       ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
     },
     {
-      "id": "b301caf0bb81ead5ea9723c331ee259040db512113e74e49db6271474a892290",
-      "name": "LazyPromotion",
-      "slug": "lazypromotion",
-      "description": "[English](README.md) · [العربية](i18n/README.ar.md) · [Español](i18n/README.es.md) · [Français](i18n/README.fr.md) · [日本語](i18n/README.ja.md) · [한국어](i18n/README.ko.md) · [Tiếng Việt](i18n/README.vi.md) · [中文 (简体)](i18n/README.zh-Hans.md) · [中文（繁體）](i18n/README.zh-Hant.md) · [Deutsch](i18n/README.de.md) · [Русский](i18n/README.ru.md)",
+      "id": "e08a0c916f6cd2606cdf77c3372b3d0967d86dc2b2dba0e3239fa098722be754",
+      "name": "ai-island-web",
+      "slug": "ai-island-web",
+      "description": "從靜態 HTML 升級成完整 Next.js 15 + Supabase 應用：**80 章免費課程 + 遊戲化學習引擎 + 綠寶 AI 導師 + 部落格 / 討論區 + 創作者島嶼（AI 內容工作室）+ Z 幣 / Pro 金流 + RBAC 後台 ERP**。",
       "region": null,
       "category": null,
       "taiwan_relevance": {
-        "level": "T1",
-        "score": 15,
+        "level": "T0",
+        "score": 0,
         "confidence": 1,
-        "evidence": [
-          {
-            "type": "repository_keyword",
-            "source": "repository",
-            "location": "繁體",
-            "content_hash": "65265bc8",
-            "matched_text": "繁體",
-            "rule": "taiwan_keyword",
-            "score": 15,
-            "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.775893Z"
-          }
-        ]
+        "evidence": null
       },
       "repository": {
-        "url": "https://github.com/lachlanchen/LazyPromotion",
+        "url": "https://github.com/luffysky/ai-island-web",
         "host": "github.com",
-        "owner": "lachlanchen",
-        "name": "LazyPromotion",
+        "owner": "luffysky",
+        "name": "ai-island-web",
         "stars": 0,
         "forks": 0,
         "watchers": 0,
         "open_issues": 0,
-        "language": "Python",
-        "license": "MIT",
-        "topics": [
-          "anti-spam",
-          "browser-automation",
-          "chrome-devtools-protocol",
-          "codex",
-          "human-in-the-loop",
-          "instagram",
-          "lazying-art",
-          "model-context-protocol",
-          "novnc",
-          "open-source",
-          "openai",
-          "playwright",
-          "python",
-          "reddit",
-          "social-media",
-          "sqlite",
-          "x"
-        ],
+        "language": "TypeScript",
+        "license": "",
+        "topics": [],
         "default_branch": "main",
         "archived": false,
         "fork": false,
-        "homepage": "https://lazying.art",
-        "created_at": "2026-08-31T08:56:38Z",
-        "updated_at": "2026-09-05T01:41:39Z",
-        "pushed_at": "2026-09-05T01:41:36Z",
-        "last_commit_at": "2026-09-05T01:41:36Z"
+        "homepage": "",
+        "created_at": "2026-05-10T17:33:49Z",
+        "updated_at": "2026-09-03T20:45:35Z",
+        "pushed_at": "2026-09-03T20:45:06Z",
+        "last_commit_at": "2026-09-03T20:45:06Z"
       },
       "endpoints": null,
       "transport": [
-        "sse",
         "http"
       ],
       "tools": null,
       "resources": null,
       "prompts": null,
       "data_sources": null,
-      "license": "MIT",
+      "license": "UNKNOWN",
       "status": "ACTIVE",
       "health": "HEALTHY",
       "quality": {
-        "score": 55,
+        "score": 46,
         "grade": "F",
         "components": {
           "data_source": 0,
           "maintenance": 15,
           "documentation": 5,
-          "mcp_compliance": 11,
+          "mcp_compliance": 8,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 3,
+          "license": 0,
+          "security": 5,
+          "community": 0
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/luffysky/ai-island-web",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
+    },
+    {
+      "id": "f0cc17aeb8a402f12a88edb80295da75096c45d20903d90c8427e15b31282b24",
+      "name": "taiwan-property-price-cli",
+      "slug": "taiwan-property-price-cli",
+      "description": "[![npm version](https://img.shields.io/npm/v/tw-lvr-cli.svg)](https://www.npmjs.com/package/tw-lvr-cli) [![license](https://img.shields.io/npm/l/tw-lvr-cli.svg)](./LICENSE) [![node](https://img.shields.io/node/v/tw-lvr-cli.svg)](https://nodejs.org)",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T3",
+        "score": 45,
+        "confidence": 1,
+        "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "Taiwan",
+            "content_hash": "f1623299",
+            "matched_text": "Taiwan",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486386Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "TW",
+            "content_hash": "29f5707c",
+            "matched_text": "TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486386Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "gov.tw",
+            "content_hash": "30beb2ee",
+            "matched_text": "gov.tw",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486387Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "moi.gov.tw",
+            "content_hash": "2c8d8671",
+            "matched_text": "moi.gov.tw",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486387Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "LVR",
+            "content_hash": "8769d90f",
+            "matched_text": "LVR",
+            "rule": "taiwan_keyword",
+            "score": 5,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486388Z"
+          }
+        ]
+      },
+      "repository": {
+        "url": "https://github.com/felixfu824/taiwan-property-price-cli",
+        "host": "github.com",
+        "owner": "felixfu824",
+        "name": "taiwan-property-price-cli",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "TypeScript",
+        "license": "Apache-2.0",
+        "topics": [
+          "agent-skill",
+          "claude-plugin",
+          "cli",
+          "codex-plugin",
+          "csv",
+          "json",
+          "lvr",
+          "open-data",
+          "plugin",
+          "property",
+          "property-price",
+          "property-transactions",
+          "real-estate",
+          "real-estate-data",
+          "real-price-registry",
+          "taiwan",
+          "taiwan-open-data",
+          "taiwan-property",
+          "taiwan-property-price",
+          "taiwan-real-estate"
+        ],
+        "default_branch": "master",
+        "archived": false,
+        "fork": false,
+        "homepage": "https://byfkc.com/taiwan-property-price/",
+        "created_at": "2026-05-26T18:18:13Z",
+        "updated_at": "2026-07-09T16:23:55Z",
+        "pushed_at": "2026-07-09T16:23:51Z",
+        "last_commit_at": "2026-07-09T16:23:51Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": [
+        {
+          "name": "moi.gov.tw",
+          "type": "official-government-api",
+          "url": "",
+          "country": "TW",
+          "official": true,
+          "access_method": ""
+        }
+      ],
+      "license": "Apache-2.0",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 72,
+        "grade": "C",
+        "components": {
+          "data_source": 20,
+          "maintenance": 15,
+          "documentation": 5,
+          "mcp_compliance": 8,
           "tool_schema": 0,
           "health": 10,
           "repository": 3,
@@ -768,28 +1115,39 @@
       "sources": [
         {
           "source": "github",
-          "url": "https://github.com/lachlanchen/LazyPromotion",
+          "url": "https://github.com/felixfu824/taiwan-property-price-cli",
           "discovered_at": "0001-01-01T00:00:00Z",
           "last_seen": "0001-01-01T00:00:00Z",
           "trust_score": 0
         }
       ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
     },
     {
-      "id": "bbbd7b1eb8c2078c2b55ca692e0a6dfb4e708eaa30011af41c42454e8e604e2c",
-      "name": "Piarium",
-      "slug": "piarium",
-      "description": "English | [简体中文](.github/readme/README.zh-CN.md) | [繁體中文](.github/readme/README.zh-TW.md) | [Français](.github/readme/README.fr.md) | [日本語](.github/readme/README.ja.md)",
+      "id": "fbaa50452165f07936095755e16c716a21365a089f95b8a53f8e49852cbf10c3",
+      "name": "tw-cadastral-mcp",
+      "slug": "tw-cadastral-mcp",
+      "description": "MCP server for querying Taiwan cadastral (land registry) data.",
       "region": null,
       "category": null,
       "taiwan_relevance": {
-        "level": "T4",
-        "score": 60,
+        "level": "T3",
+        "score": 40,
         "confidence": 1,
         "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "Taiwan",
+            "content_hash": "f1623299",
+            "matched_text": "Taiwan",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T02:16:14.486223Z"
+          },
           {
             "type": "repository_keyword",
             "source": "repository",
@@ -799,241 +1157,102 @@
             "rule": "taiwan_keyword",
             "score": 15,
             "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.775625Z"
+            "timestamp": "2026-09-05T02:16:14.486224Z"
           },
           {
             "type": "repository_keyword",
             "source": "repository",
-            "location": "zh-TW",
-            "content_hash": "ecd71043",
-            "matched_text": "zh-TW",
+            "location": "gov.tw",
+            "content_hash": "30beb2ee",
+            "matched_text": "gov.tw",
             "rule": "taiwan_keyword",
-            "score": 15,
+            "score": 5,
             "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.775627Z"
+            "timestamp": "2026-09-05T02:16:14.486224Z"
           },
           {
             "type": "repository_keyword",
             "source": "repository",
-            "location": "繁體中文",
-            "content_hash": "4539dc68",
-            "matched_text": "繁體中文",
+            "location": "moi.gov.tw",
+            "content_hash": "2c8d8671",
+            "matched_text": "moi.gov.tw",
             "rule": "taiwan_keyword",
-            "score": 15,
+            "score": 5,
             "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.775627Z"
-          },
-          {
-            "type": "repository_keyword",
-            "source": "repository",
-            "location": "繁體",
-            "content_hash": "65265bc8",
-            "matched_text": "繁體",
-            "rule": "taiwan_keyword",
-            "score": 15,
-            "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.775627Z"
+            "timestamp": "2026-09-05T02:16:14.486225Z"
           }
         ]
       },
       "repository": {
-        "url": "https://github.com/Youzini-afk/Piarium",
+        "url": "https://github.com/KCTW/tw-cadastral-mcp",
         "host": "github.com",
-        "owner": "Youzini-afk",
-        "name": "Piarium",
-        "stars": 13,
-        "forks": 1,
+        "owner": "KCTW",
+        "name": "tw-cadastral-mcp",
+        "stars": 0,
+        "forks": 0,
         "watchers": 0,
         "open_issues": 0,
-        "language": "TypeScript",
-        "license": "AGPL-3.0",
-        "topics": [
-          "agpl",
-          "ai",
-          "bun",
-          "coding-agent",
-          "electron",
-          "pi",
-          "vscode"
-        ],
-        "default_branch": "main",
-        "archived": false,
-        "fork": false,
-        "homepage": "https://github.com/Youzini-afk/Piarium",
-        "created_at": "2026-08-01T16:16:39Z",
-        "updated_at": "2026-09-05T01:42:10Z",
-        "pushed_at": "2026-09-05T01:42:06Z",
-        "last_commit_at": "2026-09-05T01:42:06Z"
-      },
-      "endpoints": null,
-      "transport": [
-        "sse",
-        "http"
-      ],
-      "tools": null,
-      "resources": null,
-      "prompts": null,
-      "data_sources": null,
-      "license": "AGPL-3.0",
-      "status": "ACTIVE",
-      "health": "HEALTHY",
-      "quality": {
-        "score": 50,
-        "grade": "F",
-        "components": {
-          "data_source": 0,
-          "maintenance": 15,
-          "documentation": 0,
-          "mcp_compliance": 11,
-          "tool_schema": 0,
-          "health": 10,
-          "repository": 4,
-          "license": 3,
-          "security": 5,
-          "community": 2
-        }
-      },
-      "security_findings": null,
-      "sources": [
-        {
-          "source": "github",
-          "url": "https://github.com/Youzini-afk/Piarium",
-          "discovered_at": "0001-01-01T00:00:00Z",
-          "last_seen": "0001-01-01T00:00:00Z",
-          "trust_score": 0
-        }
-      ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
-    },
-    {
-      "id": "e5857b0abe7ee7ac2e81637d152aeb62e9571c8035defa99bb2a564fb26b3569",
-      "name": "sd0x-harness",
-      "slug": "sd0x-harness",
-      "description": "**Language**: English | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md)",
-      "region": null,
-      "category": null,
-      "taiwan_relevance": {
-        "level": "T4",
-        "score": 60,
-        "confidence": 1,
-        "evidence": [
-          {
-            "type": "repository_keyword",
-            "source": "repository",
-            "location": "TW",
-            "content_hash": "29f5707c",
-            "matched_text": "TW",
-            "rule": "taiwan_keyword",
-            "score": 15,
-            "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.776159Z"
-          },
-          {
-            "type": "repository_keyword",
-            "source": "repository",
-            "location": "zh-TW",
-            "content_hash": "ecd71043",
-            "matched_text": "zh-TW",
-            "rule": "taiwan_keyword",
-            "score": 15,
-            "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.776159Z"
-          },
-          {
-            "type": "repository_keyword",
-            "source": "repository",
-            "location": "繁體中文",
-            "content_hash": "4539dc68",
-            "matched_text": "繁體中文",
-            "rule": "taiwan_keyword",
-            "score": 15,
-            "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.776159Z"
-          },
-          {
-            "type": "repository_keyword",
-            "source": "repository",
-            "location": "繁體",
-            "content_hash": "65265bc8",
-            "matched_text": "繁體",
-            "rule": "taiwan_keyword",
-            "score": 15,
-            "confidence": 1,
-            "timestamp": "2026-09-05T01:49:27.77616Z"
-          }
-        ]
-      },
-      "repository": {
-        "url": "https://github.com/sd0xdev/sd0x-harness",
-        "host": "github.com",
-        "owner": "sd0xdev",
-        "name": "sd0x-harness",
-        "stars": 188,
-        "forks": 24,
-        "watchers": 1,
-        "open_issues": 3,
         "language": "JavaScript",
         "license": "MIT",
-        "topics": [
-          "agent-harness",
-          "claude-code",
-          "claude-code-plugin",
-          "codex",
-          "harness-engineering",
-          "skills"
-        ],
+        "topics": [],
         "default_branch": "main",
         "archived": false,
         "fork": false,
         "homepage": "",
-        "created_at": "2026-01-30T16:19:10Z",
-        "updated_at": "2026-09-05T01:41:32Z",
-        "pushed_at": "2026-09-05T01:41:44Z",
-        "last_commit_at": "2026-09-05T01:41:44Z"
+        "created_at": "2026-04-11T17:57:04Z",
+        "updated_at": "2026-04-15T06:40:34Z",
+        "pushed_at": "2026-04-15T06:40:30Z",
+        "last_commit_at": "2026-04-15T06:40:30Z"
       },
       "endpoints": null,
       "transport": [
-        "sse",
         "http"
       ],
       "tools": null,
       "resources": null,
       "prompts": null,
-      "data_sources": null,
+      "data_sources": [
+        {
+          "name": "moi.gov.tw",
+          "type": "official-government-api",
+          "url": "",
+          "country": "TW",
+          "official": true,
+          "access_method": ""
+        }
+      ],
       "license": "MIT",
-      "status": "ACTIVE",
+      "status": "MAINTENANCE",
       "health": "HEALTHY",
       "quality": {
-        "score": 55,
-        "grade": "F",
+        "score": 63,
+        "grade": "D",
         "components": {
-          "data_source": 0,
-          "maintenance": 15,
+          "data_source": 20,
+          "maintenance": 12,
           "documentation": 0,
-          "mcp_compliance": 11,
+          "mcp_compliance": 8,
           "tool_schema": 0,
           "health": 10,
-          "repository": 4,
+          "repository": 3,
           "license": 5,
           "security": 5,
-          "community": 5
+          "community": 0
         }
       },
       "security_findings": null,
       "sources": [
         {
           "source": "github",
-          "url": "https://github.com/sd0xdev/sd0x-harness",
+          "url": "https://github.com/KCTW/tw-cadastral-mcp",
           "discovered_at": "0001-01-01T00:00:00Z",
           "last_seen": "0001-01-01T00:00:00Z",
           "trust_score": 0
         }
       ],
-      "first_seen_at": "2026-09-05T01:49:27Z",
-      "last_seen_at": "2026-09-05T01:49:27Z",
-      "last_verified_at": "2026-09-05T01:49:27Z"
+      "first_seen_at": "2026-09-05T02:16:14Z",
+      "last_seen_at": "2026-09-05T02:16:14Z",
+      "last_verified_at": "2026-09-05T02:16:14Z"
     }
   ]
 }
