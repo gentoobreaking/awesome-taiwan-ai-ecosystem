@@ -133,7 +133,7 @@ docker build -t awesome-taiwan-mcp .
 | `GITHUB_TOKEN` | 是 | — | GitHub API Token，用於倉庫搜尋與抓取 |
 | `OPENAI_API_KEY` | 否 | — | OpenAI-compatible API Key，用於 LLM 分類 |
 | `OPENAI_BASE_URL` | 否 | `https://api.openai.com/v1` | OpenAI-compatible API 基礎 URL |
-| `OPENAI_MODEL` | 否 | — | 覆寫模型 (fallback chain: `opencode/muse-spark-1.2-contributor-free` → `opencopen/nemotron-3-ultra-free`) |
+| `OPENAI_MODEL` | 否 | — | 覆寫模型 (設定時僅使用該單一模型；預設 fallback 鏈：`muse-spark-1.2-contributor-free` → `nemotron-3-ultra-free`；opencode.ai/zen/v1 需無前綴的 bare ID) |
 
 CLI 標誌:
 

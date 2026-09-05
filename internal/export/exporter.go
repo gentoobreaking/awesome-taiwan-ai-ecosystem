@@ -10,7 +10,10 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/encoding/traditionalchinese"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
 
@@ -183,12 +186,23 @@ func writeFile(path string, data []byte) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
-// sanitizeUTF8 removes invalid UTF-8 sequences from byte data
+// sanitizeUTF8 ensures valid UTF-8, attempting Big5/GBK decode first.
+// Replaces invalid sequences with U+FFFD (�).
 func sanitizeUTF8(data []byte) []byte {
-	s := strings.ToValidUTF8(string(data), "")
-	return []byte(s)
+	if utf8.Valid(data) {
+		return data
+	}
+	// Try Big5
+	if decoded, err := traditionalchinese.Big5.NewDecoder().Bytes(data); err == nil && utf8.Valid(decoded) {
+		return []byte(strings.ToValidUTF8(string(decoded), "�"))
+	}
+	// Try GBK
+	if decoded, err := simplifiedchinese.GBK.NewDecoder().Bytes(data); err == nil && utf8.Valid(decoded) {
+		return []byte(strings.ToValidUTF8(string(decoded), "�"))
+	}
+	// Fallback: replace invalid with U+FFFD
+	return []byte(strings.ToValidUTF8(string(data), "�"))
 }
-// stripHTMLTags removes HTML tags for clean markdown display.
 func stripHTMLTags(s string) string {
 	// Remove HTML tags like <div align="center">
 	re := regexp.MustCompile(`<[^>]+>`)
@@ -343,8 +357,9 @@ func serverMarkdown(s models.MCPServer) string {
 	sb.WriteString(fmt.Sprintf("**%s**", s.Name))
 	if s.Description != "" {
 		desc := stripHTMLTags(s.Description)
-		if len(desc) > 150 {
-			desc = desc[:150] + "..."
+		if len([]rune(desc)) > 150 {
+			runes := []rune(desc)
+			desc = string(runes[:150]) + "..."
 		}
 		sb.WriteString(fmt.Sprintf(" — %s", desc))
 	}
@@ -396,8 +411,9 @@ func serverMarkdownIntl(s models.MCPServer) string {
 	sb.WriteString(fmt.Sprintf("**%s**", s.Name))
 	if s.Description != "" {
 		desc := stripHTMLTags(s.Description)
-		if len(desc) > 150 {
-			desc = desc[:150] + "..."
+		if len([]rune(desc)) > 150 {
+			runes := []rune(desc)
+			desc = string(runes[:150]) + "..."
 		}
 		sb.WriteString(fmt.Sprintf(" — %s", desc))
 	}

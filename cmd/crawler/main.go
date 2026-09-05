@@ -20,6 +20,8 @@ import (
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
 	"github.com/david/awesome-taiwan-mcp/internal/sources/github"
 	"github.com/david/awesome-taiwan-mcp/internal/sources/githubrepo"
+	"github.com/david/awesome-taiwan-mcp/internal/sources/mcpmarket"
+	"github.com/david/awesome-taiwan-mcp/internal/sources/mcpserversorg"
 	"github.com/david/awesome-taiwan-mcp/internal/sources/registry"
 	"github.com/david/awesome-taiwan-mcp/internal/storage"
 	"github.com/spf13/cobra"
@@ -98,8 +100,7 @@ func main() {
 	// Global flags
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", "config/sources.yaml", "config file path")
 	rootCmd.PersistentFlags().StringVar(&dbPath, "db", "./data/registry.db", "SQLite database path")
-	rootCmd.PersistentFlags().BoolVar(&fullCrawl, "full", false, "force full crawl")
-	rootCmd.PersistentFlags().StringVar(&sourceFlag, "source", "all", "source to crawl (github, registry, all)")
+	rootCmd.PersistentFlags().StringVar(&sourceFlag, "source", "all", "source to crawl (github, registry, mcpserversorg, mcpmarket, all)")
 	rootCmd.PersistentFlags().BoolVar(&incremental, "incremental", false, "run incremental crawl")
 	rootCmd.PersistentFlags().IntVar(&maxPerSource, "max-per-source", 10, "max candidates per source (0=unlimited)")
 	rootCmd.PersistentFlags().IntVar(&workers, "workers", 4, "number of workers per source")
@@ -133,7 +134,10 @@ func setupCrawler(store *storage.Store) *crawler.CrawlCoordinator {
 	var adapters []sources.SourceAdapter
 	adapters = append(adapters, github.New(os.Getenv("GITHUB_TOKEN")))
 	adapters = append(adapters, githubrepo.New("modelcontextprotocol/servers", os.Getenv("GITHUB_TOKEN")))
+	adapters = append(adapters, githubrepo.New("modelcontextprotocol/servers-archived", os.Getenv("GITHUB_TOKEN")))
 	adapters = append(adapters, registry.New())
+	adapters = append(adapters, mcpserversorg.New())
+	adapters = append(adapters, mcpmarket.New())
 	norm := normalize.New()
 	return crawler.NewCrawlCoordinator(store, norm, adapters, logger)
 }

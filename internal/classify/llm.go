@@ -4,6 +4,7 @@ package classify
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,9 +19,29 @@ import (
 
 // llmModels is the fallback chain for LLM classification.
 // First model is primary; subsequent are fallbacks.
+// NOTE: opencode.ai/zen/v1 expects bare model IDs without "opencode/" prefix.
+// Do NOT add provider prefix; use "muse-spark-1.2-contributor-free" etc.
 var llmModels = []string{
-	"opencode/muse-spark-1.2-contributor-free",
-	"opencopen/nemotron-3-ultra-free",
+	"muse-spark-1.2-contributor-free",
+	"nemotron-3-ultra-free",
+}
+
+// AuthError indicates authentication failure (invalid API key / AuthError).
+// Classify must fail-fast on AuthError and NOT try fallback models.
+// Caller can use IsAuthError / errors.As to detect it.
+type AuthError struct {
+	Status int
+	Body   string
+}
+
+func (e *AuthError) Error() string {
+	return fmt.Sprintf("auth error %d: %s", e.Status, e.Body)
+}
+
+// IsAuthError reports whether err is an *AuthError (authentication failure).
+func IsAuthError(err error) bool {
+	var ae *AuthError
+	return errors.As(err, &ae)
 }
 
 // LLMCallCount tracks total LLM invocations for observability (§TST-050).
@@ -49,10 +70,23 @@ func NewLLMClassifier() *LLMClassifier {
 	if baseURL == "" {
 		baseURL = "https://api.openai.com/v1"
 	}
+	// Idempotent baseURL handling: if already contains /chat/completions, do not append again.
+	baseURL = strings.TrimRight(baseURL, "/")
+	if !strings.HasSuffix(baseURL, "/chat/completions") {
+		baseURL = baseURL + "/chat/completions"
+	}
+
+	// OPENAI_MODEL support: if set, override the fallback chain with the single custom model.
+	// This allows operators to pin the deployment to a model known to exist on their endpoint
+	// (e.g. OPENAI_MODEL=muse-spark-1.3-contributor-free) without code change.
+	// TrimSpace to tolerate accidental whitespace.
+	if m := strings.TrimSpace(os.Getenv("OPENAI_MODEL")); m != "" {
+		llmModels = []string{m}
+	}
 
 	return &LLMClassifier{
 		client:     &http.Client{Timeout: 30 * time.Second},
-		baseURL:    strings.TrimRight(baseURL, "/") + "/chat/completions",
+		baseURL:    baseURL,
 		apiKey:     apiKey,
 		maxRetries: 3,
 	}
@@ -83,11 +117,21 @@ func (lc *LLMClassifier) Classify(ctx context.Context, server *models.MCPServer)
 	// Build LLM prompt with only classification-relevant data
 	prompt := buildLLMPrompt(server, readmeText)
 
-	// Try models in fallback order
+	// Try models in fallback order.
+	// Circuit: AuthError is fail-fast — do not try second model (key is invalid for all models).
+	// Retry policy: only 429 / 5xx / network errors are retryable (§22); 401/403 (except rate-limit) are not.
+	// This classifier uses a bare http.Client (no RetryableClient); therefore 429/5xx are NOT retried here.
+	// If retry is added in the future, it MUST be limited to 429 and 5xx with exponential backoff (1s→2s→4s→8s, max 30s),
+	// and MUST NOT retry AuthError / ModelError (401/403 without rate-limit header).
 	var lastErr error
 	for _, model := range llmModels {
 		result, err := lc.callLLM(ctx, model, prompt)
 		if err != nil {
+			if IsAuthError(err) {
+				// Authentication failure — no point trying fallback model with same key.
+				lastErr = err
+				break
+			}
 			lastErr = err
 			continue
 		}
@@ -196,8 +240,22 @@ func (lc *LLMClassifier) callLLM(ctx context.Context, model string, prompt strin
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		return nil, fmt.Errorf("API error %d: %s", resp.StatusCode, string(body))
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
+		msg := string(body)
+		// 401/403 body sniffing: distinguish AuthError (invalid key) vs ModelError (unknown model).
+		// AuthError is fail-fast (do not try fallback); ModelError falls through to next model.
+		// Only 429 / 5xx are considered retryable (with exponential backoff via RetryableClient).
+		// This bare client does NOT retry; retry annotation kept for future migration to RetryableClient.
+		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			if strings.Contains(msg, "AuthError") || strings.Contains(msg, "invalid_api_key") || strings.Contains(msg, "Invalid API key") {
+				return nil, &AuthError{Status: resp.StatusCode, Body: msg}
+			}
+			// ModelError or other 401/403 — return plain error; Classify will try next model.
+			// Do NOT retry same model; fallback is at most one extra request.
+		}
+		// For 429 / 5xx, caller would retry with backoff if RetryableClient were used;
+		// bare client returns error immediately (no retry). See Classify comment for policy.
+		return nil, fmt.Errorf("API error %d: %s", resp.StatusCode, msg)
 	}
 
 	var raw struct {
@@ -288,6 +346,27 @@ func LLMCalls() int64 {
 }
 
 // ResetLLMCallCount resets the call counter (for testing).
+
+// GetLLMModels returns the current fallback chain (for testing).
+func GetLLMModels() []string {
+    c := make([]string, len(llmModels))
+    copy(c, llmModels)
+    return c
+}
+
+// BaseURL returns the classifier's base URL (for testing).
+func (lc *LLMClassifier) BaseURL() string {
+    return lc.baseURL
+}
+
+// ResetLLMModels resets the fallback chain to defaults (for testing).
+func ResetLLMModels() {
+    llmModels = []string{
+        "muse-spark-1.2-contributor-free",
+        "nemotron-3-ultra-free",
+    }
+}
+
 func ResetLLMCallCount() {
 	atomic.StoreInt64(&llmCallCount, 0)
 }

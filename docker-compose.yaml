@@ -13,6 +13,8 @@ services:
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://opencode.ai/zen/v1}
+      - OPENAI_MODEL=${OPENAI_MODEL:-}
     security_opt:
       - no-new-privileges:true
     read_only: true

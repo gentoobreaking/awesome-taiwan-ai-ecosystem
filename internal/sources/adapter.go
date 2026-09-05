@@ -3,6 +3,7 @@ package sources
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
@@ -35,6 +36,8 @@ type RawRecord struct {
 }
 
 // RateLimitConfig defines per-source rate limiting (§40).
+var ErrNotAvailable = errors.New("source not available")
+
 type RateLimitConfig struct {
 	RequestsPerSecond float64
 	Burst             int

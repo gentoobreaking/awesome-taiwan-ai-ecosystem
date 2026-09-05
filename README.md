@@ -133,7 +133,7 @@ docker build -t awesome-taiwan-mcp .
 | `GITHUB_TOKEN` | Yes | — | GitHub API token for repository search and fetch |
 | `OPENAI_API_KEY` | No | — | OpenAI-compatible API key for LLM classification |
 | `OPENAI_BASE_URL` | No | `https://api.openai.com/v1` | OpenAI-compatible API base URL |
-| `OPENAI_MODEL` | No | — | Override model (fallback chain: `opencode/muse-spark-1.2-contributor-free` → `opencopen/nemotron-3-ultra-free`) |
+| `OPENAI_MODEL` | No | — | Override model (when set, uses this single model; default fallback chain: `muse-spark-1.2-contributor-free` → `nemotron-3-ultra-free`; opencode.ai/zen/v1 requires bare IDs without `opencode/` prefix) |
 
 CLI flags:
 

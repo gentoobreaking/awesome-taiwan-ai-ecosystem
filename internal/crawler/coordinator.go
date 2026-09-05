@@ -23,26 +23,26 @@ import (
 
 // CrawlOptions configures a crawl run.
 type CrawlOptions struct {
-	Source      string // "github", "all", or specific source name
-	FullCrawl   bool
-	Workers     int
+	Source       string // "github", "all", or specific source name
+	FullCrawl    bool
+	Workers      int
 	MaxPerSource int // max candidates per source (0 = unlimited)
 }
 
 // CrawlCoordinator orchestrates the full crawl pipeline (§31).
 type CrawlCoordinator struct {
-	sources     []sources.SourceAdapter
-	normalizer  normalize.Normalizer
-	dedupEngine *dedupe.DedupEngine
-	scorer      *scoring.QualityScorer
-	repoVerifier *verify.RepositoryVerifier
+	sources       []sources.SourceAdapter
+	normalizer    normalize.Normalizer
+	dedupEngine   *dedupe.DedupEngine
+	scorer        *scoring.QualityScorer
+	repoVerifier  *verify.RepositoryVerifier
 	protoVerifier *verify.ProtocolVerifier
 	healthChecker *health.HealthChecker
-	secScanner   *security.Scanner
-	store        *storage.Store
-	metrics      *metrics.CrawlMetrics
-	logger       *metrics.Logger
-	workers      int
+	secScanner    *security.Scanner
+	store         *storage.Store
+	metrics       *metrics.CrawlMetrics
+	logger        *metrics.Logger
+	workers       int
 	llmClassifier *classify.LLMClassifier
 }
 
@@ -111,19 +111,45 @@ func (c *CrawlCoordinator) Run(ctx context.Context, opts CrawlOptions) error {
 	// Stage 3b: LLM classification for ambiguous candidates (T035)
 	// Only candidates with 20 <= score <= 55 need LLM (§18)
 	// T0/T1 (score < 20) and T4/T5 (score >= 70) are deterministic — zero LLM calls
+	// Circuit breaker: consecutive AuthError (invalid key) => pause LLM stage, fallback T2.
 	if c.llmClassifier != nil {
+		consecutiveAuthFailures := 0
+		circuitOpen := false
 		for i := range servers {
 			if !classify.ShouldClassifyLLM(servers[i].TaiwanRelevance.Score) {
 				continue
 			}
+			if circuitOpen {
+				// LLM circuit open — skip remaining ambiguous candidates, preserve T2 fallback.
+				// Log is throttled: only first circuit_open event is emitted above; remaining skips are silent
+				// to avoid log spam (100 candidates -> 100 logs). The fallback T2 is already set via Score(20-55) path
+				// or Classify would have returned T2/35; we keep existing relevance as-is.
+				continue
+			}
 			llmResult, err := c.llmClassifier.Classify(ctx, servers[i])
 			if err != nil {
+				if classify.IsAuthError(err) {
+					consecutiveAuthFailures++
+					c.logger.Warn(ctx, crawlID, "llm", "classify_error", "server", servers[i].Name, "error", err.Error(), "auth_failure", true, "consecutive", consecutiveAuthFailures)
+					if consecutiveAuthFailures >= 3 {
+						circuitOpen = true
+						c.logger.Warn(ctx, crawlID, "llm", "circuit_open", "reason", "consecutive auth failures", "threshold", 3, "consecutive", consecutiveAuthFailures)
+					}
+					continue
+				}
+				// ModelError or other — keep Info, reset auth counter, with count for observability.
+				consecutiveAuthFailures = 0
 				c.logger.Info(ctx, crawlID, "llm", "classify_error", "server", servers[i].Name, "error", err.Error())
 				continue
 			}
+			// Success — reset auth failure counter.
+			consecutiveAuthFailures = 0
 			if llmResult != nil {
 				servers[i].TaiwanRelevance = *llmResult
 			}
+		}
+		if circuitOpen {
+			c.logger.Warn(ctx, crawlID, "llm", "circuit_open_summary", "msg", "LLM stage paused due to auth failures, remaining candidates preserved as T2")
 		}
 	}
 
@@ -242,7 +268,7 @@ func (c *CrawlCoordinator) discoverAndFetch(
 	activeSources []sources.SourceAdapter,
 	runMgr *run.Manager,
 	maxPerSource int,
-	) ([]*sources.RawRecord, error) {
+) ([]*sources.RawRecord, error) {
 	var mu sync.Mutex
 	var allRecords []*sources.RawRecord
 

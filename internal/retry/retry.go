@@ -7,17 +7,23 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"strconv"
 	"time"
+
+	github_ratelimit "github.com/gofri/go-github-ratelimit/v2/github_ratelimit"
+	"github.com/gofri/go-github-ratelimit/v2/github_ratelimit/github_primary_ratelimit"
+	"github.com/gofri/go-github-ratelimit/v2/github_ratelimit/github_secondary_ratelimit"
 )
 
 // Config defines retry and backoff behavior.
 type Config struct {
-	MaxRetries      int           // default: 3
-	BaseDelay       time.Duration // default: 1s
-	MaxDelay        time.Duration // default: 30s
-	MaxConcurrency  int           // for rate limiting
+	MaxRetries     int           // default: 3
+	BaseDelay      time.Duration // default: 1s
+	MaxDelay       time.Duration // default: 30s
+	MaxConcurrency int           // for rate limiting
 }
 
 // DefaultConfig returns the standard retry configuration (§22).
@@ -32,11 +38,38 @@ func DefaultConfig() Config {
 
 // RetryableClient wraps http.Client with retry and rate limiting.
 type RetryableClient struct {
-	client  *http.Client
-	config  Config
+	client *http.Client
+	config Config
 }
 
-// NewClient creates a new RetryableClient.
+// newRateLimitedTransport wraps base with go-github-ratelimit (primary+secondary).
+// Secondary is configured with SingleSleepLimit 60s and callbacks that log Warn,
+// per audit recommendation A (minimal invasive transport).
+func newRateLimitedTransport(base http.RoundTripper) http.RoundTripper {
+	if base == nil {
+		base = http.DefaultTransport
+	}
+	return github_ratelimit.New(base,
+		github_primary_ratelimit.WithLimitDetectedCallback(func(ctx *github_primary_ratelimit.CallbackContext) {
+			slog.Warn("github primary rate limit detected", "category", ctx.Category, "reset", ctx.ResetTime)
+		}),
+		github_primary_ratelimit.WithRequestPreventedCallback(func(ctx *github_primary_ratelimit.CallbackContext) {
+			slog.Warn("github primary rate limit request prevented", "category", ctx.Category, "reset", ctx.ResetTime)
+		}),
+		github_secondary_ratelimit.WithLimitDetectedCallback(func(ctx *github_secondary_ratelimit.CallbackContext) {
+			slog.Warn("github secondary rate limit detected", "reset", ctx.ResetTime, "totalSleep", ctx.TotalSleepTime)
+		}),
+		github_secondary_ratelimit.WithSingleSleepLimit(60*time.Second, func(ctx *github_secondary_ratelimit.CallbackContext) {
+			slog.Warn("github secondary single sleep limit exceeded", "reset", ctx.ResetTime, "totalSleep", ctx.TotalSleepTime)
+		}),
+		github_secondary_ratelimit.WithTotalSleepLimit(5*time.Minute, func(ctx *github_secondary_ratelimit.CallbackContext) {
+			slog.Warn("github secondary total sleep limit exceeded", "reset", ctx.ResetTime, "totalSleep", ctx.TotalSleepTime)
+		}),
+	)
+}
+
+// NewClient creates a new RetryableClient with GitHub rate limiting enabled.
+// Transport is automatically wrapped by github_ratelimit (primary + secondary).
 func NewClient(config Config) *RetryableClient {
 	if config.MaxRetries == 0 {
 		config.MaxRetries = 3
@@ -51,21 +84,63 @@ func NewClient(config Config) *RetryableClient {
 		config.MaxConcurrency = 2
 	}
 	return &RetryableClient{
-		client: &http.Client{Timeout: 30 * time.Second},
+		client: &http.Client{
+			Transport: newRateLimitedTransport(nil),
+			Timeout:   30 * time.Second,
+		},
 		config: config,
 	}
 }
+
+// NewClientWithRateLimit creates a new RetryableClient with explicit rate limiting.
+// Provided for audit recommendation A — functionally identical to NewClient (which already wraps Transport).
+func NewClientWithRateLimit(config Config) *RetryableClient {
+	return NewClient(config)
+}
+
+// NewClientWithTransport creates a client wrapping a custom base transport with rate limiting.
+func NewClientWithTransport(config Config, base http.RoundTripper) *RetryableClient {
+	if config.MaxRetries == 0 {
+		config.MaxRetries = 3
+	}
+	if config.BaseDelay == 0 {
+		config.BaseDelay = 1 * time.Second
+	}
+	if config.MaxDelay == 0 {
+		config.MaxDelay = 30 * time.Second
+	}
+	if config.MaxConcurrency == 0 {
+		config.MaxConcurrency = 2
+	}
+	return &RetryableClient{
+		client: &http.Client{
+			Transport: newRateLimitedTransport(base),
+			Timeout:   30 * time.Second,
+		},
+		config: config,
+	}
+}
+
 // WithHTTPClient sets a custom underlying http.Client (for testing with httptest).
+// If the provided client has a Transport, it will be wrapped with rate limiting to preserve guarantees.
 func (rc *RetryableClient) WithHTTPClient(c *http.Client) *RetryableClient {
-	rc.client = c
+	if c != nil {
+		if c.Transport != nil {
+			c.Transport = newRateLimitedTransport(c.Transport)
+		} else {
+			c.Transport = newRateLimitedTransport(nil)
+		}
+		rc.client = c
+	}
 	return rc
 }
+
 // Do executes an HTTP request with retry logic.
 // Returns the final response (caller must close body).
 // Retry logic (§22):
-//   - HTTP 429 → backoff respecting Retry-After
-//   - HTTP 5xx → exponential backoff
-//   - HTTP 4xx (except 429) → no retry
+//   - HTTP 429/403 with rate limiting → delegated to github_ratelimit Transport (primary returns RateLimitReachedError, secondary sleeps & retries internally)
+//   - HTTP 5xx → exponential backoff with jitter
+//   - HTTP 4xx (except retryable) → no retry
 //   - Timeout/DNS/network error → retry
 //   - Max retries = 3 (initial + 3 retries = 4 attempts)
 func (rc *RetryableClient) Do(ctx context.Context, req *http.Request) (*http.Response, error) {
@@ -85,13 +160,22 @@ func (rc *RetryableClient) Do(ctx context.Context, req *http.Request) (*http.Res
 
 		resp, lastErr = rc.client.Do(req)
 
+		// Primary rate limit is signaled as RateLimitReachedError from the Transport — do not retry, propagate immediately.
+		if lastErr != nil {
+			var rlErr *github_primary_ratelimit.RateLimitReachedError
+			if errors.As(lastErr, &rlErr) {
+				return nil, lastErr
+			}
+		}
+
 		if lastErr == nil {
 			if resp.StatusCode == http.StatusOK {
 				return resp, nil
 			}
 
-			// Check if retryable + calculate specific delay (rate limit)
+			// Check if retryable + calculate specific delay (only 5xx is retried at this layer; 429/403 delegated to Transport)
 			retryable, delay := rc.isRetryableStatus(resp.StatusCode, resp)
+			// Close body before retry / return; if secondary detection already consumed body, it was restored by the library.
 			resp.Body.Close()
 
 			if !retryable {
@@ -99,7 +183,7 @@ func (rc *RetryableClient) Do(ctx context.Context, req *http.Request) (*http.Res
 				return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
 			}
 
-			// Use specific delay (from headers) or exponential backoff
+			// Use specific delay (from headers) or exponential backoff with jitter
 			if delay == 0 {
 				delay = rc.calculateBackoff(attempt, resp)
 			}
@@ -114,7 +198,7 @@ func (rc *RetryableClient) Do(ctx context.Context, req *http.Request) (*http.Res
 			continue
 		}
 
-		// Network error - retry with backoff
+		// Network error - retry with backoff (jittered)
 		backoffDelay := rc.calculateBackoff(attempt, nil)
 		if backoffDelay > 0 {
 			select {
@@ -135,20 +219,22 @@ func (rc *RetryableClient) Do(ctx context.Context, req *http.Request) (*http.Res
 }
 
 // isRetryableStatus checks if an HTTP status code should be retried.
+// Delegates secondary detection to github_ratelimit; this layer only handles 429/5xx + 403+Remaining==0.
 // Returns (retryable, delay) where delay is from rate-limit headers.
 func (rc *RetryableClient) isRetryableStatus(statusCode int, resp *http.Response) (bool, time.Duration) {
-	// 429 Too Many Requests - retryable
+	// 429 Too Many Requests - retryable (secondary case handled by Transport; primary 429 also flows via RateLimitReachedError)
 	if statusCode == http.StatusTooManyRequests {
 		return true, rc.getRetryDelay(resp)
 	}
-	// 403 Forbidden - retryable if GitHub rate limit headers present
+	// 403 Forbidden - retryable only if GitHub primary remaining==0; secondary with body is delegated to Transport
 	if statusCode == http.StatusForbidden {
 		remaining := resp.Header.Get("X-RateLimit-Remaining")
 		if remaining == "0" {
 			return true, rc.getRateLimitDelay(resp)
 		}
+		// Secondary abuse limit (body sniffing) is handled inside github_secondary_ratelimit transport; do not retry here
 	}
-	// 5xx errors - retryable
+	// 5xx errors - retryable with jittered exponential backoff
 	if statusCode >= 500 && statusCode < 600 {
 		return true, 0
 	}
@@ -162,11 +248,13 @@ func (rc *RetryableClient) getRetryDelay(resp *http.Response) time.Duration {
 		if seconds, err := strconv.Atoi(retryAfter); err == nil {
 			return time.Duration(seconds) * time.Second
 		}
+		// HTTP-date format is intentionally not parsed; Transport delegates via secondary_ratelimit which only handles seconds.
 	}
 	return 0
 }
 
 // getRateLimitDelay returns delay until GitHub rate limit resets.
+// Returns the true delay (no 10s cap) so caller can decide;配合 ratelimit Primary 行為：Primary now returns RateLimitReachedError instead of sleeping.
 func (rc *RetryableClient) getRateLimitDelay(resp *http.Response) time.Duration {
 	resetStr := resp.Header.Get("X-RateLimit-Reset")
 	if resetStr == "" {
@@ -175,17 +263,13 @@ func (rc *RetryableClient) getRateLimitDelay(resp *http.Response) time.Duration 
 	if resetTime, err := strconv.ParseInt(resetStr, 10, 64); err == nil {
 		delay := time.Until(time.Unix(resetTime, 0))
 		if delay > 0 {
-			// Cap at 10s to avoid long waits during rate limiting
-			if delay > 10*time.Second {
-				delay = 10 * time.Second
-			}
 			return delay
 		}
 	}
 	return 0
 }
 
-// calculateBackoff implements exponential backoff: 1s → 2s → 4s → 8s, capped at MaxDelay.
+// calculateBackoff implements exponential backoff: 1s → 2s → 4s → 8s, capped at MaxDelay, with jitter 0.8-1.2.
 // If response has Retry-After header, use that instead.
 func (rc *RetryableClient) calculateBackoff(attempt int, resp *http.Response) time.Duration {
 	if resp != nil && resp.StatusCode == http.StatusTooManyRequests {
@@ -199,6 +283,15 @@ func (rc *RetryableClient) calculateBackoff(attempt int, resp *http.Response) ti
 	delay := rc.config.BaseDelay * time.Duration(1<<uint(attempt))
 	if delay > rc.config.MaxDelay {
 		delay = rc.config.MaxDelay
+	}
+	// Add jitter 0.8 - 1.2 to avoid thundering herd (§R10)
+	jitter := 0.8 + rand.Float64()*0.4
+	delay = time.Duration(float64(delay) * jitter)
+	if delay > rc.config.MaxDelay {
+		delay = rc.config.MaxDelay
+	}
+	if delay < 0 {
+		delay = rc.config.BaseDelay
 	}
 	return delay
 }

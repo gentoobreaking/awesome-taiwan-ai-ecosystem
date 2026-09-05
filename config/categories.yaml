@@ -1,0 +1,84 @@
+# Category taxonomy - single source of truth for normalize & export (D08)
+# Parent key -> children mapping per audit D02
+categories:
+  - key: finance
+    name: Finance & Fintech
+    emoji: "💰"
+    aliases: ["fintech", "finance & fintech", "finance-fintech"]
+    children: [stock, etf, banking, insurance]
+  - key: real-estate
+    name: Real Estate
+    emoji: "🏠"
+    children: [land, housing]
+  - key: government
+    name: Government & Open Data
+    emoji: "🏛️"
+    children: [open-data, legislative, judicial, procurement]
+  - key: weather
+    name: Weather & Environment
+    emoji: "🌤️"
+    children: [earthquake]
+  - key: transport
+    name: Transport & Logistics
+    emoji: "🚌"
+    children: [traffic, railway, metro, bus, logistics]
+  - key: healthcare
+    name: Healthcare
+    emoji: "🏥"
+    children: []
+  - key: education
+    name: Education
+    emoji: "📚"
+    children: []
+  - key: geography
+    name: Geography & GIS
+    emoji: "🗺️"
+    children: [tourism, gis]
+  - key: language
+    name: Language & Culture
+    emoji: "🈶"
+    children: [traditional-chinese, culture]
+  - key: ecommerce
+    name: E-Commerce
+    emoji: "🛒"
+    children: [company, business]
+  - key: payment
+    name: Payment & Invoicing
+    emoji: "💳"
+    children: [invoice, tax]
+  - key: news
+    name: News & Media
+    emoji: "📰"
+    children: []
+  - key: search
+    name: Search & Data Extraction
+    emoji: "🔎"
+    children: []
+  - key: coding-agents
+    name: Coding Agents
+    emoji: "🤖"
+    children: []
+  - key: communication
+    name: Communication
+    emoji: "💬"
+    children: []
+  - key: databases
+    name: Databases
+    emoji: "🗄️"
+    children: []
+  - key: knowledge
+    name: Knowledge & Memory
+    emoji: "🧠"
+    children: []
+  - key: legal
+    name: Legal & Compliance
+    emoji: "⚖️"
+    children: []
+  - key: security
+    name: Security
+    emoji: "🔒"
+    children: []
+  - key: other
+    name: Other Tools
+    emoji: "📦"
+    children: [agriculture, food, devops]
