@@ -23,9 +23,10 @@ import (
 
 // CrawlOptions configures a crawl run.
 type CrawlOptions struct {
-	Source    string // "github", "all", or specific source name
-	FullCrawl bool
-	Workers   int
+	Source      string // "github", "all", or specific source name
+	FullCrawl   bool
+	Workers     int
+	MaxPerSource int // max candidates per source (0 = unlimited)
 }
 
 // CrawlCoordinator orchestrates the full crawl pipeline (§31).
@@ -84,7 +85,7 @@ func (c *CrawlCoordinator) Run(ctx context.Context, opts CrawlOptions) error {
 	activeSources := c.filterSources(opts.Source)
 
 	// Stage 1: Discover + Fetch from each source
-	allRawRecords, err := c.discoverAndFetch(ctx, crawlID, activeSources, runMgr)
+	allRawRecords, err := c.discoverAndFetch(ctx, crawlID, activeSources, runMgr, opts.MaxPerSource)
 	if err != nil {
 		return fmt.Errorf("discover/fetch: %w", ctx.Err())
 	}
@@ -240,7 +241,8 @@ func (c *CrawlCoordinator) discoverAndFetch(
 	crawlID string,
 	activeSources []sources.SourceAdapter,
 	runMgr *run.Manager,
-) ([]*sources.RawRecord, error) {
+	maxPerSource int,
+	) ([]*sources.RawRecord, error) {
 	var mu sync.Mutex
 	var allRecords []*sources.RawRecord
 
@@ -264,6 +266,10 @@ func (c *CrawlCoordinator) discoverAndFetch(
 			c.logger.Info(ctx, crawlID, "discover", "candidates_found", "source", s.Name(), "count", len(candidates))
 			runMgr.RecordCandidate(len(candidates))
 
+			// Apply max candidates limit
+			if maxPerSource > 0 && len(candidates) > maxPerSource {
+				candidates = candidates[:maxPerSource]
+			}
 			// Fetch each candidate with worker pool
 			workerCount := c.workers
 			if workerCount < 1 {

@@ -42,6 +42,7 @@ var (
 	catFilter      string
 	capabilityFlag string
 	markdownExport bool
+	maxPerSource   int
 )
 
 func main() {
@@ -96,10 +97,11 @@ func main() {
 	// Global flags
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", "config/sources.yaml", "config file path")
 	rootCmd.PersistentFlags().StringVar(&dbPath, "db", "./data/registry.db", "SQLite database path")
+	rootCmd.PersistentFlags().BoolVar(&fullCrawl, "full", false, "force full crawl")
 	rootCmd.PersistentFlags().StringVar(&sourceFlag, "source", "all", "source to crawl (github, registry, all)")
 	rootCmd.PersistentFlags().BoolVar(&incremental, "incremental", false, "run incremental crawl")
+	rootCmd.PersistentFlags().IntVar(&maxPerSource, "max-per-source", 10, "max candidates per source (0=unlimited)")
 	rootCmd.PersistentFlags().IntVar(&workers, "workers", 4, "number of workers per source")
-	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "output as JSON")
 	rootCmd.PersistentFlags().IntVar(&minScore, "min-score", 0, "minimum quality score filter")
 	rootCmd.PersistentFlags().StringVar(&capabilityFlag, "capability", "", "search by capability keywords")
 	rootCmd.PersistentFlags().StringVar(&catFilter, "category", "", "filter by category")
@@ -153,9 +155,10 @@ func runCrawl(cmd *cobra.Command, _ []string) error {
 	}
 
 	return coord.Run(ctx, crawler.CrawlOptions{
-		Source:    sourceFlag,
-		FullCrawl: fullCrawl,
-		Workers:   workers,
+		Source:      sourceFlag,
+		FullCrawl:   fullCrawl,
+		Workers:     workers,
+		MaxPerSource: maxPerSource,
 	})
 }
 

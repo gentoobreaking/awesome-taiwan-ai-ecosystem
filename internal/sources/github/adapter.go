@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
@@ -94,9 +95,15 @@ type githubRepoItem struct {
 }
 
 // Discover searches GitHub for MCP-related repositories using the keyword matrix.
+// Searches are run in parallel with a concurrency limit (§41 failure isolation).
 func (g *GitHubAdapter) Discover(ctx context.Context) ([]models.RawCandidate, error) {
+	var mu sync.Mutex
 	var candidates []models.RawCandidate
 	seen := make(map[string]bool)
+
+	// Parallel search with bounded concurrency
+	sem := make(chan struct{}, 5) // max 5 concurrent searches
+	var wg sync.WaitGroup
 
 	for _, keyword := range KeywordMatrix {
 		select {
@@ -105,23 +112,36 @@ func (g *GitHubAdapter) Discover(ctx context.Context) ([]models.RawCandidate, er
 		default:
 		}
 
-		items, err := g.searchRepositories(ctx, keyword+" in:name,description,readme")
-		if err != nil {
-			// Log error but continue with other keywords (failure isolation, §41)
-			continue
-		}
-
-		for _, item := range items {
-			if seen[item.FullName] {
-				continue
+		wg.Add(1)
+		go func(keyword string) {
+			defer wg.Done()
+			select {
+			case sem <- struct{}{}:
+			case <-ctx.Done():
+				return
 			}
-			seen[item.FullName] = true
+			defer func() { <-sem }()
 
-			candidate := g.toRawCandidate(item)
-			candidates = append(candidates, candidate)
-		}
+			items, err := g.searchRepositories(ctx, keyword+" in:name,description,readme")
+			if err != nil {
+				return
+			}
+
+			mu.Lock()
+			for _, item := range items {
+				if seen[item.FullName] {
+					continue
+				}
+				seen[item.FullName] = true
+
+				candidate := g.toRawCandidate(item)
+				candidates = append(candidates, candidate)
+			}
+			mu.Unlock()
+		}(keyword)
 	}
 
+	wg.Wait()
 	return candidates, nil
 }
 
