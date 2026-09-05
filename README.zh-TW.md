@@ -18,8 +18,7 @@
 
 ## 功能
 
-- **多來源發現**: GitHub 倉庫、官方註冊表
-- **台灣分類**: 6 級相關性 (T0-T5)，基於官方網域、政府 API、金融資料、語言檢測
+- **多來源發現**: GitHub 倉庫、官方註冊表、mcpservers.org (Sitemap)
 - **品質評分**: 10 項維度評分 (A-F 等級)
 - **安全掃描**: 注入模式、不安全傳輸、Fork 檢測
 - **Protocol 驗證**: 完整 MCP Protocol (initialize, tools/list, resources/list, prompts/list)
@@ -56,6 +55,9 @@
     ▼                   ▼                  ▼
   GitHub          SQLite DB           Health
   Registry                           Security
+    mcpservers.org                   Scoring
+  (Sitemap-based)
+  modelcontextprotocol/servers-archived
                                           │
                                           ▼
                                        Scoring
@@ -88,8 +90,10 @@
 │   ├── security/             # 安全掃描
 │   ├── sources/              # 資料源 adapters
 │   │   ├── github/           # GitHub 倉庫發現
+│   │   ├── githubrepo/       # GitHub 目錄型 (modelcontextprotocol/servers, servers-archived)
+│   │   ├── mcpmarket/        # mcpmarket.com (骨架，被 Vercel WAF 擋)
+│   │   ├── mcpserversorg/    # mcpservers.org (Sitemap + goquery)
 │   │   └── registry/         # 官方註冊表 adapter
-│   ├── storage/              # SQLite 持久化
 │   └── verify/               # 倉庫 + MCP protocol 驗證
 ├── config/
 │   ├── keywords.yaml         # 台灣關鍵字矩陣
@@ -132,15 +136,12 @@ docker build -t awesome-taiwan-mcp .
 |---|---|---|---|
 | `GITHUB_TOKEN` | 是 | — | GitHub API Token，用於倉庫搜尋與抓取 |
 | `OPENAI_API_KEY` | 否 | — | OpenAI-compatible API Key，用於 LLM 分類 |
-| `OPENAI_BASE_URL` | 否 | `https://api.openai.com/v1` | OpenAI-compatible API 基礎 URL |
-| `OPENAI_MODEL` | 否 | — | 覆寫模型 (設定時僅使用該單一模型；預設 fallback 鏈：`muse-spark-1.2-contributor-free` → `nemotron-3-ultra-free`；opencode.ai/zen/v1 需無前綴的 bare ID) |
-
+| `OPENAI_BASE_URL` | 否 | `https://opencode.ai/zen/v1` | OpenAI-compatible API 基礎 URL |
 CLI 標誌:
 
 | 標誌 | 預設 | 說明 |
 |---|---|---|
-| `--source` | `all` | 要爬取的資料源: `github`, `registry`, 或 `all` |
-| `--workers` | `4` | 每個資料源的 worker 數量 |
+| `--source` | `all` | 要爬取的資料源: `github`, `registry`, `mcpserversorg`, `mcpmarket`, 或 `all` |
 | `--max-per-source` | `10` | 每個資料源的最大候選數量 (0=無限制) |
 | `--full` | `false` | 強制完整爬取 |
 | `--incremental` | `false` | 執行增量爬取 (檢查上次爬取時間) |
@@ -159,9 +160,12 @@ CLI 標誌:
 export GITHUB_TOKEN=your_github_token_here
 ./crawler crawl --source github --workers 4 --max-per-source 10
 
+# 同時爬取 mcpservers.org (10k+ servers via Sitemap)
+./crawler crawl --source mcpserversorg --workers 2 --max-per-source 100
+
 # 2. 匯出註冊表
 ./crawler export --markdown
-
+```
 # 3. 搜尋伺服器
 ./crawler search "taiwan"
 ./crawler search --capability "filesystem"
@@ -209,9 +213,11 @@ export GITHUB_TOKEN=your_github_token_here
 `--markdown` 標誌會生成包含以下內容的人類可讀 `REGISTRY.md`:
 
 - **統計資料**: 總伺服器數、台灣相關性分布 (T0-T5)、健康狀態、品質等級分布
-- **按等級分組的伺服器列表**: 每個 T-level 區段都包含該等級的說明
-- **每個伺服器的詳細資訊**: 倉庫連結、語言 (連結到 GitHub 搜尋)、台灣相關性分數、健康狀態、品質、Tools、Endpoints、安全發現
+- **🇹🇼 Taiwan-relevant Servers**: T1-T5 相關性的伺服器，依功能分類分組 (Finance, Government, Real Estate 等)
+- **🌍 International Servers**: T0 非台灣特定但 MCP 相容的伺服器
+- **每個伺服器的詳細資訊**: 倉庫連結 (含星星數)、語言 (連結到 GitHub 搜尋)、台灣相關性等級 + 分數、分類證據、健康狀態、品質、Tools、Endpoints
 
+分類對照定義於 `config/categories.yaml` (單一真相來源)。子分類如 `stock`、`etf`、`banking` 正規化為父分類 `finance`，`land`/`housing` → `real-estate` 等。`Other` 分類僅收集完全無匹配分類的伺服器。
 等級說明:
 - **T5**: 絕對台灣導向 — 官方政府或金融 API，具備台灣特定資料
 - **T4**: 非常強台灣相關 — 台灣資料來源，明確本地導向

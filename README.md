@@ -18,8 +18,7 @@ The crawler identifies servers related to Taiwan through keyword matching, offic
 
 ## Features
 
-- **Multi-source discovery**: GitHub repositories, official MCP registries
-- **Taiwan classification**: 6-level relevance (T0-T5) based on official domains, government APIs, financial data, language detection
+- **Multi-source discovery**: GitHub repositories, official MCP registries, mcpservers.org (via Sitemap)
 - **Quality scoring**: 10-component quality assessment (A-F grade)
 - **Security scanning**: Injection patterns, unsafe transport, fork detection
 - **Protocol verification**: Full MCP protocol (initialize, tools/list, resources/list, prompts/list)
@@ -56,6 +55,9 @@ The crawler identifies servers related to Taiwan through keyword matching, offic
     ▼                   ▼                  ▼
   GitHub          SQLite DB           Health
   Registry                           Security
+    mcpservers.org                   Scoring
+  (Sitemap-based)
+  modelcontextprotocol/servers-archived
                                           │
                                           ▼
                                        Scoring
@@ -88,8 +90,10 @@ The crawler identifies servers related to Taiwan through keyword matching, offic
 │   ├── security/             # Security scanner
 │   ├── sources/              # Source adapters
 │   │   ├── github/           # GitHub repo discovery
+│   │   ├── githubrepo/       # GitHub directory-based (modelcontextprotocol/servers, servers-archived)
+│   │   ├── mcpmarket/        # mcpmarket.com (skeleton, blocked by Vercel WAF)
+│   │   ├── mcpserversorg/    # mcpservers.org via Sitemap + goquery
 │   │   └── registry/         # Official registry adapter
-│   ├── storage/              # SQLite persistence
 │   └── verify/               # Repository + MCP protocol verification
 ├── config/
 │   ├── keywords.yaml         # Taiwan keyword matrix
@@ -132,16 +136,13 @@ docker build -t awesome-taiwan-mcp .
 |---|---|---|---|
 | `GITHUB_TOKEN` | Yes | — | GitHub API token for repository search and fetch |
 | `OPENAI_API_KEY` | No | — | OpenAI-compatible API key for LLM classification |
-| `OPENAI_BASE_URL` | No | `https://api.openai.com/v1` | OpenAI-compatible API base URL |
-| `OPENAI_MODEL` | No | — | Override model (when set, uses this single model; default fallback chain: `muse-spark-1.2-contributor-free` → `nemotron-3-ultra-free`; opencode.ai/zen/v1 requires bare IDs without `opencode/` prefix) |
+| `OPENAI_BASE_URL` | No | `https://opencode.ai/zen/v1` | OpenAI-compatible API base URL |
 
 CLI flags:
 
 | Flag | Default | Description |
 |---|---|---|
-| `--source` | `all` | Source to crawl: `github`, `registry`, or `all` |
-| `--workers` | `4` | Number of workers per source |
-| `--max-per-source` | `10` | Max candidates to fetch per source (0=unlimited) |
+| `--source` | `all` | Source to crawl: `github`, `registry`, `mcpserversorg`, `mcpmarket`, or `all` |
 | `--full` | `false` | Force full crawl |
 | `--incremental` | `false` | Run incremental crawl (checks last crawl time) |
 | `--db` | `./data/registry.db` | SQLite database path |
@@ -159,8 +160,12 @@ CLI flags:
 export GITHUB_TOKEN=your_github_token_here
 ./crawler crawl --source github --workers 4 --max-per-source 10
 
+# Also crawl mcpservers.org (10k+ servers via Sitemap)
+./crawler crawl --source mcpserversorg --workers 2 --max-per-source 100
+
 # 2. Export registry
 ./crawler export --markdown
+```
 
 # 3. Search servers
 ./crawler search "taiwan"
@@ -213,6 +218,7 @@ The `--markdown` flag generates a human-readable `REGISTRY.md` file organized by
 - **🌍 International Servers**: T0 servers not Taiwan-specific but MCP-compatible
 - **Per-server details**: Repository link (with star count), language (linked to GitHub search), Taiwan relevance level + score, classification evidence, health, quality, tools, endpoints
 
+Category mapping is defined in `config/categories.yaml` (single source of truth). Sub-categories like `stock`, `etf`, `banking` are normalized to parent `finance`, `land`/`housing` → `real-estate`, etc. The `Other` category only collects servers with no matching category.
 Taiwan relevance levels:
 - **T5**: Definitively Taiwan-focused — official government or financial APIs with Taiwan-specific data
 - **T4**: Very strong Taiwan relevance — Taiwan data sources with clear local focus
