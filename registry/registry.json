@@ -1,0 +1,1039 @@
+{
+  "schema_version": "0.1",
+  "registry_version": "v1.2026.09.05",
+  "generated_at": "2026-09-05T01:51:42Z",
+  "crawler_version": "v1.0.0",
+  "total_servers": 10,
+  "taiwan_relevant": 4,
+  "statistics": {
+    "total_servers": 10,
+    "taiwan_relevant": 4,
+    "by_level": {
+      "T0": 6,
+      "T1": 1,
+      "T4": 3
+    },
+    "by_health": {
+      "DEGRADED": 1,
+      "HEALTHY": 9
+    },
+    "quality_distribution": {
+      "F": 10
+    }
+  },
+  "servers": [
+    {
+      "id": "0b0160a34b66f86b87216100b57fcc1fe5626992f4eaf90a4d362784f2c5be67",
+      "name": "aaron-marketing-skills",
+      "slug": "aaron-marketing-skills",
+      "description": "\u003cdiv align=\"center\"\u003e",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T0",
+        "score": 0,
+        "confidence": 1,
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/JatinyKatyal/aaron-marketing-skills",
+        "host": "github.com",
+        "owner": "JatinyKatyal",
+        "name": "aaron-marketing-skills",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "Python",
+        "license": "Apache-2.0",
+        "topics": [],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "2026-08-28T09:50:33Z",
+        "updated_at": "2026-09-05T01:37:32Z",
+        "pushed_at": "2026-09-05T01:37:28Z",
+        "last_commit_at": "2026-09-05T01:37:28Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "Apache-2.0",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 49,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 11,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 3,
+          "license": 5,
+          "security": 5,
+          "community": 0
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/JatinyKatyal/aaron-marketing-skills",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    },
+    {
+      "id": "0b28ebb5d976c4c7c0d7e302846aec4e5e946f5c3dc9d74194e7026adcef46a0",
+      "name": "chengjing-notes",
+      "slug": "chengjing-notes",
+      "description": "\u003cp align=\"center\"\u003e",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T0",
+        "score": 0,
+        "confidence": 1,
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/Coyoter/chengjing-notes",
+        "host": "github.com",
+        "owner": "Coyoter",
+        "name": "chengjing-notes",
+        "stars": 13,
+        "forks": 3,
+        "watchers": 0,
+        "open_issues": 1,
+        "language": "TypeScript",
+        "license": "NOASSERTION",
+        "topics": [
+          "electron",
+          "gemma",
+          "knowledge-management",
+          "macos",
+          "note-taking",
+          "openrouter",
+          "productivity",
+          "second-brain"
+        ],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "https://github.com/Coyoter/chengjing-notes/releases/latest",
+        "created_at": "2026-08-25T23:05:59Z",
+        "updated_at": "2026-09-05T01:37:09Z",
+        "pushed_at": "2026-09-05T01:37:05Z",
+        "last_commit_at": "2026-09-05T01:37:05Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "NOASSERTION",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 51,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 11,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 4,
+          "license": 3,
+          "security": 5,
+          "community": 3
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/Coyoter/chengjing-notes",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    },
+    {
+      "id": "1d2582fa3176dec6496a7cc794db9659c28b4bed7b54fe9666fc74e8daa9cd7c",
+      "name": "comfyui-mcp-panel",
+      "slug": "comfyui-mcp-panel",
+      "description": "\u003e ### 📦 On ComfyUI-Manager \u0026 the [Comfy Registry](https://registry.comfy.org/nodes/comfyui-agent-panel) as `comfyui-agent-panel`",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T0",
+        "score": 0,
+        "confidence": 1,
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/artokun/comfyui-mcp-panel",
+        "host": "github.com",
+        "owner": "artokun",
+        "name": "comfyui-mcp-panel",
+        "stars": 105,
+        "forks": 22,
+        "watchers": 1,
+        "open_issues": 36,
+        "language": "JavaScript",
+        "license": "MIT",
+        "topics": [
+          "ai-agent",
+          "ai-assistant",
+          "chatgpt",
+          "claude-code",
+          "codex",
+          "comfyui",
+          "comfyui-agent",
+          "comfyui-custom-node",
+          "comfyui-extension",
+          "comfyui-mcp",
+          "copilot",
+          "image-generation",
+          "litegraph",
+          "local-first",
+          "local-llm",
+          "mcp",
+          "offline",
+          "ollama",
+          "self-hosted",
+          "sidebar"
+        ],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "https://comfyui-mcp.artokun.io/docs/panel",
+        "created_at": "2026-06-12T18:48:45Z",
+        "updated_at": "2026-09-05T01:41:12Z",
+        "pushed_at": "2026-09-05T01:42:26Z",
+        "last_commit_at": "2026-09-05T01:42:26Z"
+      },
+      "endpoints": [
+        {
+          "url": "https://github.com/artokun/comfyui-mcp-panel`",
+          "transport": "http",
+          "protocol_version": "",
+          "authentication": {
+            "required": false,
+            "type": ""
+          },
+          "tls": true,
+          "status": ""
+        },
+        {
+          "url": "https://github.com/artokun/comfyui-mcp-panel",
+          "transport": "http",
+          "protocol_version": "",
+          "authentication": {
+            "required": false,
+            "type": ""
+          },
+          "tls": true,
+          "status": ""
+        }
+      ],
+      "transport": [
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "MIT",
+      "status": "ACTIVE",
+      "health": "DEGRADED",
+      "quality": {
+        "score": 55,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 11,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 4,
+          "license": 5,
+          "security": 5,
+          "community": 5
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/artokun/comfyui-mcp-panel",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    },
+    {
+      "id": "1f160d50fa78fe7fdf7a980bb56745f81d16196464d2aa05163b541db224483d",
+      "name": "LibreChat",
+      "slug": "librechat",
+      "description": "\u003cp align=\"center\"\u003e",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T0",
+        "score": 0,
+        "confidence": 1,
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/danny-avila/LibreChat",
+        "host": "github.com",
+        "owner": "danny-avila",
+        "name": "LibreChat",
+        "stars": 42826,
+        "forks": 8866,
+        "watchers": 208,
+        "open_issues": 732,
+        "language": "TypeScript",
+        "license": "MIT",
+        "topics": [
+          "ai",
+          "anthropic",
+          "artifacts",
+          "aws",
+          "azure",
+          "chatgpt",
+          "chatgpt-clone",
+          "claude",
+          "clone",
+          "deepseek",
+          "gemini",
+          "google",
+          "gpt-5",
+          "librechat",
+          "mcp",
+          "o1",
+          "openai",
+          "responses-api",
+          "vision",
+          "webui"
+        ],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "https://librechat.ai/",
+        "created_at": "2023-02-12T01:06:52Z",
+        "updated_at": "2026-09-05T01:41:41Z",
+        "pushed_at": "2026-09-05T01:36:06Z",
+        "last_commit_at": "2026-09-05T01:36:06Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "MIT",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 55,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 11,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 4,
+          "license": 5,
+          "security": 5,
+          "community": 5
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/danny-avila/LibreChat",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    },
+    {
+      "id": "3e958bb21635b96c593777522faabd5f906915d4df65b4620e4130b419b8ebf7",
+      "name": "claude-agents",
+      "slug": "claude-agents",
+      "description": "**Language:** English | [Português (Brasil)](docs/pt-BR/README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md) | [한국어](docs/ko-KR/README.md) | [Türkçe](docs/tr/README.md)",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T4",
+        "score": 60,
+        "confidence": 1,
+        "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "TW",
+            "content_hash": "29f5707c",
+            "matched_text": "TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.776285Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "zh-TW",
+            "content_hash": "ecd71043",
+            "matched_text": "zh-TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.776285Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "繁體中文",
+            "content_hash": "4539dc68",
+            "matched_text": "繁體中文",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.776286Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "繁體",
+            "content_hash": "65265bc8",
+            "matched_text": "繁體",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.776286Z"
+          }
+        ]
+      },
+      "repository": {
+        "url": "https://github.com/dhkong01/claude-agents",
+        "host": "github.com",
+        "owner": "dhkong01",
+        "name": "claude-agents",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 7,
+        "language": "JavaScript",
+        "license": "MIT",
+        "topics": [],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "2026-05-30T13:08:56Z",
+        "updated_at": "2026-09-05T01:48:00Z",
+        "pushed_at": "2026-09-05T01:47:57Z",
+        "last_commit_at": "2026-09-05T01:47:57Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "MIT",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 55,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 5,
+          "mcp_compliance": 11,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 3,
+          "license": 5,
+          "security": 5,
+          "community": 1
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/dhkong01/claude-agents",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    },
+    {
+      "id": "891af673f3ed4752d8868689029a51449c5297b0da422006aca41d5f6e7d940d",
+      "name": "Zoo-Code",
+      "slug": "zoo-code",
+      "description": "\u003cp align=\"center\"\u003e",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T0",
+        "score": 0,
+        "confidence": 1,
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/Zoo-Code-Org/Zoo-Code",
+        "host": "github.com",
+        "owner": "Zoo-Code-Org",
+        "name": "Zoo-Code",
+        "stars": 1796,
+        "forks": 270,
+        "watchers": 9,
+        "open_issues": 637,
+        "language": "TypeScript",
+        "license": "Apache-2.0",
+        "topics": [],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "https://www.zoocode.dev",
+        "created_at": "2026-04-23T22:57:48Z",
+        "updated_at": "2026-09-05T01:45:28Z",
+        "pushed_at": "2026-09-05T01:48:30Z",
+        "last_commit_at": "2026-09-05T01:48:30Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "Apache-2.0",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 51,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 8,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 4,
+          "license": 5,
+          "security": 5,
+          "community": 4
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/Zoo-Code-Org/Zoo-Code",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    },
+    {
+      "id": "af43c5ad9f252f1ea6b8901b2ed9c776b83288d37aba9fd0d074f5722f84a68e",
+      "name": "powerx",
+      "slug": "powerx",
+      "description": "\u003cpicture\u003e",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T0",
+        "score": 0,
+        "confidence": 1,
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/Arinze-eng/powerx",
+        "host": "github.com",
+        "owner": "Arinze-eng",
+        "name": "powerx",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 1,
+        "language": "Python",
+        "license": "MIT",
+        "topics": [],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "2026-08-30T04:48:43Z",
+        "updated_at": "2026-09-05T01:41:19Z",
+        "pushed_at": "2026-09-05T01:41:16Z",
+        "last_commit_at": "2026-09-05T01:41:16Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "MIT",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 50,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 11,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 3,
+          "license": 5,
+          "security": 5,
+          "community": 1
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/Arinze-eng/powerx",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    },
+    {
+      "id": "b301caf0bb81ead5ea9723c331ee259040db512113e74e49db6271474a892290",
+      "name": "LazyPromotion",
+      "slug": "lazypromotion",
+      "description": "[English](README.md) · [العربية](i18n/README.ar.md) · [Español](i18n/README.es.md) · [Français](i18n/README.fr.md) · [日本語](i18n/README.ja.md) · [한국어](i18n/README.ko.md) · [Tiếng Việt](i18n/README.vi.md) · [中文 (简体)](i18n/README.zh-Hans.md) · [中文（繁體）](i18n/README.zh-Hant.md) · [Deutsch](i18n/README.de.md) · [Русский](i18n/README.ru.md)",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T1",
+        "score": 15,
+        "confidence": 1,
+        "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "繁體",
+            "content_hash": "65265bc8",
+            "matched_text": "繁體",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.775893Z"
+          }
+        ]
+      },
+      "repository": {
+        "url": "https://github.com/lachlanchen/LazyPromotion",
+        "host": "github.com",
+        "owner": "lachlanchen",
+        "name": "LazyPromotion",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "Python",
+        "license": "MIT",
+        "topics": [
+          "anti-spam",
+          "browser-automation",
+          "chrome-devtools-protocol",
+          "codex",
+          "human-in-the-loop",
+          "instagram",
+          "lazying-art",
+          "model-context-protocol",
+          "novnc",
+          "open-source",
+          "openai",
+          "playwright",
+          "python",
+          "reddit",
+          "social-media",
+          "sqlite",
+          "x"
+        ],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "https://lazying.art",
+        "created_at": "2026-08-31T08:56:38Z",
+        "updated_at": "2026-09-05T01:41:39Z",
+        "pushed_at": "2026-09-05T01:41:36Z",
+        "last_commit_at": "2026-09-05T01:41:36Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "MIT",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 55,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 5,
+          "mcp_compliance": 11,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 3,
+          "license": 5,
+          "security": 5,
+          "community": 1
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/lachlanchen/LazyPromotion",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    },
+    {
+      "id": "bbbd7b1eb8c2078c2b55ca692e0a6dfb4e708eaa30011af41c42454e8e604e2c",
+      "name": "Piarium",
+      "slug": "piarium",
+      "description": "English | [简体中文](.github/readme/README.zh-CN.md) | [繁體中文](.github/readme/README.zh-TW.md) | [Français](.github/readme/README.fr.md) | [日本語](.github/readme/README.ja.md)",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T4",
+        "score": 60,
+        "confidence": 1,
+        "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "TW",
+            "content_hash": "29f5707c",
+            "matched_text": "TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.775625Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "zh-TW",
+            "content_hash": "ecd71043",
+            "matched_text": "zh-TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.775627Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "繁體中文",
+            "content_hash": "4539dc68",
+            "matched_text": "繁體中文",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.775627Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "繁體",
+            "content_hash": "65265bc8",
+            "matched_text": "繁體",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.775627Z"
+          }
+        ]
+      },
+      "repository": {
+        "url": "https://github.com/Youzini-afk/Piarium",
+        "host": "github.com",
+        "owner": "Youzini-afk",
+        "name": "Piarium",
+        "stars": 13,
+        "forks": 1,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "TypeScript",
+        "license": "AGPL-3.0",
+        "topics": [
+          "agpl",
+          "ai",
+          "bun",
+          "coding-agent",
+          "electron",
+          "pi",
+          "vscode"
+        ],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "https://github.com/Youzini-afk/Piarium",
+        "created_at": "2026-08-01T16:16:39Z",
+        "updated_at": "2026-09-05T01:42:10Z",
+        "pushed_at": "2026-09-05T01:42:06Z",
+        "last_commit_at": "2026-09-05T01:42:06Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "AGPL-3.0",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 50,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 11,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 4,
+          "license": 3,
+          "security": 5,
+          "community": 2
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/Youzini-afk/Piarium",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    },
+    {
+      "id": "e5857b0abe7ee7ac2e81637d152aeb62e9571c8035defa99bb2a564fb26b3569",
+      "name": "sd0x-harness",
+      "slug": "sd0x-harness",
+      "description": "**Language**: English | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md)",
+      "region": null,
+      "category": null,
+      "taiwan_relevance": {
+        "level": "T4",
+        "score": 60,
+        "confidence": 1,
+        "evidence": [
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "TW",
+            "content_hash": "29f5707c",
+            "matched_text": "TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.776159Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "zh-TW",
+            "content_hash": "ecd71043",
+            "matched_text": "zh-TW",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.776159Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "繁體中文",
+            "content_hash": "4539dc68",
+            "matched_text": "繁體中文",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.776159Z"
+          },
+          {
+            "type": "repository_keyword",
+            "source": "repository",
+            "location": "繁體",
+            "content_hash": "65265bc8",
+            "matched_text": "繁體",
+            "rule": "taiwan_keyword",
+            "score": 15,
+            "confidence": 1,
+            "timestamp": "2026-09-05T01:49:27.77616Z"
+          }
+        ]
+      },
+      "repository": {
+        "url": "https://github.com/sd0xdev/sd0x-harness",
+        "host": "github.com",
+        "owner": "sd0xdev",
+        "name": "sd0x-harness",
+        "stars": 188,
+        "forks": 24,
+        "watchers": 1,
+        "open_issues": 3,
+        "language": "JavaScript",
+        "license": "MIT",
+        "topics": [
+          "agent-harness",
+          "claude-code",
+          "claude-code-plugin",
+          "codex",
+          "harness-engineering",
+          "skills"
+        ],
+        "default_branch": "main",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "2026-01-30T16:19:10Z",
+        "updated_at": "2026-09-05T01:41:32Z",
+        "pushed_at": "2026-09-05T01:41:44Z",
+        "last_commit_at": "2026-09-05T01:41:44Z"
+      },
+      "endpoints": null,
+      "transport": [
+        "sse",
+        "http"
+      ],
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "license": "MIT",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "quality": {
+        "score": 55,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 15,
+          "documentation": 0,
+          "mcp_compliance": 11,
+          "tool_schema": 0,
+          "health": 10,
+          "repository": 4,
+          "license": 5,
+          "security": 5,
+          "community": 5
+        }
+      },
+      "security_findings": null,
+      "sources": [
+        {
+          "source": "github",
+          "url": "https://github.com/sd0xdev/sd0x-harness",
+          "discovered_at": "0001-01-01T00:00:00Z",
+          "last_seen": "0001-01-01T00:00:00Z",
+          "trust_score": 0
+        }
+      ],
+      "first_seen_at": "2026-09-05T01:49:27Z",
+      "last_seen_at": "2026-09-05T01:49:27Z",
+      "last_verified_at": "2026-09-05T01:49:27Z"
+    }
+  ]
+}
