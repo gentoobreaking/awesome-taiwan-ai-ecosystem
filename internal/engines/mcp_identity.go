@@ -325,6 +325,7 @@ func (e *MCPIdentityEngine) checkExecutableEntry(entity *models.Entity, evidence
 
 // checkMCPDependency checks for MCP-related dependencies.
 func (e *MCPIdentityEngine) checkMCPDependency(entity *models.Entity, evidence *[]models.Evidence, reasoning *[]string) bool {
+	// Check PackageFiles
 	for _, pkg := range entity.Repository.PackageFiles {
 		if strings.Contains(pkg, "modelcontextprotocol") {
 			*evidence = append(*evidence, models.Evidence{
@@ -340,7 +341,7 @@ func (e *MCPIdentityEngine) checkMCPDependency(entity *models.Entity, evidence *
 		}
 	}
 
-	// Check topics
+	// Check Topics
 	for _, topic := range entity.Repository.Topics {
 		if strings.Contains(strings.ToLower(topic), "mcp") {
 			*evidence = append(*evidence, models.Evidence{
@@ -355,9 +356,37 @@ func (e *MCPIdentityEngine) checkMCPDependency(entity *models.Entity, evidence *
 			return true
 		}
 	}
+
+	// Check RawContent for MCP imports (Go, JS/TS, Python)
+	sourceCode := e.getSourceCodeText(entity)
+	importPatterns := []string{
+		"github.com/modelcontextprotocol/go-sdk/mcp",
+		"modelcontextprotocol/go-sdk/mcp",
+		"@modelcontextprotocol/sdk",
+		"@modelcontextprotocol/sdk/client",
+		"@modelcontextprotocol/sdk/server",
+		"mcp",
+		"mcp.server",
+		"mcp.client",
+	}
+	for _, pattern := range importPatterns {
+		if strings.Contains(sourceCode, pattern) {
+			*evidence = append(*evidence, models.Evidence{
+				Type:        "source_code",
+				Source:      "repository_source",
+				Location:    entity.Repository.URL,
+				Rule:        "mcp_import",
+				MatchedText: pattern,
+				Score:       10,
+				Confidence:  0.9,
+			})
+			*reasoning = append(*reasoning, "Found MCP import in source: "+pattern)
+			return true
+		}
+	}
+
 	return false
 }
-
 // checkClientImpl checks for MCP client implementation.
 func (e *MCPIdentityEngine) checkClientImpl(entity *models.Entity, evidence *[]models.Evidence, reasoning *[]string) bool {
 	sourceCode := e.getSourceCodeText(entity)
@@ -383,9 +412,9 @@ func (e *MCPIdentityEngine) checkClientImpl(entity *models.Entity, evidence *[]m
 func (e *MCPIdentityEngine) checkHostImpl(entity *models.Entity, evidence *[]models.Evidence, reasoning *[]string) bool {
 	sourceCode := e.getSourceCodeText(entity)
 
+	// Check for explicit host patterns
 	if strings.Contains(sourceCode, "McpHost") || strings.Contains(sourceCode, "mcp.Host") ||
-		strings.Contains(sourceCode, "host.Manager") || strings.Contains(sourceCode, "MultiServer") ||
-		strings.Contains(sourceCode, "host.Manager") {
+		strings.Contains(sourceCode, "host.Manager") || strings.Contains(sourceCode, "MultiServer") {
 		*evidence = append(*evidence, models.Evidence{
 			Type:        "source_code",
 			Source:      "repository_source",
@@ -398,6 +427,24 @@ func (e *MCPIdentityEngine) checkHostImpl(entity *models.Entity, evidence *[]mod
 		*reasoning = append(*reasoning, "Found MCP host implementation")
 		return true
 	}
+
+	// Check for Host struct managing multiple clients (common pattern)
+	if strings.Contains(sourceCode, "type Host struct") && 
+		(strings.Contains(sourceCode, "clients []*mcp.Client") || strings.Contains(sourceCode, "clients []*mcp.Client") ||
+		 strings.Contains(sourceCode, "AddServer") || strings.Contains(sourceCode, "StartAll")) {
+		*evidence = append(*evidence, models.Evidence{
+			Type:        "source_code",
+			Source:      "repository_source",
+			Location:    entity.Repository.URL,
+			Rule:        "mcp_host_impl",
+			MatchedText: "Host struct with client management",
+			Score:       10,
+			Confidence:  0.9,
+		})
+		*reasoning = append(*reasoning, "Found Host struct managing MCP clients")
+		return true
+	}
+
 	return false
 }
 
@@ -421,9 +468,10 @@ func (e *MCPIdentityEngine) checkSDKPackage(entity *models.Entity, evidence *[]m
 		}
 	}
 
-	// Check topics for SDK keywords
+// Check topics for SDK keywords
 	for _, topic := range entity.Repository.Topics {
-		if strings.Contains(strings.ToLower(topic), "mcp-sdk") || strings.Contains(strings.ToLower(topic), "mcp_sdk") {
+		lowerTopic := strings.ToLower(topic)
+		if strings.Contains(lowerTopic, "mcp-sdk") || strings.Contains(lowerTopic, "mcp_sdk") || strings.Contains(lowerTopic, "sdk") {
 			*evidence = append(*evidence, models.Evidence{
 				Type:        "repository_topics",
 				Source:      "github_topics",
@@ -441,6 +489,13 @@ func (e *MCPIdentityEngine) checkSDKPackage(entity *models.Entity, evidence *[]m
 }
 // checkLibraryOnly checks for MCP library (not SDK).
 func (e *MCPIdentityEngine) checkLibraryOnly(entity *models.Entity, evidence *[]models.Evidence, reasoning *[]string) bool {
+	// First check if this is an SDK - if so, it's not a library
+	for _, topic := range entity.Repository.Topics {
+		if strings.Contains(strings.ToLower(topic), "sdk") {
+			return false // Has SDK topic, not a library
+		}
+	}
+
 	hasMCPDep := false
 	for _, pkg := range entity.Repository.PackageFiles {
 		if strings.Contains(pkg, "modelcontextprotocol") && !strings.Contains(pkg, "sdk") {
@@ -477,7 +532,8 @@ func (e *MCPIdentityEngine) checkExtension(entity *models.Entity, evidence *[]mo
 	sourceCode := e.getSourceCodeText(entity)
 
 	if strings.Contains(sourceCode, "McpExtension") || strings.Contains(sourceCode, "mcp.Extension") ||
-		strings.Contains(sourceCode, "extension.Plugin") {
+		strings.Contains(sourceCode, "extension.Plugin") || strings.Contains(sourceCode, "CustomTransport") ||
+		strings.Contains(sourceCode, "BaseTransport") {
 		*evidence = append(*evidence, models.Evidence{
 			Type:        "source_code",
 			Source:      "repository_source",
@@ -492,13 +548,12 @@ func (e *MCPIdentityEngine) checkExtension(entity *models.Entity, evidence *[]mo
 	}
 	return false
 }
-
 // checkSkill checks for MCP skill.
 func (e *MCPIdentityEngine) checkSkill(entity *models.Entity, evidence *[]models.Evidence, reasoning *[]string) bool {
 	sourceCode := e.getSourceCodeText(entity)
 
 	if strings.Contains(sourceCode, "McpSkill") || strings.Contains(sourceCode, "mcp.Skill") ||
-		strings.Contains(sourceCode, "skill.Definition") {
+		strings.Contains(sourceCode, "skill.Definition") || strings.Contains(sourceCode, "type Skill struct") {
 		*evidence = append(*evidence, models.Evidence{
 			Type:        "source_code",
 			Source:      "repository_source",
@@ -517,8 +572,23 @@ func (e *MCPIdentityEngine) checkSkill(entity *models.Entity, evidence *[]models
 // checkOnlyReadmeMention checks if only README mentions MCP.
 func (e *MCPIdentityEngine) checkOnlyReadmeMention(entity *models.Entity, evidence *[]models.Evidence, reasoning *[]string) bool {
 	readme := strings.ToLower(entity.RawContent)
+	
+	// Check if RawContent looks like a README (markdown headers, long description)
+	// vs source code (imports, function definitions)
+	isSourceCode := strings.Contains(readme, "import ") || 
+		strings.Contains(readme, "package ") ||
+		strings.Contains(readme, "func ") ||
+		strings.Contains(readme, "type ") ||
+		strings.Contains(readme, "const ") ||
+		strings.Contains(readme, "var ")
+	
+	// If it's source code, don't treat as README-only mention
+	if isSourceCode {
+		return false
+	}
+	
 	hasMCPInReadme := strings.Contains(readme, "mcp") || strings.Contains(readme, "model context protocol")
-
+	
 	if hasMCPInReadme {
 		*evidence = append(*evidence, models.Evidence{
 			Type:        "readme",
@@ -631,7 +701,6 @@ func (e *MCPIdentityEngine) checkOnlyDocEndpoint(entity *models.Entity, evidence
 	}
 	return false
 }
-
 // determineStatus determines the MCP identity status based on evidence.
 func (e *MCPIdentityEngine) determineStatus(
 	hasMCPImport, hasMCPServerImpl, hasTransport, hasToolDefs,
@@ -646,72 +715,60 @@ func (e *MCPIdentityEngine) determineStatus(
 		return models.MCPIdentityStatusNotMCP, models.MCPRoleNone
 	}
 
-	// Count positive server indicators
-	serverIndicators := 0
-	if hasMCPImport {
-		serverIndicators++
-	}
-	if hasMCPServerImpl {
-		serverIndicators++
-	}
-	if hasTransport {
-		serverIndicators++
-	}
-	if hasToolDefs {
-		serverIndicators++
-	}
-	if hasExecutableEntry {
-		serverIndicators++
-	}
+	// Check for server role: requires transport + (toolDefs OR executableEntry) + serverImpl
+	// Transport is the strongest signal for actual runtime server
+	isServer := hasTransport && (hasToolDefs || hasExecutableEntry) && hasMCPServerImpl
 
-	// Check for server role
-	if serverIndicators >= 2 {
+	if isServer {
 		// Check runtime verification
-		if hasTransport { // has runtime endpoint
+		if hasTransport {
 			return models.MCPIdentityStatusRuntimeVerified, models.MCPRoleServer
 		}
 		return models.MCPIdentityStatusStaticVerified, models.MCPRoleServer
 	}
 
-	// Check for client role
-	if hasClientImpl {
-		return models.MCPIdentityStatusStaticVerified, models.MCPRoleClient
-	}
-
-	// Check for host role
-	if hasHostImpl {
+	// Check for host role (but not server) - check before client
+	if hasHostImpl && !isServer {
 		return models.MCPIdentityStatusStaticVerified, models.MCPRoleHost
 	}
 
-	// Check for SDK role
-	if hasSDKPackage {
+	// Check for client role (but not server/host)
+	if hasClientImpl && !isServer && !hasHostImpl {
+		return models.MCPIdentityStatusStaticVerified, models.MCPRoleClient
+	}
+
+	// Check for SDK role (but not server/host/client)
+	if hasSDKPackage && !isServer && !hasHostImpl && !hasClientImpl {
 		return models.MCPIdentityStatusStaticVerified, models.MCPRoleSDK
 	}
 
-	// Check for library role
-	if hasLibraryOnly {
+	// Check for extension role (before library)
+	if hasExtension && !isServer && !hasHostImpl && !hasClientImpl && !hasSDKPackage {
+		return models.MCPIdentityStatusStaticVerified, models.MCPRoleExtension
+	}
+
+	// Check for skill role (before library)
+	if hasSkill && !isServer && !hasHostImpl && !hasClientImpl && !hasSDKPackage {
+		return models.MCPIdentityStatusStaticVerified, models.MCPRoleSkill
+	}
+
+	// Check for library role (but not server/host/client/SDK/extension/skill)
+	if hasLibraryOnly && !isServer && !hasHostImpl && !hasClientImpl && !hasSDKPackage && !hasExtension && !hasSkill {
 		return models.MCPIdentityStatusStaticVerified, models.MCPRoleLibrary
 	}
 
-	// Check for extension role
-	// Note: would need hasExtension check
-
-	// Check for skill role
-	// Note: would need hasSkill check
+	// Has some MCP dependency but not enough for server/host/client/SDK/library/extension/skill
+	if hasMCPDep {
+		return models.MCPIdentityStatusCandidate, models.MCPRoleNone
+	}
 
 	// If only negative indicators or only README mention
 	if hasOnlyReadmeMention || hasOnlyDocEndpoint {
 		return models.MCPIdentityStatusNotMCP, models.MCPRoleNone
 	}
 
-	// Has some MCP dependency but not enough for server
-	if hasMCPDep {
-		return models.MCPIdentityStatusCandidate, models.MCPRoleNone
-	}
-
 	return models.MCPIdentityStatusNotMCP, models.MCPRoleNone
 }
-
 // calculateConfidence calculates overall confidence from evidence.
 func (e *MCPIdentityEngine) calculateConfidence(evidence []models.Evidence) float64 {
 	if len(evidence) == 0 {
