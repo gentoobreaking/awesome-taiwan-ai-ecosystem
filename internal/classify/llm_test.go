@@ -141,8 +141,8 @@ func TestCallLLM_APIError(t *testing.T) {
 		client:  mockAPI.Client(),
 		baseURL: mockAPI.URL,
 		apiKey:  "bad-key",
+		models:  []string{"test-model"},
 	}
-
 	_, err := lc.Classify(context.Background(), server)
 	if err == nil {
 		t.Error("expected error for API failure")
@@ -164,8 +164,8 @@ func TestClassify_FailureFallback(t *testing.T) {
 		client:  mockAPI.Client(),
 		baseURL: mockAPI.URL,
 		apiKey:  "test-key",
+		models:  []string{"test-model-1", "test-model-2"},
 	}
-
 	result, err := lc.Classify(context.Background(), server)
 	if err == nil {
 		t.Error("expected error for all-model failure")

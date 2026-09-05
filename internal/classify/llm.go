@@ -56,10 +56,8 @@ type LLMClassifier struct {
 	baseURL    string
 	apiKey     string
 	maxRetries int
+	models     []string // instance-level model chain
 }
-
-// NewLLMClassifier creates a new LLMClassifier from environment variables.
-// Returns nil if OPENAI_API_KEY is not set.
 func NewLLMClassifier() *LLMClassifier {
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
@@ -76,12 +74,10 @@ func NewLLMClassifier() *LLMClassifier {
 		baseURL = baseURL + "/chat/completions"
 	}
 
-	// OPENAI_MODEL support: if set, override the fallback chain with the single custom model.
-	// This allows operators to pin the deployment to a model known to exist on their endpoint
-	// (e.g. OPENAI_MODEL=muse-spark-1.3-contributor-free) without code change.
-	// TrimSpace to tolerate accidental whitespace.
+	// Determine model chain: OPENAI_MODEL overrides default fallback chain
+	models := llmModels
 	if m := strings.TrimSpace(os.Getenv("OPENAI_MODEL")); m != "" {
-		llmModels = []string{m}
+		models = []string{m}
 	}
 
 	return &LLMClassifier{
@@ -89,10 +85,9 @@ func NewLLMClassifier() *LLMClassifier {
 		baseURL:    baseURL,
 		apiKey:     apiKey,
 		maxRetries: 3,
+		models:     models,
 	}
 }
-
-// ShouldClassifyLLM returns true if this server's score falls in the
 // ambiguous range where LLM classification is needed (§18).
 // Scores 0-19 (T0/T1) and 56+ (T4/T5) are deterministic — no LLM needed.
 func ShouldClassifyLLM(score float64) bool {
@@ -124,7 +119,7 @@ func (lc *LLMClassifier) Classify(ctx context.Context, server *models.MCPServer)
 	// If retry is added in the future, it MUST be limited to 429 and 5xx with exponential backoff (1s→2s→4s→8s, max 30s),
 	// and MUST NOT retry AuthError / ModelError (401/403 without rate-limit header).
 	var lastErr error
-	for _, model := range llmModels {
+	for _, model := range lc.models {
 		result, err := lc.callLLM(ctx, model, prompt)
 		if err != nil {
 			if IsAuthError(err) {
