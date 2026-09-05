@@ -32,7 +32,7 @@ func TestIncrementalCrawler_CheckForUpdates_Changed(t *testing.T) {
 	now := time.Now().UTC()
 	server := &models.MCPServer{
 		Repository: models.RepositoryInfo{
-			PushedAt: now.Add(-1 * time.Hour),
+			PushedAt: models.RFC3339Time(now.Add(-1 * time.Hour)),
 		},
 		LastSeen: now.Add(-2 * time.Hour),
 	}
@@ -50,11 +50,12 @@ func TestIncrementalCrawler_CheckForUpdates_NotChanged(t *testing.T) {
 	coord := testCoord(t)
 	ic := NewIncrementalCrawler(coord)
 
+	now := time.Now().UTC()
 	server := &models.MCPServer{
 		Repository: models.RepositoryInfo{
-			PushedAt: time.Now().UTC().Add(-2 * time.Hour),
+			PushedAt: models.RFC3339Time(now.Add(-2 * time.Hour)),
 		},
-		LastSeen: time.Now().UTC().Add(-1 * time.Hour),
+		LastSeen: now.Add(-1 * time.Hour),
 	}
 
 	changed, err := ic.CheckForUpdates(context.Background(), server)

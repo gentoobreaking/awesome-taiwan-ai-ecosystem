@@ -22,6 +22,20 @@ func NewScanner() *Scanner {
 	}
 }
 
+// ScanServer performs security scanning on an MCPServer.
+func (s *Scanner) ScanServer(server *models.MCPServer) *models.SecurityStatusDetail {
+	// Convert MCPServer to Entity for scanning
+	entity := &models.Entity{
+		ID:              server.ID,
+		Name:            server.Name,
+		RawContent:      server.Readme,
+		Repository:      server.Repository,
+		Endpoints:       nil, // MCPServer doesn't have EndpointWithType
+		Tools:           server.Tools,
+		DataSources:     server.DataSources,
+	}
+	return s.Scan(entity)
+}
 // Scan performs security scanning on an entity.
 func (s *Scanner) Scan(entity *models.Entity) *models.SecurityStatusDetail {
 	findings := []models.SecurityFinding{}

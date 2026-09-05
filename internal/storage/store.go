@@ -233,7 +233,7 @@ func (s *Store) upsertRepository(ctx context.Context, serverID string, repo *mod
 		serverID, repo.URL, repo.Host, repo.Owner, repo.Name, repo.Stars, repo.Forks, repo.Watchers,
 		repo.OpenIssues, repo.Language, topics, repo.License, repo.DefaultBranch,
 		repo.Archived, repo.Fork, repo.Homepage,
-		repo.CreatedAt, repo.UpdatedAt, repo.PushedAt, repo.LastCommitAt, string(status))
+		repo.CreatedAt.String(), repo.UpdatedAt.String(), repo.PushedAt.String(), repo.LastCommitAt.String(), string(status))
 	return err
 }
 
@@ -305,7 +305,7 @@ func (s *Store) upsertSourceAndLink(ctx context.Context, serverID string, src *m
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO sources (source, url, discovered_at, last_seen_at, trust_score)
 		VALUES (?, ?, ?, ?, ?)
-	`, src.Source, src.URL, src.DiscoveredAt, src.LastSeen, src.TrustScore)
+	`, src.Source, src.URL, src.DiscoveredAt.String(), src.LastSeen.String(), src.TrustScore)
 	if err != nil {
 		return fmt.Errorf("insert source: %w", err)
 	}
@@ -464,6 +464,13 @@ func (s *Store) GetServers(ctx context.Context) ([]models.MCPServer, error) {
 // UpsertCrawlRun inserts or updates a crawl run record.
 func (s *Store) UpsertCrawlRun(ctx context.Context, run *models.CrawlRun) error {
 	errorsJSON, _ := json.Marshal(run.Errors)
+	var startedAt, finishedAt string
+	if !run.StartedAt.IsZero() {
+		startedAt = run.StartedAt.Time().Format(time.RFC3339)
+	}
+	if run.FinishedAt != nil && !run.FinishedAt.IsZero() {
+		finishedAt = run.FinishedAt.Time().Format(time.RFC3339)
+	}
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO crawl_runs (
 			crawl_id, started_at, finished_at, sources_scanned,
@@ -481,7 +488,7 @@ func (s *Store) UpsertCrawlRun(ctx context.Context, run *models.CrawlRun) error 
 			failed = excluded.failed,
 			errors = excluded.errors
 	`,
-		run.CrawlID, run.StartedAt, run.FinishedAt, run.SourcesScanned,
+		run.CrawlID, startedAt, finishedAt, run.SourcesScanned,
 		run.CandidatesFound, run.CandidatesNorm, run.DuplicatesRemoved,
 		run.TaiwanCandidates, run.Verified, run.Failed, errorsJSON)
 	return err
@@ -519,7 +526,7 @@ func (s *Store) InsertEvidence(ctx context.Context, serverID string, ev *models.
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
 		serverID, ev.Type, ev.Source, ev.Location, ev.ContentHash,
-		ev.MatchedText, ev.Rule, ev.Score, ev.Confidence, ev.Timestamp)
+		ev.MatchedText, ev.Rule, ev.Score, ev.Confidence, ev.Timestamp.String())
 	return err
 }
 
@@ -544,8 +551,162 @@ func (s *Store) InsertServerSnapshot(ctx context.Context, serverID, crawlID stri
 	`, serverID, crawlID, snapshotJSON)
 	return err
 }
+// GetCrawlRuns returns all crawl runs ordered by started_at descending.
+func (s *Store) GetCrawlRuns(ctx context.Context) ([]*models.CrawlRun, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT crawl_id, started_at, finished_at, sources_scanned,
+		       candidates_found, candidates_normalized, duplicates_removed,
+		       taiwan_candidates, verified, failed, errors
+		FROM crawl_runs
+		ORDER BY started_at DESC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
+	var runs []*models.CrawlRun
+	for rows.Next() {
+		var run models.CrawlRun
+		var startedAtStr, finishedAt, errorsJSON sql.NullString
+		if err := rows.Scan(
+			&run.CrawlID, &startedAtStr, &finishedAt,
+			&run.SourcesScanned, &run.CandidatesFound, &run.CandidatesNorm,
+			&run.DuplicatesRemoved, &run.TaiwanCandidates, &run.Verified, &run.Failed, &errorsJSON,
+		); err != nil {
+			return nil, err
+		}
+		if startedAtStr.Valid {
+			t, err := time.Parse(time.RFC3339, startedAtStr.String)
+			if err == nil {
+				run.StartedAt = models.RFC3339Time(t)
+			}
+		}
+		if finishedAt.Valid {
+			t, err := time.Parse(time.RFC3339, finishedAt.String)
+			if err == nil {
+				rfc := models.RFC3339Time(t)
+				run.FinishedAt = &rfc
+			}
+		}
+		if errorsJSON.Valid {
+			_ = json.Unmarshal([]byte(errorsJSON.String), &run.Errors)
+		}
+		runs = append(runs, &run)
+	}
+	return runs, rows.Err()
+}
+
+// GetCrawlRunByID returns a single crawl run by crawl_id.
+func (s *Store) GetCrawlRunByID(ctx context.Context, crawlID string) (*models.CrawlRun, error) {
+	row := s.db.QueryRowContext(ctx, `
+		SELECT crawl_id, started_at, finished_at, sources_scanned,
+		       candidates_found, candidates_normalized, duplicates_removed,
+		       taiwan_candidates, verified, failed, errors
+		FROM crawl_runs
+		WHERE crawl_id = ?
+	`, crawlID)
+
+	var run models.CrawlRun
+	var startedAtStr, finishedAt, errorsJSON sql.NullString
+	if err := row.Scan(
+		&run.CrawlID, &startedAtStr, &finishedAt,
+		&run.SourcesScanned, &run.CandidatesFound, &run.CandidatesNorm,
+		&run.DuplicatesRemoved, &run.TaiwanCandidates, &run.Verified, &run.Failed, &errorsJSON,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if startedAtStr.Valid {
+		t, err := time.Parse(time.RFC3339, startedAtStr.String)
+		if err == nil {
+			run.StartedAt = models.RFC3339Time(t)
+		}
+	}
+	if finishedAt.Valid {
+		t, err := time.Parse(time.RFC3339, finishedAt.String)
+		if err == nil {
+			rfc := models.RFC3339Time(t)
+			run.FinishedAt = &rfc
+		}
+	}
+	if errorsJSON.Valid {
+		_ = json.Unmarshal([]byte(errorsJSON.String), &run.Errors)
+	}
+	return &run, nil
+}
+
+// GetServerSnapshots returns all snapshots for a given server.
+func (s *Store) GetServerSnapshots(ctx context.Context, serverID string) ([]*models.ServerSnapshot, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, server_id, crawl_id, snapshot, created_at
+		FROM server_snapshots
+		WHERE server_id = ?
+		ORDER BY created_at ASC
+	`, serverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var snapshots []*models.ServerSnapshot
+	for rows.Next() {
+		var snap models.ServerSnapshot
+		var snapshotJSON, createdAtStr string
+		if err := rows.Scan(&snap.ID, &snap.ServerID, &snap.CrawlID, &snapshotJSON, &createdAtStr); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal([]byte(snapshotJSON), &snap.Snapshot); err != nil {
+			return nil, err
+		}
+		if createdAtStr != "" {
+			t, err := time.Parse(time.RFC3339, createdAtStr)
+			if err == nil {
+				snap.CreatedAt = models.RFC3339Time(t)
+			}
+		}
+		snapshots = append(snapshots, &snap)
+	}
+	return snapshots, rows.Err()
+}
+
+// GetCrawlSnapshots returns all snapshots for a given crawl.
+func (s *Store) GetCrawlSnapshots(ctx context.Context, crawlID string) ([]*models.ServerSnapshot, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, server_id, crawl_id, snapshot, created_at
+		FROM server_snapshots
+		WHERE crawl_id = ?
+		ORDER BY created_at ASC
+	`, crawlID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var snapshots []*models.ServerSnapshot
+	for rows.Next() {
+		var snap models.ServerSnapshot
+		var snapshotJSON, createdAtStr string
+		if err := rows.Scan(&snap.ID, &snap.ServerID, &snap.CrawlID, &snapshotJSON, &createdAtStr); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal([]byte(snapshotJSON), &snap.Snapshot); err != nil {
+			return nil, err
+		}
+		if createdAtStr != "" {
+			t, err := time.Parse(time.RFC3339, createdAtStr)
+			if err == nil {
+				snap.CreatedAt = models.RFC3339Time(t)
+			}
+		}
+		snapshots = append(snapshots, &snap)
+	}
+	return snapshots, rows.Err()
+}
 // Close closes the database connection.
 func (s *Store) Close() error {
 	return s.db.Close()
 }
+

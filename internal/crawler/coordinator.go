@@ -61,7 +61,7 @@ func NewCrawlCoordinator(
 		repoVerifier:  verify.NewRepository(nil),
 		protoVerifier: verify.NewProtocol(nil),
 		healthChecker: health.New(nil, 10*time.Second),
-		secScanner:    security.New(),
+		secScanner:    security.NewScanner(),
 		store:         store,
 		metrics:       metrics.NewCrawlMetrics(),
 		logger:        logger,
@@ -101,7 +101,7 @@ func (c *CrawlCoordinator) Run(ctx context.Context, opts CrawlOptions) error {
 	for i := range servers {
 		result := classify.Score(servers[i])
 		servers[i].TaiwanRelevance = models.TaiwanRelevance{
-			Level:      result.Level,
+			Level:      models.TaiwanRelevanceLevel(result.Level),
 			Score:      result.Score,
 			Confidence: 1.0,
 			Evidence:   result.Evidence,
@@ -167,10 +167,7 @@ func (c *CrawlCoordinator) Run(ctx context.Context, opts CrawlOptions) error {
 	// Stage 6: Dedup
 	serverSources := make([]*dedupe.ServerSource, len(servers))
 	for i, s := range servers {
-		trust := models.SourceTrustScores[s.Sources[0].Source]
-		if trust == 0 {
-			trust = 0.5
-		}
+		trust := getSourceTrustScore(s.Sources[0].Source)
 		serverSources[i] = &dedupe.ServerSource{Server: s, TrustScore: trust}
 	}
 
@@ -179,15 +176,6 @@ func (c *CrawlCoordinator) Run(ctx context.Context, opts CrawlOptions) error {
 		return fmt.Errorf("dedup: %w", err)
 	}
 	runMgr.RecordDuplicates(len(servers) - len(deduped))
-
-	// Count Taiwan candidates
-	taiwanCount := 0
-	for _, s := range deduped {
-		if s.TaiwanRelevance.Level != "" && s.TaiwanRelevance.Level != "T0" {
-			taiwanCount++
-		}
-	}
-	runMgr.RecordTaiwanCandidates(taiwanCount)
 
 	// Stage 6.5: Repository Verification (§23, T021)
 	c.metrics.StartStage("verify")
@@ -216,9 +204,9 @@ func (c *CrawlCoordinator) Run(ctx context.Context, opts CrawlOptions) error {
 				// Update health from endpoint check
 				healthStatus := c.healthChecker.CheckServer(ctx, srv)
 				srv.Health = healthStatus
-				// Security scan
-				secResult := c.secScanner.ScanServer(srv)
-				srv.Security = secResult.Findings
+			// Security scan
+			secResult := c.secScanner.ScanServer(srv)
+			srv.Security = *secResult
 			}
 		}(s)
 	}
@@ -261,16 +249,15 @@ func (c *CrawlCoordinator) filterSources(source string) []sources.SourceAdapter 
 	}
 	return nil
 }
-
 func (c *CrawlCoordinator) discoverAndFetch(
 	ctx context.Context,
 	crawlID string,
 	activeSources []sources.SourceAdapter,
 	runMgr *run.Manager,
 	maxPerSource int,
-) ([]*sources.RawRecord, error) {
+) ([]*models.RawRecord, error) {
 	var mu sync.Mutex
-	var allRecords []*sources.RawRecord
+	var allRecords []*models.RawRecord
 
 	var wg sync.WaitGroup
 	for _, src := range activeSources {
@@ -338,7 +325,7 @@ func (c *CrawlCoordinator) discoverAndFetch(
 
 func (c *CrawlCoordinator) normalizeServers(
 	ctx context.Context,
-	records []*sources.RawRecord,
+	records []*models.RawRecord,
 ) ([]*models.MCPServer, error) {
 	servers := make([]*models.MCPServer, 0, len(records))
 	var mu sync.Mutex
@@ -354,7 +341,7 @@ func (c *CrawlCoordinator) normalizeServers(
 		}
 
 		wg.Add(1)
-		go func(rec *sources.RawRecord) {
+		go func(rec *models.RawRecord) {
 			defer wg.Done()
 			defer func() { <-sem }()
 
@@ -370,4 +357,21 @@ func (c *CrawlCoordinator) normalizeServers(
 
 	wg.Wait()
 	return servers, nil
+}
+// getSourceTrustScore returns trust score for a source
+func getSourceTrustScore(source string) float64 {
+	switch source {
+	case "github":
+		return models.SourceTrustScores{}.GitHub
+	case "registry":
+		return models.SourceTrustScores{}.Registry
+	case "mcpserversorg":
+		return models.SourceTrustScores{}.Mcpserversorg
+	case "mcpmarket":
+		return models.SourceTrustScores{}.Mcpmarket
+	case "githubrepo":
+		return models.SourceTrustScores{}.GithubRepo
+	default:
+		return 0.5
+	}
 }

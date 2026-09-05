@@ -381,3 +381,11 @@ type CrawlRun struct {
 	Verified         int             `json:"verified"`
 	Failed           int             `json:"failed"`
 }
+// ServerSnapshot represents a historical snapshot of a server from a crawl run.
+type ServerSnapshot struct {
+	ID         int64           `json:"id"`
+	ServerID   string          `json:"server_id"`
+	CrawlID    string          `json:"crawl_id"`
+	Snapshot   *MCPServer      `json:"snapshot"`
+	CreatedAt  RFC3339Time     `json:"created_at"`
+}

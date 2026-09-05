@@ -31,7 +31,7 @@ func NewIncrementalCrawler(coord *CrawlCoordinator) *IncrementalCrawler {
 func (ic *IncrementalCrawler) CheckForUpdates(ctx context.Context, server *models.MCPServer) (bool, error) {
 	// If PushedAt is available from GitHub, compare with LastSeen
 	if !server.Repository.PushedAt.IsZero() && !server.LastSeen.IsZero() {
-		if server.Repository.PushedAt.After(server.LastSeen) {
+		if server.Repository.PushedAt.Time().After(server.LastSeen) {
 			return true, nil // pushed after last seen — changed
 		}
 		return false, nil // not pushed since last crawl — skip

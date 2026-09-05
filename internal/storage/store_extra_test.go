@@ -90,10 +90,11 @@ func TestCreateCrawlRun(t *testing.T) {
 
 func TestUpsertCrawlRun_Finish(t *testing.T) {
 	store := testStore(t)
+	now := models.RFC3339Time(time.Now().UTC())
 	run := &models.CrawlRun{
 		CrawlID:    "test-001",
-		StartedAt:  time.Now().UTC(),
-		FinishedAt: time.Now().UTC(),
+		StartedAt:  now,
+		FinishedAt: &now,
 	}
 	if err := store.UpsertCrawlRun(context.Background(), run); err != nil {
 		t.Fatalf("UpsertCrawlRun error: %v", err)
