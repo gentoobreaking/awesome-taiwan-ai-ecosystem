@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
-
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
 
@@ -171,6 +171,13 @@ func computeStatistics(servers []models.MCPServer) Statistics {
 	return stats
 }
 
+func writeFile(path string, data []byte) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return fmt.Errorf("create dir: %w", err)
+	}
+	return os.WriteFile(path, data, 0644)
+}
+
 func writeJSON(path string, v interface{}, indent bool) error {
 	var data []byte
 	var err error
@@ -182,5 +189,86 @@ func writeJSON(path string, v interface{}, indent bool) error {
 	if err != nil {
 		return fmt.Errorf("marshal %s: %w", path, err)
 	}
-	return os.WriteFile(path, data, 0644)
+	return writeFile(path, data)
+}
+
+// ExportMarkdown generates a human-readable markdown file from the registry.
+func (re *RegistryExporter) ExportMarkdown(path string, servers []models.MCPServer) error {
+	var sb strings.Builder
+
+	sb.WriteString("# Awesome Taiwan MCP Registry\n\n")
+	sb.WriteString(fmt.Sprintf("> Generated on %s\n\n", time.Now().UTC().Format(time.RFC3339)))
+
+	stats := computeStatistics(servers)
+	sb.WriteString(fmt.Sprintf("## Statistics\n\n"))
+	sb.WriteString(fmt.Sprintf("- **Total Servers**: %d\n", stats.TotalServers))
+	sb.WriteString(fmt.Sprintf("- **Taiwan Relevant**: %d\n", stats.TaiwanRelevant))
+	for _, level := range []string{"T5", "T4", "T3", "T2", "T1", "T0"} {
+		sb.WriteString(fmt.Sprintf("- **%s**: %d\n", level, stats.ByLevel[level]))
+	}
+	sb.WriteString("\n### By Health\n\n")
+	for _, h := range []string{"HEALTHY", "DEGRADED", "UNAVAILABLE", "UNKNOWN"} {
+		sb.WriteString(fmt.Sprintf("- **%s**: %d\n", h, stats.ByHealth[h]))
+	}
+	sb.WriteString("\n### By Quality Grade\n\n")
+	for _, grade := range []string{"A", "B", "C", "D", "F"} {
+		sb.WriteString(fmt.Sprintf("- **%s**: %d\n", grade, stats.QualityDist[grade]))
+	}
+	sb.WriteString("\n---\n\n")
+
+	// Group servers by level
+	for _, level := range []string{"T5", "T4", "T3", "T2", "T1", "T0"} {
+		levelServers := make([]models.MCPServer, 0)
+		for _, s := range servers {
+			if s.TaiwanRelevance.Level == level {
+				levelServers = append(levelServers, s)
+			}
+		}
+		if len(levelServers) == 0 {
+			continue
+		}
+
+		sb.WriteString(fmt.Sprintf("## %s — %d servers\n\n", level, len(levelServers)))
+		for _, s := range levelServers {
+			sb.WriteString(fmt.Sprintf("### %s\n\n", s.Name))
+			if s.Description != "" {
+				sb.WriteString(fmt.Sprintf("> %s\n\n", s.Description))
+			}
+			sb.WriteString(fmt.Sprintf("- **Repository**: [%s](%s)\n", s.Repository.URL, s.Repository.URL))
+			if s.Repository.Stars > 0 {
+				sb.WriteString(fmt.Sprintf("- **Stars**: %d\n", s.Repository.Stars))
+			}
+			if s.Repository.Language != "" {
+				sb.WriteString(fmt.Sprintf("- **Language**: %s\n", s.Repository.Language))
+			}
+			sb.WriteString(fmt.Sprintf("- **Taiwan Relevance**: %s (score: %.1f, confidence: %.2f)\n", s.TaiwanRelevance.Level, s.TaiwanRelevance.Score, s.TaiwanRelevance.Confidence))
+			sb.WriteString(fmt.Sprintf("- **Health**: %s\n", s.Health))
+			sb.WriteString(fmt.Sprintf("- **Quality**: %s (score: %d)\n", s.Quality.Grade, s.Quality.Score))
+			if s.License != "" {
+				sb.WriteString(fmt.Sprintf("- **License**: %s\n", s.License))
+			}
+			if len(s.Tools) > 0 {
+				toolNames := make([]string, len(s.Tools))
+				for i, t := range s.Tools {
+					toolNames[i] = t.Name
+				}
+				sb.WriteString(fmt.Sprintf("- **Tools**: %s\n", strings.Join(toolNames, ", ")))
+			}
+			if len(s.Endpoints) > 0 {
+				for _, ep := range s.Endpoints {
+					sb.WriteString(fmt.Sprintf("- **Endpoint**: `%s` (transport: %s)\n", ep.URL, ep.Transport))
+				}
+			}
+			if len(s.Security) > 0 {
+				severities := make([]string, 0, len(s.Security))
+				for _, f := range s.Security {
+					severities = append(severities, fmt.Sprintf("%s: %s", f.Type, f.Severity))
+				}
+				sb.WriteString(fmt.Sprintf("- **Security**: %s\n", strings.Join(severities, ", ")))
+			}
+			sb.WriteString("\n")
+		}
+	}
+
+	return writeFile(path, []byte(sb.String()))
 }

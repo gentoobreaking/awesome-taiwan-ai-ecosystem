@@ -3,6 +3,7 @@ package export
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
@@ -176,4 +177,69 @@ func TestExport_InvalidDir(t *testing.T) {
 	re := New()
 	err := re.Export("", nil)
 	_ = err
+}
+
+func TestExportMarkdown(t *testing.T) {
+	servers := []models.MCPServer{
+		{
+			ID:          "md-test-1",
+			Name:        "台灣金融 MCP",
+			Description: "A Taiwan financial MCP server",
+			Repository: models.RepositoryInfo{
+				URL:      "https://github.com/test/taiwan-finance",
+				Stars:    100,
+				Language: "Go",
+			},
+			TaiwanRelevance: models.TaiwanRelevance{
+				Level:      "T5",
+				Score:      85,
+				Confidence: 1.0,
+			},
+			Health:   models.HealthHealthy,
+			Quality:  models.QualityScore{Grade: "A", Score: 90},
+			License:  "MIT",
+			Tools:    []models.Tool{{Name: "get_stock_price"}},
+			Endpoints: []models.Endpoint{{URL: "https://api.test.com/mcp", Transport: "http"}},
+		},
+		{
+			ID:   "md-test-2",
+			Name: "Global Server",
+			Repository: models.RepositoryInfo{
+				URL:  "https://github.com/global/server",
+			},
+			TaiwanRelevance: models.TaiwanRelevance{Level: "T0", Score: 5},
+			Health:           models.HealthDegraded,
+			Quality:          models.QualityScore{Grade: "C", Score: 40},
+		},
+	}
+
+	re := New()
+	tmpDir := t.TempDir()
+	mdPath := filepath.Join(tmpDir, "REGISTRY.md")
+
+	if err := re.ExportMarkdown(mdPath, servers); err != nil {
+		t.Fatalf("ExportMarkdown error: %v", err)
+	}
+
+	content, err := os.ReadFile(mdPath)
+	if err != nil {
+		t.Fatalf("ReadFile error: %v", err)
+	}
+
+	md := string(content)
+
+	// Verify markdown structure
+	for _, expected := range []string{
+		"# Awesome Taiwan MCP Registry",
+		"## Statistics",
+		"## T5",
+		"### 台灣金融 MCP",
+		"https://github.com/test/taiwan-finance",
+		"### Global Server",
+		"## T0",
+	} {
+		if !strings.Contains(md, expected) {
+			t.Errorf("Markdown missing: %s", expected)
+		}
+	}
 }

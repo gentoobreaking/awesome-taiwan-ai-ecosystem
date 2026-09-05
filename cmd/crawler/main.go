@@ -41,6 +41,7 @@ var (
 	levelFilter    string
 	catFilter      string
 	capabilityFlag string
+	markdownExport bool
 )
 
 func main() {
@@ -69,11 +70,13 @@ func main() {
 	})
 
 	// Export
-	rootCmd.AddCommand(&cobra.Command{
+	exportCmd := &cobra.Command{
 		Use:   "export",
 		Short: "Export registry JSON files",
 		RunE:  runExport,
-	})
+	}
+	exportCmd.Flags().BoolVar(&markdownExport, "markdown", false, "also generate REGISTRY.md")
+	rootCmd.AddCommand(exportCmd)
 
 	// Stats
 	rootCmd.AddCommand(&cobra.Command{
@@ -170,7 +173,20 @@ func runExport(cmd *cobra.Command, _ []string) error {
 
 	expDir := filepath.Join("registry")
 	re := export.New()
-	return re.Export(expDir, servers)
+	if err := re.Export(expDir, servers); err != nil {
+		return err
+	}
+
+	if markdownExport {
+		mdPath := filepath.Join(expDir, "REGISTRY.md")
+		if err := re.ExportMarkdown(mdPath, servers); err != nil {
+			return err
+		}
+		fmt.Println("Markdown export: " + mdPath)
+	}
+
+	fmt.Println("Export complete: " + expDir)
+	return nil
 }
 
 func runStats(cmd *cobra.Command, _ []string) error {
