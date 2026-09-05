@@ -2,6 +2,8 @@ package verify
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -111,6 +113,7 @@ func TestVerifyMCPProtocol_HTTP(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		// Default: return tools/list response
 		_, _ = w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":{"tools":[]}}`))
 	}))
 	defer srv.Close()
@@ -125,12 +128,294 @@ func TestVerifyMCPProtocol_HTTP(t *testing.T) {
 	if !result.ToolsListable {
 		t.Error("Expected ToolsListable=true")
 	}
-	if result.ProtocolVersion != "2.0" {
-		t.Errorf("Expected protocol 2.0, got %s", result.ProtocolVersion)
-	}
 	if len(result.Tools) != 0 {
 		t.Errorf("Expected 0 tools from empty list, got %d", len(result.Tools))
 	}
+}
+
+func TestVerifyMCPProtocol_Initialize(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		var req map[string]interface{}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+
+		method, _ := req["method"].(string)
+		switch method {
+		case "initialize":
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      1,
+				"result": map[string]interface{}{
+					"protocolVersion": "2024-11-05",
+					"capabilities": map[string]interface{}{
+						"tools":    map[string]interface{}{"list": true},
+						"resources": map[string]interface{}{"list": true},
+						"prompts":  map[string]interface{}{"list": true},
+					},
+					"serverInfo": map[string]interface{}{
+						"name":    "test-server",
+						"version": "1.0.0",
+					},
+				},
+			})
+		case "tools/list":
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"jsonrpc": "2.0", "id": 1,
+				"result": map[string]interface{}{
+					"tools": []map[string]interface{}{
+						{"name": "get_data", "description": "Get data", "inputSchema": map[string]interface{}{"type": "object"}},
+					},
+				},
+			})
+		case "resources/list":
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"jsonrpc": "2.0", "id": 1,
+				"result": map[string]interface{}{
+					"resources": []map[string]interface{}{
+						{"uri": "test://1", "name": "r1", "description": "Resource 1", "mimeType": "text/plain"},
+					},
+				},
+			})
+		case "prompts/list":
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"jsonrpc": "2.0", "id": 1,
+				"result": map[string]interface{}{
+					"prompts": []map[string]interface{}{
+						{"name": "p1", "description": "Prompt 1"},
+					},
+				},
+			})
+		default:
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"jsonrpc": "2.0", "id": 1, "result": map[string]interface{}{},
+			})
+		}
+	}))
+	defer srv.Close()
+
+	pv := NewProtocol(srv.Client())
+	server := &models.MCPServer{
+		Endpoints: []models.Endpoint{
+			{URL: srv.URL, Transport: "http"},
+		},
+	}
+	result := pv.VerifyMCPProtocol(context.Background(), server)
+	if result.ProtocolVersion != "2024-11-05" {
+		t.Errorf("Expected protocol 2024-11-05, got %s", result.ProtocolVersion)
+	}
+	if !result.ToolsListable {
+		t.Error("Expected ToolsListable=true from initialize capabilities")
+	}
+	if !result.ResourcesListable {
+		t.Error("Expected ResourcesListable=true from initialize capabilities")
+	}
+	if !result.PromptsListable {
+		t.Error("Expected PromptsListable=true from initialize capabilities")
+	}
+	if len(result.Tools) != 1 {
+		t.Errorf("Expected 1 tool, got %d", len(result.Tools))
+	}
+	if len(result.Resources) != 1 {
+		t.Errorf("Expected 1 resource, got %d", len(result.Resources))
+	}
+	if len(result.Prompts) != 1 {
+		t.Errorf("Expected 1 prompt, got %d", len(result.Prompts))
+	}
+	if result.Resources[0].Name != "r1" {
+		t.Errorf("Expected resource name 'r1', got '%s'", result.Resources[0].Name)
+	}
+}
+
+// TestVerifyMCPProtocol_10Tools tests TST-028: mock server returns 10 tools.
+func TestVerifyMCPProtocol_10Tools(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		var req map[string]interface{}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		method, _ := req["method"].(string)
+
+		if method == "initialize" {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"jsonrpc": "2.0", "id": 1,
+				"result": map[string]interface{}{
+					"protocolVersion": "2024-11-05",
+					"capabilities": map[string]interface{}{
+						"tools": map[string]interface{}{"list": true},
+					},
+				},
+			})
+			return
+		}
+
+		tools := make([]map[string]interface{}, 10)
+		for i := 0; i < 10; i++ {
+			tools[i] = map[string]interface{}{
+				"name":        fmt.Sprintf("tool_%d", i),
+				"description": fmt.Sprintf("Tool %d", i),
+				"inputSchema": map[string]interface{}{"type": "object"},
+			}
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"jsonrpc": "2.0", "id": 1,
+			"result":  map[string]interface{}{"tools": tools},
+		})
+	}))
+	defer srv.Close()
+
+	pv := NewProtocol(srv.Client())
+	server := &models.MCPServer{
+		Endpoints: []models.Endpoint{
+			{URL: srv.URL, Transport: "http"},
+		},
+	}
+	result := pv.VerifyMCPProtocol(context.Background(), server)
+
+	if len(result.Tools) != 10 {
+		t.Errorf("Expected 10 tools, got %d", len(result.Tools))
+	}
+	for _, tool := range result.Tools {
+		if tool.Name == "" {
+			t.Error("Expected non-empty tool name")
+		}
+		if _, ok := tool.InputSchema["type"]; !ok && tool.Description == "" {
+			t.Error("Expected either input_schema or description for each tool")
+		}
+	}
+}
+
+// TestVerifyMCPProtocol_5Resources tests TST-029: mock server returns 5 resources.
+func TestVerifyMCPProtocol_5Resources(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		var req map[string]interface{}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		method, _ := req["method"].(string)
+
+		if method == "initialize" {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"jsonrpc": "2.0", "id": 1,
+				"result": map[string]interface{}{
+					"protocolVersion": "2024-11-05",
+					"capabilities": map[string]interface{}{
+						"resources": map[string]interface{}{"list": true},
+					},
+				},
+			})
+			return
+		}
+
+		resources := make([]map[string]interface{}, 5)
+		for i := 0; i < 5; i++ {
+			resources[i] = map[string]interface{}{
+				"uri":         fmt.Sprintf("test://resource/%d", i),
+				"name":        fmt.Sprintf("resource_%d", i),
+				"description": fmt.Sprintf("Resource %d", i),
+				"mimeType":    "text/plain",
+			}
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"jsonrpc": "2.0", "id": 1,
+			"result":  map[string]interface{}{"resources": resources},
+		})
+	}))
+	defer srv.Close()
+
+	pv := NewProtocol(srv.Client())
+	server := &models.MCPServer{
+		Endpoints: []models.Endpoint{
+			{URL: srv.URL, Transport: "http"},
+		},
+	}
+	result := pv.VerifyMCPProtocol(context.Background(), server)
+
+	if len(result.Resources) != 5 {
+		t.Errorf("Expected 5 resources, got %d", len(result.Resources))
+	}
+	for _, r := range result.Resources {
+		if r.URI == "" {
+			t.Error("Expected non-empty URI for each resource")
+		}
+	}
+}
+
+// TestVerifyMCPProtocol_3Prompts tests TST-030: mock server returns 3 prompts.
+func TestVerifyMCPProtocol_3Prompts(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		var req map[string]interface{}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		method, _ := req["method"].(string)
+
+		if method == "initialize" {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"jsonrpc": "2.0", "id": 1,
+				"result": map[string]interface{}{
+					"protocolVersion": "2024-11-05",
+					"capabilities": map[string]interface{}{
+						"prompts": map[string]interface{}{"list": true},
+					},
+				},
+			})
+			return
+		}
+
+		prompts := []map[string]interface{}{
+			{"name": "p1", "description": "Prompt 1"},
+			{"name": "p2", "description": "Prompt 2"},
+			{"name": "p3", "description": "Prompt 3"},
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"jsonrpc": "2.0", "id": 1,
+			"result":  map[string]interface{}{"prompts": prompts},
+		})
+	}))
+	defer srv.Close()
+
+	pv := NewProtocol(srv.Client())
+	server := &models.MCPServer{
+		Endpoints: []models.Endpoint{
+			{URL: srv.URL, Transport: "http"},
+		},
+	}
+	result := pv.VerifyMCPProtocol(context.Background(), server)
+
+	if len(result.Prompts) != 3 {
+		t.Errorf("Expected 3 prompts, got %d", len(result.Prompts))
+	}
+	for _, p := range result.Prompts {
+		if p.Name == "" {
+			t.Error("Expected non-empty name for each prompt")
+		}
+	}
+}
+
+// TestVerifyMCPProtocol_InvalidJSON tests TST-031: invalid JSON doesn't panic.
+func TestVerifyMCPProtocol_InvalidJSON(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{invalid json`))
+	}))
+	defer srv.Close()
+
+	pv := NewProtocol(srv.Client())
+	server := &models.MCPServer{
+		Endpoints: []models.Endpoint{
+			{URL: srv.URL, Transport: "http"},
+		},
+	}
+	// Should not panic
+	result := pv.VerifyMCPProtocol(context.Background(), server)
+	// Server remains valid (no panic)
+	t.Logf("Result error: %s, tools: %d", result.Error, len(result.Tools))
 }
 
 func TestExtractToolsFromToolsList(t *testing.T) {

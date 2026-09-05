@@ -538,3 +538,26 @@ func TestCreateCrawlRun_ClosedDB(t *testing.T) {
 		t.Error("Expected error on closed database")
 	}
 }
+
+func TestUpsertServer_StatusPersisted(t *testing.T) {
+	store := testStore(t)
+	server := testServer()
+	server.ID = "status-test"
+	server.Slug = "status-test"
+	server.Status = models.StatusArchived
+
+	if err := store.UpsertServer(context.Background(), server); err != nil {
+		t.Fatalf("UpsertServer error: %v", err)
+	}
+
+	// Verify status was persisted by checking via a raw query
+	var status string
+	err := store.db.QueryRowContext(context.Background(),
+		"SELECT status FROM repositories WHERE server_id = ?", server.ID).Scan(&status)
+	if err != nil {
+		t.Fatalf("Query error: %v", err)
+	}
+	if status != string(models.StatusArchived) {
+		t.Errorf("Expected status %s, got %s", models.StatusArchived, status)
+	}
+}

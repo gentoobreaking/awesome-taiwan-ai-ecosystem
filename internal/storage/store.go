@@ -135,7 +135,7 @@ func (s *Store) UpsertServer(ctx context.Context, server *models.MCPServer) erro
 	}
 
 	// Upsert repository details
-	if err := s.upsertRepository(ctx, server.ID, &server.Repository); err != nil {
+	if err := s.upsertRepository(ctx, server.ID, &server.Repository, server.Status); err != nil {
 		return err
 	}
 
@@ -205,7 +205,7 @@ func (s *Store) SaveServer(ctx context.Context, server *models.MCPServer, crawlI
 	return nil
 }
 
-func (s *Store) upsertRepository(ctx context.Context, serverID string, repo *models.RepositoryInfo) error {
+func (s *Store) upsertRepository(ctx context.Context, serverID string, repo *models.RepositoryInfo, status models.Status) error {
 	topics, _ := json.Marshal(repo.Topics)
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO repositories (
@@ -227,7 +227,7 @@ func (s *Store) upsertRepository(ctx context.Context, serverID string, repo *mod
 		serverID, repo.URL, repo.Host, repo.Owner, repo.Name, repo.Stars, repo.Forks, repo.Watchers,
 		repo.OpenIssues, repo.Language, topics, repo.License, repo.DefaultBranch,
 		repo.Archived, repo.Fork, repo.Homepage,
-		repo.CreatedAt, repo.UpdatedAt, repo.PushedAt, repo.LastCommitAt, string(models.StatusUnknown))
+		repo.CreatedAt, repo.UpdatedAt, repo.PushedAt, repo.LastCommitAt, string(status))
 	return err
 }
 
