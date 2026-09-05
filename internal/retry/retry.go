@@ -175,9 +175,9 @@ func (rc *RetryableClient) getRateLimitDelay(resp *http.Response) time.Duration 
 	if resetTime, err := strconv.ParseInt(resetStr, 10, 64); err == nil {
 		delay := time.Until(time.Unix(resetTime, 0))
 		if delay > 0 {
-			// Cap at 60s to avoid extremely long waits
-			if delay > 60*time.Second {
-				delay = 60 * time.Second
+			// Cap at 10s to avoid long waits during rate limiting
+			if delay > 10*time.Second {
+				delay = 10 * time.Second
 			}
 			return delay
 		}
