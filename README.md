@@ -198,7 +198,21 @@ Output files in `registry/`:
 - `health.json` — Health status per server
 - `REGISTRY.md` — Human-readable markdown (with `--markdown`)
 
-### Search
+### Markdown Registry
+
+The `--markdown` flag generates a human-readable `REGISTRY.md` file containing:
+
+- **Statistics**: Total servers, Taiwan relevance distribution (T0-T5), health, quality grades
+- **Server list grouped by level**: Each T-level section includes a description of what it means
+- **Per-server details**: Repository link, language (linked to GitHub search), Taiwan relevance score, health, quality, tools, endpoints, and security findings
+
+Level descriptions:
+- **T5**: Definitively Taiwan-focused — official government or financial APIs with Taiwan-specific data
+- **T4**: Very strong Taiwan relevance — Taiwan data sources with clear local focus
+- **T3**: Strong Taiwan relevance — Taiwan-specific data or services (real estate, finance, etc.)
+- **T2**: Moderate Taiwan relevance — some Taiwan content or keywords detected
+- **T1**: Weak Taiwan relevance — minimal Taiwan connection
+- **T0**: No Taiwan relevance — international or general-purpose server
 
 ```bash
 # Text search

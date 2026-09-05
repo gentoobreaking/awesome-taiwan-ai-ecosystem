@@ -1,6 +1,7 @@
 package export
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -242,4 +243,60 @@ func TestExportMarkdown(t *testing.T) {
 			t.Errorf("Markdown missing: %s", expected)
 		}
 	}
+}
+
+func TestExportMarkdown_LevelDescriptions(t *testing.T) {
+	servers := []models.MCPServer{
+		{
+			ID:   "md-test-1",
+			Name: "Test Taiwan Server",
+			Repository: models.RepositoryInfo{
+				Name:     "server",
+				URL:      "https://github.com/test/server",
+				Stars:    10,
+				Language: "Go",
+			},
+			TaiwanRelevance: models.TaiwanRelevance{
+				Level:      "T3",
+				Score:      55,
+				Confidence: 0.9,
+			},
+			Health:  models.HealthHealthy,
+			Quality: models.QualityScore{Grade: "A", Score: 85},
+		},
+	}
+
+	re := New()
+	tmpDir := t.TempDir()
+	mdPath := filepath.Join(tmpDir, "REGISTRY.md")
+
+	if err := re.ExportMarkdown(mdPath, servers); err != nil {
+		t.Fatalf("ExportMarkdown error: %v", err)
+	}
+
+	content, err := os.ReadFile(mdPath)
+	if err != nil {
+		t.Fatalf("ReadFile error: %v", err)
+	}
+
+	md := string(content)
+
+	// Verify level description for T3 only (only T3 server exists)
+	desc := levelDescription("T3")
+	expected := fmt.Sprintf("_**T3**: %s_", desc)
+	if !strings.Contains(md, expected) {
+		t.Errorf("Markdown missing level description for T3: %s", expected)
+	}
+
+	// Verify language link is correct GitHub search URL
+	expectedLink := "https://github.com/search?q=server+language:Go&type=repositories"
+	if !strings.Contains(md, expectedLink) {
+		t.Errorf("Markdown missing language link: %s", expectedLink)
+	}
+
+	// Verify language text is linked
+	if !strings.Contains(md, "- **Language**: [Go](https://github.com/search") {
+		t.Error("Markdown missing linked language text")
+	}
+
 }

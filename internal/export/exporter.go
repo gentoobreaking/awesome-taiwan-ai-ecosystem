@@ -4,10 +4,12 @@ package export
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
 
@@ -229,6 +231,13 @@ func (re *RegistryExporter) ExportMarkdown(path string, servers []models.MCPServ
 		}
 
 		sb.WriteString(fmt.Sprintf("## %s — %d servers\n\n", level, len(levelServers)))
+		
+		// Add level description
+		levelDesc := levelDescription(level)
+		if levelDesc != "" {
+			sb.WriteString(fmt.Sprintf("_**%s**: %s_\n\n", level, levelDesc))
+		}
+		
 		for _, s := range levelServers {
 			sb.WriteString(fmt.Sprintf("### %s\n\n", s.Name))
 			if s.Description != "" {
@@ -239,7 +248,8 @@ func (re *RegistryExporter) ExportMarkdown(path string, servers []models.MCPServ
 				sb.WriteString(fmt.Sprintf("- **Stars**: %d\n", s.Repository.Stars))
 			}
 			if s.Repository.Language != "" {
-				sb.WriteString(fmt.Sprintf("- **Language**: %s\n", s.Repository.Language))
+				sb.WriteString(fmt.Sprintf("- **Language**: [%s](https://github.com/search?q=%s+language:%s&type=repositories)\n",
+					s.Repository.Language, url.QueryEscape(s.Repository.Name), url.QueryEscape(s.Repository.Language)))
 			}
 			sb.WriteString(fmt.Sprintf("- **Taiwan Relevance**: %s (score: %.1f, confidence: %.2f)\n", s.TaiwanRelevance.Level, s.TaiwanRelevance.Score, s.TaiwanRelevance.Confidence))
 			sb.WriteString(fmt.Sprintf("- **Health**: %s\n", s.Health))
@@ -271,4 +281,23 @@ func (re *RegistryExporter) ExportMarkdown(path string, servers []models.MCPServ
 	}
 
 	return writeFile(path, []byte(sb.String()))
+}
+
+// levelDescription returns a human-readable description for each Taiwan relevance level.
+func levelDescription(level string) string {
+	switch level {
+	case "T5":
+		return "Definitively Taiwan-focused — official government or financial APIs with Taiwan-specific data"
+	case "T4":
+		return "Very strong Taiwan relevance — Taiwan data sources with clear local focus"
+	case "T3":
+		return "Strong Taiwan relevance — Taiwan-specific data or services (real estate, finance, etc.)"
+	case "T2":
+		return "Moderate Taiwan relevance — some Taiwan content or keywords detected"
+	case "T1":
+		return "Weak Taiwan relevance — minimal Taiwan connection"
+	case "T0":
+		return "No Taiwan relevance — international or general-purpose server"
+	}
+	return ""
 }
