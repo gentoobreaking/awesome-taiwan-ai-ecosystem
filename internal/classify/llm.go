@@ -19,8 +19,8 @@ import (
 // llmModels is the fallback chain for LLM classification.
 // First model is primary; subsequent are fallbacks.
 var llmModels = []string{
-	"gpt-4o-mini",
-	"gpt-3.5-turbo",
+	"opencode/muse-spark-1.2-contributor-free",
+	"opencopen/nemotron-3-ultra-free",
 }
 
 // LLMCallCount tracks total LLM invocations for observability (§TST-050).

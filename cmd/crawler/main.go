@@ -19,6 +19,7 @@ import (
 	"github.com/david/awesome-taiwan-mcp/internal/search"
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
 	"github.com/david/awesome-taiwan-mcp/internal/sources/github"
+	"github.com/david/awesome-taiwan-mcp/internal/sources/githubrepo"
 	"github.com/david/awesome-taiwan-mcp/internal/sources/registry"
 	"github.com/david/awesome-taiwan-mcp/internal/storage"
 	"github.com/spf13/cobra"
@@ -131,8 +132,8 @@ func setupCrawler(store *storage.Store) *crawler.CrawlCoordinator {
 	logger := metrics.New(false)
 	var adapters []sources.SourceAdapter
 	adapters = append(adapters, github.New(os.Getenv("GITHUB_TOKEN")))
+	adapters = append(adapters, githubrepo.New("modelcontextprotocol/servers", os.Getenv("GITHUB_TOKEN")))
 	adapters = append(adapters, registry.New())
-
 	norm := normalize.New()
 	return crawler.NewCrawlCoordinator(store, norm, adapters, logger)
 }

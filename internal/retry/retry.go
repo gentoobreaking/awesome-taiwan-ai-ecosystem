@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -89,7 +90,8 @@ func (rc *RetryableClient) Do(ctx context.Context, req *http.Request) (*http.Res
 				return resp, nil
 			}
 
-			retryable := rc.isRetryableStatus(resp.StatusCode)
+			// Check if retryable + calculate specific delay (rate limit)
+			retryable, delay := rc.isRetryableStatus(resp.StatusCode, resp)
 			resp.Body.Close()
 
 			if !retryable {
@@ -97,8 +99,11 @@ func (rc *RetryableClient) Do(ctx context.Context, req *http.Request) (*http.Res
 				return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
 			}
 
-			// Calculate backoff
-			delay := rc.calculateBackoff(attempt, resp)
+			// Use specific delay (from headers) or exponential backoff
+			if delay == 0 {
+				delay = rc.calculateBackoff(attempt, resp)
+			}
+
 			if delay > 0 {
 				select {
 				case <-time.After(delay):
@@ -110,10 +115,10 @@ func (rc *RetryableClient) Do(ctx context.Context, req *http.Request) (*http.Res
 		}
 
 		// Network error - retry with backoff
-		delay := rc.calculateBackoff(attempt, nil)
-		if delay > 0 {
+		backoffDelay := rc.calculateBackoff(attempt, nil)
+		if backoffDelay > 0 {
 			select {
-			case <-time.After(delay):
+			case <-time.After(backoffDelay):
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			}
@@ -129,17 +134,55 @@ func (rc *RetryableClient) Do(ctx context.Context, req *http.Request) (*http.Res
 	return nil, errors.New("request failed")
 }
 
-func (rc *RetryableClient) isRetryableStatus(statusCode int) bool {
+// isRetryableStatus checks if an HTTP status code should be retried.
+// Returns (retryable, delay) where delay is from rate-limit headers.
+func (rc *RetryableClient) isRetryableStatus(statusCode int, resp *http.Response) (bool, time.Duration) {
 	// 429 Too Many Requests - retryable
 	if statusCode == http.StatusTooManyRequests {
-		return true
+		return true, rc.getRetryDelay(resp)
+	}
+	// 403 Forbidden - retryable if GitHub rate limit headers present
+	if statusCode == http.StatusForbidden {
+		remaining := resp.Header.Get("X-RateLimit-Remaining")
+		if remaining == "0" {
+			return true, rc.getRateLimitDelay(resp)
+		}
 	}
 	// 5xx errors - retryable
 	if statusCode >= 500 && statusCode < 600 {
-		return true
+		return true, 0
 	}
-	// 4xx (except 429) - not retryable
-	return false
+	// 4xx (except 403/429 with rate limit) - not retryable
+	return false, 0
+}
+
+// getRetryDelay returns delay from Retry-After header.
+func (rc *RetryableClient) getRetryDelay(resp *http.Response) time.Duration {
+	if retryAfter := resp.Header.Get("Retry-After"); retryAfter != "" {
+		if seconds, err := strconv.Atoi(retryAfter); err == nil {
+			return time.Duration(seconds) * time.Second
+		}
+	}
+	return 0
+}
+
+// getRateLimitDelay returns delay until GitHub rate limit resets.
+func (rc *RetryableClient) getRateLimitDelay(resp *http.Response) time.Duration {
+	resetStr := resp.Header.Get("X-RateLimit-Reset")
+	if resetStr == "" {
+		return 0
+	}
+	if resetTime, err := strconv.ParseInt(resetStr, 10, 64); err == nil {
+		delay := time.Until(time.Unix(resetTime, 0))
+		if delay > 0 {
+			// Cap at 60s to avoid extremely long waits
+			if delay > 60*time.Second {
+				delay = 60 * time.Second
+			}
+			return delay
+		}
+	}
+	return 0
 }
 
 // calculateBackoff implements exponential backoff: 1s → 2s → 4s → 8s, capped at MaxDelay.
