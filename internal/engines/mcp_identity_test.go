@@ -542,7 +542,193 @@ func NewCustomTransport() *CustomTransport {
 	if result.MCPRole != models.MCPRoleSDK {
 		t.Errorf("Expected primary MCPRole SDK for SDK+Extension, got %s", result.MCPRole)
 	}
-	t.Logf("Multi-role Result: Status=%s, Role=%s, Confidence=%.2f", result.Status, result.MCPRole, result.Confidence)
+
+	// Check secondary roles include Extension
+	foundExtension := false
+	for _, r := range result.SecondaryRoles {
+		if r == models.MCPRoleExtension {
+			foundExtension = true
+			break
+		}
+	}
+	if !foundExtension {
+		t.Errorf("Expected SecondaryRoles to include EXTENSION, got %v", result.SecondaryRoles)
+	}
+
+	t.Logf("Multi-role Result: Status=%s, Role=%s, SecondaryRoles=%v, Confidence=%.2f", result.Status, result.MCPRole, result.SecondaryRoles, result.Confidence)
+}
+func TestDetectMCPIdentity_SDKWithSkill(t *testing.T) {
+	engine := NewMCPIdentityEngine()
+
+	entity := createTestEntity(
+		func(e *models.Entity) {
+			e.RawContent = `
+package mcp
+
+import (
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+)
+
+type Server struct {
+	*mcp.Server
+}
+
+func NewServer() *Server {
+	return &Server{Server: mcp.NewServer(&mcp.ServerOptions{})}
+}
+
+type Skill struct {
+	Name        string
+	Description string
+	Tools       []Tool
+}
+
+func NewSkill() *Skill {
+	return &Skill{
+		Name: "test-skill",
+		Tools: []Tool{
+			{Name: "skill_tool", Description: "A skill tool"},
+		},
+	}
+}
+`
+			e.Endpoints = []models.EndpointWithType{}
+			e.Tools = []models.Tool{}
+			e.Repository = models.RepositoryInfo{
+				URL:          "https://github.com/test/mcp-sdk-skill",
+				Host:         "github.com",
+				Owner:        "test",
+				Name:         "mcp-sdk-skill",
+				Topics:       []string{"mcp", "sdk", "skill"},
+			}
+		},
+	)
+
+	result := engine.DetectMCPIdentity(entity)
+
+	if result.MCPRole != models.MCPRoleSDK {
+		t.Errorf("Expected primary MCPRole SDK for SDK+Skill, got %s", result.MCPRole)
+	}
+
+	foundSkill := false
+	for _, r := range result.SecondaryRoles {
+		if r == models.MCPRoleSkill {
+			foundSkill = true
+			break
+		}
+	}
+	if !foundSkill {
+		t.Errorf("Expected SecondaryRoles to include SKILL, got %v", result.SecondaryRoles)
+	}
+	t.Logf("SDK+Skill Result: Status=%s, Role=%s, SecondaryRoles=%v", result.Status, result.MCPRole, result.SecondaryRoles)
+}
+
+func TestDetectMCPIdentity_ClientWithHost(t *testing.T) {
+	engine := NewMCPIdentityEngine()
+
+	entity := createTestEntity(
+		func(e *models.Entity) {
+			e.RawContent = `
+import (
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+)
+
+type Host struct {
+	clients []*mcp.Client
+}
+func (h *Host) AddServer(url string) {
+	client := mcp.NewClient(&mcp.ClientOptions{})
+	h.clients = append(h.clients, client)
+}
+func (h *Host) StartAll() {
+	for _, c := range h.clients {
+		c.Initialize(context.Background())
+	}
+}
+func main() {
+	client := mcp.NewClient(&mcp.ClientOptions{})
+	client.Initialize(context.Background())
+}
+`
+			e.Endpoints = []models.EndpointWithType{}
+			e.Tools = []models.Tool{}
+			e.Repository = models.RepositoryInfo{
+				URL:          "https://github.com/test/client-host",
+				Host:         "github.com",
+				Owner:        "test",
+				Name:         "client-host",
+			}
+		},
+	)
+
+	result := engine.DetectMCPIdentity(entity)
+
+	// Primary should be Host (checked before Client)
+	if result.MCPRole != models.MCPRoleHost {
+		t.Errorf("Expected primary MCPRole Host for Host+Client, got %s", result.MCPRole)
+	}
+
+	foundClient := false
+	for _, r := range result.SecondaryRoles {
+		if r == models.MCPRoleClient {
+			foundClient = true
+			break
+		}
+	}
+	if !foundClient {
+		t.Errorf("Expected SecondaryRoles to include CLIENT, got %v", result.SecondaryRoles)
+	}
+	t.Logf("Host+Client Result: Status=%s, Role=%s, SecondaryRoles=%v", result.Status, result.MCPRole, result.SecondaryRoles)
+}
+
+func TestDetectMCPIdentity_ServerWithClient(t *testing.T) {
+	engine := NewMCPIdentityEngine()
+
+	entity := createTestEntity(
+		func(e *models.Entity) {
+			e.RawContent = `
+import (
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+)
+func main() {
+	server := mcp.NewServer(&mcp.ServerOptions{})
+	server.AddTool(mcp.NewTool("test_tool", mcp.ToolOptions{}))
+	server.Run(context.Background(), mcp.NewStdioTransport())
+
+	client := mcp.NewClient(&mcp.ClientOptions{})
+	client.Initialize(context.Background())
+}
+`
+			e.Endpoints = []models.EndpointWithType{
+				{Endpoint: models.Endpoint{URL: "https://example.com/mcp", Transport: "streamable-http"}, Type: models.EndpointTypeMCPRuntime},
+			}
+			e.Tools = []models.Tool{{Name: "test_tool", Description: "Test tool", InputSchema: map[string]any{"type": "object"}}}
+			e.Repository = models.RepositoryInfo{
+				URL:          "https://github.com/test/server-client",
+				Host:         "github.com",
+				Owner:        "test",
+				Name:         "server-client",
+			}
+		},
+	)
+
+	result := engine.DetectMCPIdentity(entity)
+
+	if result.MCPRole != models.MCPRoleServer {
+		t.Errorf("Expected primary MCPRole Server, got %s", result.MCPRole)
+	}
+
+	foundClient := false
+	for _, r := range result.SecondaryRoles {
+		if r == models.MCPRoleClient {
+			foundClient = true
+			break
+		}
+	}
+	if !foundClient {
+		t.Errorf("Expected SecondaryRoles to include CLIENT, got %v", result.SecondaryRoles)
+	}
+	t.Logf("Server+Client Result: Status=%s, Role=%s, SecondaryRoles=%v", result.Status, result.MCPRole, result.SecondaryRoles)
 }
 
 func TestMCPIdentityEngine_CalculateConfidence(t *testing.T) {

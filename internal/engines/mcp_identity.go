@@ -16,11 +16,12 @@ func NewMCPIdentityEngine() *MCPIdentityEngine {
 
 // MCPIdentityResult holds the result of MCP identity detection.
 type MCPIdentityResult struct {
-	Status    models.MCPIdentityStatus `json:"status"`
-	Evidence  []models.Evidence        `json:"evidence"`
-	Confidence float64                 `json:"confidence"`
-	MCPRole   models.MCPRole           `json:"mcp_role"`
-	Reasoning string                   `json:"reasoning"`
+	Status         models.MCPIdentityStatus `json:"status"`
+	Evidence       []models.Evidence        `json:"evidence"`
+	Confidence     float64                  `json:"confidence"`
+	MCPRole        models.MCPRole           `json:"mcp_role"`
+	SecondaryRoles []models.MCPRole         `json:"secondary_roles,omitempty"`
+	Reasoning      string                   `json:"reasoning"`
 }
 
 // DetectMCPIdentity analyzes an entity for MCP server/client/host implementation.
@@ -57,15 +58,25 @@ func (e *MCPIdentityEngine) DetectMCPIdentity(entity *models.Entity) MCPIdentity
 		hasOnlyDocEndpoint,
 	)
 
+	// Determine secondary roles
+	secondaryRoles := e.determineSecondaryRoles(
+		hasMCPImport, hasMCPServerImpl, hasTransport, hasToolDefs,
+		hasExecutableEntry, hasMCPDep, hasClientImpl, hasHostImpl,
+		hasSDKPackage, hasLibraryOnly, hasExtension, hasSkill,
+		hasOnlyReadmeMention, isTutorialOrExample, isCollectionOrRegistry,
+		hasOnlyDocEndpoint,
+	)
+
 	// Calculate confidence
 	confidence := e.calculateConfidence(evidence)
 
 	return MCPIdentityResult{
-		Status:     status,
-		Evidence:   evidence,
-		Confidence: confidence,
-		MCPRole:    mcpRole,
-		Reasoning:  strings.Join(reasoning, "; "),
+		Status:         status,
+		Evidence:       evidence,
+		Confidence:     confidence,
+		MCPRole:        mcpRole,
+		SecondaryRoles: secondaryRoles,
+		Reasoning:      strings.Join(reasoning, "; "),
 	}
 }
 
@@ -812,4 +823,62 @@ func (e *MCPIdentityEngine) getSourceCodeText(entity *models.Entity) string {
 		parts = append(parts, pkg)
 	}
 	return strings.Join(parts, "\n")
+}
+// determineSecondaryRoles determines secondary MCP roles based on evidence.
+func (e *MCPIdentityEngine) determineSecondaryRoles(
+	hasMCPImport, hasMCPServerImpl, hasTransport, hasToolDefs,
+	hasExecutableEntry, hasMCPDep, hasClientImpl, hasHostImpl,
+	hasSDKPackage, hasLibraryOnly, hasExtension, hasSkill,
+	hasOnlyReadmeMention, isTutorialOrExample, isCollectionOrRegistry,
+	hasOnlyDocEndpoint bool,
+) []models.MCPRole {
+	var roles []models.MCPRole
+
+	// Check for secondary roles (roles that can coexist with primary)
+	// SDK as secondary (can be SDK + Extension, SDK + Skill, etc.)
+	if hasSDKPackage {
+		roles = append(roles, models.MCPRoleSDK)
+	}
+
+	// Extension as secondary
+	if hasExtension {
+		roles = append(roles, models.MCPRoleExtension)
+	}
+
+	// Skill as secondary
+	if hasSkill {
+		roles = append(roles, models.MCPRoleSkill)
+	}
+
+	// Library as secondary (if not primary)
+	if hasLibraryOnly {
+		roles = append(roles, models.MCPRoleLibrary)
+	}
+
+	// Client as secondary (if not primary)
+	if hasClientImpl {
+		roles = append(roles, models.MCPRoleClient)
+	}
+
+	// Host as secondary (if not primary)
+	if hasHostImpl {
+		roles = append(roles, models.MCPRoleHost)
+	}
+
+	// Server as secondary (if not primary)
+	if hasTransport && (hasToolDefs || hasExecutableEntry) && hasMCPServerImpl {
+		roles = append(roles, models.MCPRoleServer)
+	}
+
+	// Remove duplicates
+	seen := make(map[models.MCPRole]bool)
+	unique := make([]models.MCPRole, 0, len(roles))
+	for _, r := range roles {
+		if !seen[r] {
+			seen[r] = true
+			unique = append(unique, r)
+		}
+	}
+
+	return unique
 }
