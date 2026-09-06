@@ -157,7 +157,7 @@ func TestScoreSecurity(t *testing.T) {
 		{"critical", []models.SecurityFinding{{Severity: models.SeverityCritical}}, 0},
 	}
 	for _, tt := range tests {
-		server := &models.MCPServer{Security: tt.findings}
+		server := &models.MCPServer{Security: models.SecurityStatusDetail{Findings: tt.findings}}
 		t.Run(tt.name, func(t *testing.T) {
 			got := scoreSecurity(server)
 			if got != tt.want {

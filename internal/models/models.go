@@ -28,7 +28,6 @@ const (
 	HealthUnknown   HealthStatus = "unknown"
 )
 
-
 // Transport type for MCP endpoints.
 type Transport string
 
@@ -45,12 +44,15 @@ const (
 type DataSourceType string
 
 const (
-	DataSourceOfficialGovAPI DataSourceType = "official_gov_api"
+	DataSourceOfficialGovAPI  DataSourceType = "official_gov_api"
+	DataSourceGovOpenData     DataSourceType = "gov_open_data"
 	DataSourceOfficialCompany DataSourceType = "official_company"
-	DataSourceThirdPartyAPI  DataSourceType = "third_party_api"
-	DataSourceOpenData       DataSourceType = "open_data"
-	DataSourceOfficial       DataSourceType = "official"
-	DataSourceCommunity      DataSourceType = "community"
+	DataSourceThirdPartyAPI   DataSourceType = "third_party_api"
+	DataSourceWebScraping     DataSourceType = "web_scraping"
+	DataSourceOpenData        DataSourceType = "open_data"
+	DataSourceOfficial        DataSourceType = "official"
+	DataSourceCommunity       DataSourceType = "community"
+	DataSourceUnknown         DataSourceType = "unknown"
 )
 
 // Severity levels for security findings
@@ -72,18 +74,21 @@ type DataSourceScores struct {
 	OfficialCompany float64
 	ThirdPartyAPI   float64
 	OfficialGovAPI  float64
+	GovOpenData     float64
+	WebScraping     float64
 	OpenData        float64
 	Official        float64
 	Community       float64
+	Unknown         float64
 }
 
 // SourceTrustScores holds trust scores for different sources
 type SourceTrustScores struct {
-	GitHub           float64
-	Registry         float64
-	Mcpserversorg    float64
-	Mcpmarket        float64
-	GithubRepo       float64
+	GitHub        float64
+	Registry      float64
+	Mcpserversorg float64
+	Mcpmarket     float64
+	GithubRepo    float64
 }
 
 // ValidCategories is the controlled vocabulary for server categories (§19).
@@ -130,7 +135,7 @@ var categoryParentMap = map[string]string{
 	"land": "real-estate", "housing": "real-estate",
 	"open-data": "government", "legislative": "government", "judicial": "government", "procurement": "government",
 	"earthquake": "weather",
-	"traffic": "transport", "railway": "transport", "metro": "transport", "bus": "transport", "logistics": "transport",
+	"traffic":    "transport", "railway": "transport", "metro": "transport", "bus": "transport", "logistics": "transport",
 	"invoice": "payment", "tax": "payment",
 	"company": "ecommerce", "business": "ecommerce",
 	"tourism": "geography", "gis": "geography",
@@ -139,48 +144,48 @@ var categoryParentMap = map[string]string{
 }
 
 var categoryAliases = map[string]string{
-	"finance & fintech": "finance",
-	"finance-fintech":   "finance",
-	"fintech":           "finance",
-	"taiwan-stock":      "stock",
-	"taiwan_stock":      "stock",
-	"stock-market":      "stock",
-	"etf-fund":          "etf",
-	"bank":              "banking",
-	"insurance-fin":     "insurance",
-	"real estate":       "real-estate",
-	"land-registry":     "land",
-	"housing-price":     "housing",
-	"gov":               "government",
-	"open data":         "open-data",
-	"legislative-yuan":  "legislative",
-	"judicial-yuan":     "judicial",
-	"gov-procurement":   "procurement",
-	"weather-cwa":       "weather",
-	"earthquake-tw":     "earthquake",
-	"transport-tw":      "transport",
-	"traffic-tw":        "traffic",
-	"railway-tw":        "railway",
-	"metro-tw":          "metro",
-	"bus-tw":            "bus",
-	"logistics-tw":      "logistics",
-	"payment-tw":        "payment",
-	"invoice-tw":        "invoice",
-	"tax-tw":            "tax",
-	"company-tw":        "company",
-	"business-tw":       "business",
-	"healthcare-tw":     "healthcare",
-	"education-tw":      "education",
-	"agriculture-tw":    "agriculture",
-	"food-tw":           "food",
-	"tourism-tw":        "tourism",
-	"geography-tw":      "geography",
-	"gis-tw":            "gis",
+	"finance & fintech":   "finance",
+	"finance-fintech":     "finance",
+	"fintech":             "finance",
+	"taiwan-stock":        "stock",
+	"taiwan_stock":        "stock",
+	"stock-market":        "stock",
+	"etf-fund":            "etf",
+	"bank":                "banking",
+	"insurance-fin":       "insurance",
+	"real estate":         "real-estate",
+	"land-registry":       "land",
+	"housing-price":       "housing",
+	"gov":                 "government",
+	"open data":           "open-data",
+	"legislative-yuan":    "legislative",
+	"judicial-yuan":       "judicial",
+	"gov-procurement":     "procurement",
+	"weather-cwa":         "weather",
+	"earthquake-tw":       "earthquake",
+	"transport-tw":        "transport",
+	"traffic-tw":          "traffic",
+	"railway-tw":          "railway",
+	"metro-tw":            "metro",
+	"bus-tw":              "bus",
+	"logistics-tw":        "logistics",
+	"payment-tw":          "payment",
+	"invoice-tw":          "invoice",
+	"tax-tw":              "tax",
+	"company-tw":          "company",
+	"business-tw":         "business",
+	"healthcare-tw":       "healthcare",
+	"education-tw":        "education",
+	"agriculture-tw":      "agriculture",
+	"food-tw":             "food",
+	"tourism-tw":          "tourism",
+	"geography-tw":        "geography",
+	"gis-tw":              "gis",
 	"chinese-traditional": "traditional-chinese",
-	"culture-tw":        "culture",
-	"ecommerce-tw":      "ecommerce",
-	"devops-tw":         "devops",
-	"news-tw":           "news",
+	"culture-tw":          "culture",
+	"ecommerce-tw":        "ecommerce",
+	"devops-tw":           "devops",
+	"news-tw":             "news",
 }
 
 // IsValidCategory returns true if cat is in the controlled vocabulary.
@@ -258,50 +263,51 @@ type Prompt struct {
 // RawRecord is a fully fetched candidate with all metadata (§12, §16).
 type RawRecord struct {
 	RawCandidate
-	Repository        RepositoryInfo `json:"repository"`
-	Endpoints         []Endpoint     `json:"endpoints"`
-	Transport         []string       `json:"transport"`
-	Readme            string         `json:"readme"`
-	PackageFiles      map[string]string `json:"package_files"`
-	SourceTrustScore  float64        `json:"source_trust_score"`
+	Repository       RepositoryInfo    `json:"repository"`
+	Endpoints        []Endpoint        `json:"endpoints"`
+	Transport        []string          `json:"transport"`
+	Readme           string            `json:"readme"`
+	PackageFiles     map[string]string `json:"package_files"`
+	SourceTrustScore float64           `json:"source_trust_score"`
 }
+
 // MCPServer is the normalized, classified MCP server (§13).
 // Deprecated: Use Entity with ToMCPServerView() instead.
 type MCPServer struct {
-	ID              string           `json:"id"`
-	Name            string           `json:"name"`
-	Slug            string           `json:"slug"`
-	Description     string           `json:"description"`
-	Region          []string         `json:"region"`
-	Category        []string         `json:"category"`
-	TaiwanRelevance TaiwanRelevance  `json:"taiwan_relevance"`
-	Repository      RepositoryInfo   `json:"repository"`
-	Endpoints       []Endpoint       `json:"endpoints"`
-	Transport       []string         `json:"transport"`
-	Tools           []Tool           `json:"tools"`
-	Resources       []Resource       `json:"resources,omitempty"`
-	Prompts         []Prompt         `json:"prompts,omitempty"`
-	DataSources     []DataSource     `json:"data_sources"`
-	License         string           `json:"license"`
-	Status          Status           `json:"status"`
-	Health          HealthStatus     `json:"health"`
-	Quality         QualityScore     `json:"quality"`
+	ID              string               `json:"id"`
+	Name            string               `json:"name"`
+	Slug            string               `json:"slug"`
+	Description     string               `json:"description"`
+	Region          []string             `json:"region"`
+	Category        []string             `json:"category"`
+	TaiwanRelevance TaiwanRelevance      `json:"taiwan_relevance"`
+	Repository      RepositoryInfo       `json:"repository"`
+	Endpoints       []Endpoint           `json:"endpoints"`
+	Transport       []string             `json:"transport"`
+	Tools           []Tool               `json:"tools"`
+	Resources       []Resource           `json:"resources,omitempty"`
+	Prompts         []Prompt             `json:"prompts,omitempty"`
+	DataSources     []DataSource         `json:"data_sources"`
+	License         string               `json:"license"`
+	Status          Status               `json:"status"`
+	Health          HealthStatus         `json:"health"`
+	Quality         QualityScore         `json:"quality"`
 	Security        SecurityStatusDetail `json:"security,omitempty"`
-	Sources         []SourceReference `json:"sources"`
-	FirstSeen       time.Time        `json:"first_seen"`
-	LastSeen        time.Time        `json:"last_seen"`
-	LastVerified    time.Time        `json:"last_verified"`
-	Readme          string           `json:"readme,omitempty"`
+	Sources         []SourceReference    `json:"sources"`
+	FirstSeen       time.Time            `json:"first_seen"`
+	LastSeen        time.Time            `json:"last_seen"`
+	LastVerified    time.Time            `json:"last_verified"`
+	Readme          string               `json:"readme,omitempty"`
 }
 
 // Endpoint holds MCP endpoint connection info (§8).
 type Endpoint struct {
-	URL            string            `json:"url"`
-	Transport      string            `json:"transport"`
-	ProtocolVersion string           `json:"protocol_version"`
-	Authentication AuthenticationInfo `json:"authentication"`
-	TLS            bool              `json:"tls"`
-	Status         string            `json:"status"`
+	URL             string             `json:"url"`
+	Transport       string             `json:"transport"`
+	ProtocolVersion string             `json:"protocol_version"`
+	Authentication  AuthenticationInfo `json:"authentication"`
+	TLS             bool               `json:"tls"`
+	Status          string             `json:"status"`
 }
 
 // AuthenticationInfo holds authentication details.
@@ -312,10 +318,10 @@ type AuthenticationInfo struct {
 
 // Tool represents an MCP tool (§9.1).
 type Tool struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	InputSchema map[string]any         `json:"input_schema"`
-	Annotations ToolAnnotations        `json:"annotations"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	InputSchema map[string]any  `json:"input_schema"`
+	Annotations ToolAnnotations `json:"annotations"`
 }
 
 type ToolAnnotations struct {
@@ -335,19 +341,19 @@ type Resource struct {
 
 // DataSource represents a data source used by the MCP (§10).
 type DataSource struct {
-	Name         string        `json:"name"`
+	Name         string         `json:"name"`
 	Type         DataSourceType `json:"type"`
-	URL          string        `json:"url"`
-	Country      string        `json:"country"`
-	Official     bool          `json:"official"`
-	AccessMethod string        `json:"access_method"`
+	URL          string         `json:"url"`
+	Country      string         `json:"country"`
+	Official     bool           `json:"official"`
+	AccessMethod string         `json:"access_method"`
 }
 
 // Level thresholds (§17)
 var LevelThresholds = []struct {
-	Level  string
-	Min    float64
-	Max    float64
+	Level string
+	Min   float64
+	Max   float64
 }{
 	{"T5", 70, 100},
 	{"T4", 55, 69.99},
@@ -362,30 +368,31 @@ var LevelThresholds = []struct {
 
 // CrawlRun metadata for tracking crawl executions
 type CrawlRun struct {
-	ID               string          `json:"id"`
-	StartedAt        RFC3339Time     `json:"started_at"`
-	CompletedAt      *RFC3339Time    `json:"completed_at,omitempty"`
-	Status           string          `json:"status"`
-	SourcesRun       []string        `json:"sources_run"`
-	TotalFound       int             `json:"total_found"`
-	TotalNew         int             `json:"total_new"`
-	TotalUpdated     int             `json:"total_updated"`
-	Errors           []string        `json:"errors,omitempty"`
-	CrawlID          string          `json:"crawl_id"`
-	FinishedAt       *RFC3339Time    `json:"finished_at,omitempty"`
-	SourcesScanned   int             `json:"sources_scanned"`
-	CandidatesFound  int             `json:"candidates_found"`
-	CandidatesNorm   int             `json:"candidates_norm"`
-	DuplicatesRemoved int            `json:"duplicates_removed"`
-	TaiwanCandidates int             `json:"taiwan_candidates"`
-	Verified         int             `json:"verified"`
-	Failed           int             `json:"failed"`
+	ID                string       `json:"id"`
+	StartedAt         RFC3339Time  `json:"started_at"`
+	CompletedAt       *RFC3339Time `json:"completed_at,omitempty"`
+	Status            string       `json:"status"`
+	SourcesRun        []string     `json:"sources_run"`
+	TotalFound        int          `json:"total_found"`
+	TotalNew          int          `json:"total_new"`
+	TotalUpdated      int          `json:"total_updated"`
+	Errors            []string     `json:"errors,omitempty"`
+	CrawlID           string       `json:"crawl_id"`
+	FinishedAt        *RFC3339Time `json:"finished_at,omitempty"`
+	SourcesScanned    int          `json:"sources_scanned"`
+	CandidatesFound   int          `json:"candidates_found"`
+	CandidatesNorm    int          `json:"candidates_norm"`
+	DuplicatesRemoved int          `json:"duplicates_removed"`
+	TaiwanCandidates  int          `json:"taiwan_candidates"`
+	Verified          int          `json:"verified"`
+	Failed            int          `json:"failed"`
 }
+
 // ServerSnapshot represents a historical snapshot of a server from a crawl run.
 type ServerSnapshot struct {
-	ID         int64           `json:"id"`
-	ServerID   string          `json:"server_id"`
-	CrawlID    string          `json:"crawl_id"`
-	Snapshot   *MCPServer      `json:"snapshot"`
-	CreatedAt  RFC3339Time     `json:"created_at"`
+	ID        int64       `json:"id"`
+	ServerID  string      `json:"server_id"`
+	CrawlID   string      `json:"crawl_id"`
+	Snapshot  *MCPServer  `json:"snapshot"`
+	CreatedAt RFC3339Time `json:"created_at"`
 }

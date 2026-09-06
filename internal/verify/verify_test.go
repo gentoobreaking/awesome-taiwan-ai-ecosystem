@@ -526,14 +526,14 @@ func TestVerifyRepository_WithPushedAt(t *testing.T) {
 	server := &models.MCPServer{
 		Repository: models.RepositoryInfo{
 			URL:      srv.URL,
-			PushedAt: now.AddDate(0, 0, -10),
+			PushedAt: models.RFC3339Time(now.AddDate(0, 0, -10)),
 		},
 	}
 	result := rv.VerifyRepository(context.Background(), server)
 	if result.Status != models.StatusActive {
 		t.Errorf("Expected ACTIVE for recent push, got %s", result.Status)
 	}
-	if !result.PushedAt.Equal(now.AddDate(0, 0, -10)) {
+		if !result.PushedAt.Equal(models.RFC3339Time(now.AddDate(0, 0, -10))) {
 		t.Error("Expected PushedAt to be set from server")
 	}
 }
@@ -548,7 +548,7 @@ func TestVerifyRepository_WithManifestAndReadme(t *testing.T) {
 	server := &models.MCPServer{
 		Repository: models.RepositoryInfo{
 			URL:  srv.URL,
-			PushedAt: time.Now().UTC().AddDate(0, 0, -10),
+			PushedAt: models.RFC3339Time(time.Now().UTC().AddDate(0, 0, -10)),
 		},
 		Tools:       []models.Tool{{Name: "tool1"}},
 		Description: "A test server",

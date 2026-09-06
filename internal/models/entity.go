@@ -277,6 +277,17 @@ func (t RFC3339Time) IsZero() bool {
 	return time.Time(t).IsZero()
 }
 
+func (t RFC3339Time) Before(other RFC3339Time) bool {
+	return time.Time(t).Before(time.Time(other))
+}
+
+func (t RFC3339Time) After(other RFC3339Time) bool {
+	return time.Time(t).After(time.Time(other))
+}
+
+func (t RFC3339Time) Equal(other RFC3339Time) bool {
+	return time.Time(t).Equal(time.Time(other))
+}
 // Evidence represents scoring rule evidence (spec §16, §4.4, §66).
 type Evidence struct {
 	Type         string      `json:"type"`          // official_domain, repository_keyword, data_source, etc.

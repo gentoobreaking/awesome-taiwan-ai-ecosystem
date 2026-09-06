@@ -53,7 +53,7 @@ func TestCollectorAutoTimestamp(t *testing.T) {
 
 	items := c.All()
 	ts := items[0].Timestamp
-	if ts.Before(before) || ts.After(after) {
+	if ts.Before(models.RFC3339Time(before)) || ts.After(models.RFC3339Time(after)) {
 		t.Error("Expected auto-set timestamp to be within expected window")
 	}
 }

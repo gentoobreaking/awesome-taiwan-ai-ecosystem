@@ -71,23 +71,41 @@ func (qs *QualityScorer) Score(server *models.MCPServer) models.QualityScore {
 	}
 }
 
+var defaultDataSourceScores = models.DataSourceScores{
+	OfficialCompany: 15,
+	ThirdPartyAPI:   10,
+	OfficialGovAPI:  20,
+	GovOpenData:     18,
+	WebScraping:     7,
+	OpenData:        12,
+	Official:        14,
+	Community:       8,
+	Unknown:         0,
+}
+
 func scoreDataSource(sources []models.DataSource) int {
 	max := 0
 	for _, ds := range sources {
 		var v float64
 		switch ds.Type {
 		case models.DataSourceOfficialCompany:
-			v = models.DataSourceScores{}.OfficialCompany
+			v = defaultDataSourceScores.OfficialCompany
 		case models.DataSourceThirdPartyAPI:
-			v = models.DataSourceScores{}.ThirdPartyAPI
+			v = defaultDataSourceScores.ThirdPartyAPI
 		case models.DataSourceOfficialGovAPI:
-			v = models.DataSourceScores{}.OfficialGovAPI
+			v = defaultDataSourceScores.OfficialGovAPI
+		case models.DataSourceGovOpenData:
+			v = defaultDataSourceScores.GovOpenData
+		case models.DataSourceWebScraping:
+			v = defaultDataSourceScores.WebScraping
 		case models.DataSourceOpenData:
-			v = models.DataSourceScores{}.OpenData
+			v = defaultDataSourceScores.OpenData
 		case models.DataSourceOfficial:
-			v = models.DataSourceScores{}.Official
+			v = defaultDataSourceScores.Official
 		case models.DataSourceCommunity:
-			v = models.DataSourceScores{}.Community
+			v = defaultDataSourceScores.Community
+		case models.DataSourceUnknown:
+			v = defaultDataSourceScores.Unknown
 		default:
 			continue
 		}

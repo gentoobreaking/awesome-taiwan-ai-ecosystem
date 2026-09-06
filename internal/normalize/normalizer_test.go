@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
-	"github.com/david/awesome-taiwan-mcp/internal/sources"
 )
 
 func TestNormalizeURL(t *testing.T) {
@@ -69,8 +68,8 @@ func TestNormalizeLicense(t *testing.T) {
 
 func TestNormalizeRecord(t *testing.T) {
 	n := New()
-	record := &sources.RawRecord{
-		Candidate: models.RawCandidate{
+	record := &models.RawRecord{
+		RawCandidate: models.RawCandidate{
 			Source:        "github",
 			SourceURL:     "https://github.com/foo/bar-mcp",
 			Name:          "bar-mcp",
@@ -82,7 +81,7 @@ func TestNormalizeRecord(t *testing.T) {
 			RawMetadata:   map[string]any{"stars": 100},
 			DiscoveredAt:  time.Now().UTC(),
 		},
-		Repository: &models.RepositoryInfo{
+		Repository: models.RepositoryInfo{
 			URL:     "https://github.com/foo/bar-mcp",
 			Owner:   "foo",
 			Name:    "bar-mcp",

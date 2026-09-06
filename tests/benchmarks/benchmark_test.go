@@ -12,21 +12,20 @@ import (
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 	"github.com/david/awesome-taiwan-mcp/internal/normalize"
 	"github.com/david/awesome-taiwan-mcp/internal/scoring"
-	"github.com/david/awesome-taiwan-mcp/internal/sources"
 	"github.com/david/awesome-taiwan-mcp/internal/storage"
 )
 
 // BenchmarkNormalize benchmarks the normalizer (§TST-062).
 func BenchmarkNormalize(b *testing.B) {
 	norm := normalize.New()
-	record := &sources.RawRecord{
-		Candidate: models.RawCandidate{
+	record := &models.RawRecord{
+		RawCandidate: models.RawCandidate{
 			Source:        "github",
 			Name:          "bench-mcp",
 			RepositoryURL: "https://github.com/bench/mcp-server",
 			Description:   "Benchmark MCP server",
 		},
-		Repository: &models.RepositoryInfo{
+		Repository: models.RepositoryInfo{
 			URL:     "https://github.com/bench/mcp-server",
 			Host:    "github.com",
 			Owner:   "bench",
@@ -35,7 +34,7 @@ func BenchmarkNormalize(b *testing.B) {
 			License: "MIT",
 		},
 		Readme:    "# bench-mcp\n\nBenchmark MCP server.",
-		Manifest:  map[string]any{"name": "bench-mcp"},
+		PackageFiles: map[string]string{},
 		Transport: []string{"stdio"},
 	}
 
@@ -60,7 +59,6 @@ func BenchmarkClassify(b *testing.B) {
 			License: "MIT",
 			Topics:  []string{"mcp", "taiwan"},
 		},
-		
 	}
 
 	b.ResetTimer()
@@ -115,14 +113,14 @@ func BenchmarkScoring(b *testing.B) {
 	}
 }
 
-// BenchmarkFullPipeline benchmarks normalization of 10k candidates (§TST-062).
+// BenchmarkFullPipeline benchmarks normalization of 100 candidates (§TST-062).
 func BenchmarkFullPipeline(b *testing.B) {
 	norm := normalize.New()
 	_ = metrics.New(false)
 	_ = storage.Open
 
 	// Generate 100 mock candidates (scale down for benchmark speed)
-	records := make([]*sources.RawRecord, 100)
+	records := make([]*models.RawRecord, 100)
 	for i := 0; i < 100; i++ {
 		c := models.RawCandidate{
 			Source:        "mock",
@@ -132,10 +130,10 @@ func BenchmarkFullPipeline(b *testing.B) {
 			RepositoryURL: fmt.Sprintf("https://github.com/mock/server-%d", i),
 			DiscoveredAt:  time.Now(),
 		}
-		records[i] = &sources.RawRecord{
-			Candidate:  c,
-			Repository: &models.RepositoryInfo{URL: c.RepositoryURL, Host: "github.com", Name: c.Name},
-			Manifest:   map[string]any{"name": c.Name},
+		records[i] = &models.RawRecord{
+			RawCandidate: c,
+			Repository:   models.RepositoryInfo{URL: c.RepositoryURL, Host: "github.com", Name: c.Name},
+			PackageFiles: map[string]string{},
 			Transport:  []string{"stdio"},
 		}
 	}
@@ -147,7 +145,7 @@ func BenchmarkFullPipeline(b *testing.B) {
 		for _, rec := range records {
 			sem <- struct{}{}
 			wg.Add(1)
-			go func(r *sources.RawRecord) {
+			go func(r *models.RawRecord) {
 				defer wg.Done()
 				defer func() { <-sem }()
 				norm.Normalize(r)

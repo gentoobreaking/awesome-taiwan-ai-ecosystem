@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
-	"github.com/david/awesome-taiwan-mcp/internal/sources"
 )
 
 func TestNormalizeNameFromRepo(t *testing.T) {
@@ -162,8 +161,8 @@ func TestSafeInt(t *testing.T) {
 
 func TestNormalize_FullRecord(t *testing.T) {
 	n := New()
-	record := &sources.RawRecord{
-		Candidate: models.RawCandidate{
+	record := &models.RawRecord{
+		RawCandidate: models.RawCandidate{
 			Source:        "github",
 			SourceURL:     "https://github.com/foo/taiwan",
 			Name:          "taiwan-mcp",
@@ -173,7 +172,7 @@ func TestNormalize_FullRecord(t *testing.T) {
 			RawMetadata:   map[string]any{"topics": []string{"mcp", "taiwan"}},
 			DiscoveredAt:  time.Time{},
 		},
-		Repository: &models.RepositoryInfo{
+		Repository: models.RepositoryInfo{
 			URL:     "https://github.com/foo/taiwan-mcp",
 			Stars:   100,
 			License: "MIT",

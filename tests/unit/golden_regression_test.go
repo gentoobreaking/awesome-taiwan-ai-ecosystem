@@ -49,7 +49,7 @@ func loadGoldenFixtures(t *testing.T) []goldenFixture {
 		}
 		fixtures = append(fixtures, goldenFixture{
 			Server: server,
-			Level:  server.TaiwanRelevance.Level,
+			Level:  string(server.TaiwanRelevance.Level),
 		})
 	}
 	return fixtures
@@ -109,7 +109,7 @@ func TestGoldenDedupAccuracy(t *testing.T) {
 
 	sources := make([]*dedupe.ServerSource, 0, len(fixtures))
 	for _, f := range fixtures {
-		trust := models.SourceTrustScores["github"]
+		trust := models.SourceTrustScores{}.GitHub
 		if trust == 0 {
 			trust = 0.5
 		}
