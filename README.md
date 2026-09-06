@@ -609,6 +609,22 @@ docker build -t awesome-taiwan-ai-ecosystem .
 docker compose up
 ```
 
+### Makefile
+
+A `Makefile` is provided for common development tasks:
+
+```bash
+make build         # Build all binaries (crawler, migrator, exporter)
+make test          # Run all tests
+make test-acceptance  # Run acceptance tests (spec §56)
+make test-fp       # Run false positive rate test (spec §58)
+make vet           # Run go vet
+make fmt           # Format source code
+make lint          # Run linter
+make clean         # Clean build artifacts and data
+```
+
+
 ### Docker
 
 The Dockerfile uses multi-stage build:
@@ -623,6 +639,39 @@ docker run --rm \
   -e GITHUB_TOKEN=your_token \
   -v $(pwd)/data:/data \
   awesome-taiwan-ai-ecosystem run --db /data/registry.db
+```
+
+### Docker Compose: Search
+
+Search runs against the persisted SQLite database. When the crawler container has completed a run, the database is stored in `./data/registry.db`. Use the following commands to search inside Docker Compose:
+
+```bash
+# Ensure the database and views are mounted locally (docker-compose.yaml maps ./data:/data/db)
+
+# Search by text
+docker compose run --rm crawler search "taiwan" --db /data/db/registry.db
+
+# Search with level filter
+docker compose run --rm crawler search "mcp" --db /data/db/registry.db --level T3
+
+# Search by capability
+docker compose run --rm crawler search --db /data/db/registry.db --capability "filesystem"
+
+# Search with minimum quality score
+docker compose run --rm crawler search "ai" --db /data/db/registry.db --min-score 70
+
+# JSON output
+docker compose run --rm crawler search "taiwan" --db /data/db/registry.db --json
+```
+
+The `--rm` flag removes the container after the command exits, and `--db /data/db/registry.db` points to the mounted volume. For other CLI operations (stats, export), use the same pattern:
+
+```bash
+# View stats
+docker compose run --rm crawler stats --db /data/db/registry.db --json
+
+# Export all views
+docker compose run --rm crawler export --db /data/db/registry.db --markdown
 ```
 
 ## Development

@@ -6,6 +6,7 @@
 *.dylib
 /crawler
 /data/
+/bin/
 *.db
 *.db-journal
 *.db-shm
