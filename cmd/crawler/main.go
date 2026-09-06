@@ -10,14 +10,15 @@ import (
 	"strings"
 	"syscall"
 	"text/tabwriter"
+	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/crawler"
 	"github.com/david/awesome-taiwan-mcp/internal/coordinator"
+	"github.com/david/awesome-taiwan-mcp/internal/export"
 	"github.com/david/awesome-taiwan-mcp/internal/metrics"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 	"github.com/david/awesome-taiwan-mcp/internal/normalize"
 	"github.com/david/awesome-taiwan-mcp/internal/search"
-	"github.com/david/awesome-taiwan-mcp/internal/security"
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
 	"github.com/david/awesome-taiwan-mcp/internal/sources/github"
 	"github.com/david/awesome-taiwan-mcp/internal/sources/githubrepo"
@@ -146,7 +147,8 @@ func main() {
 		Short: "Export registry JSON files",
 		RunE:  runExport,
 	}
-	exportCmd.Flags().BoolVar(&markdownExport, "markdown", false, "also generate REGISTRY.md")
+	exportCmd.Flags().BoolVar(&maliciousReport, "malicious", true, "generate MALICIOUS_REPORT.md and blocklist.txt")
+	exportCmd.Flags().BoolVar(&injectionReport, "injection", true, "generate INJECTION_REPORT.md and patterns.json")
 	rootCmd.AddCommand(exportCmd)
 
 	// Stats
@@ -179,7 +181,7 @@ func main() {
 	rootCmd.PersistentFlags().BoolVar(&maliciousReport, "malicious-report", true, "generate MALICIOUS_REPORT.md and blocklist.txt")
 	rootCmd.PersistentFlags().StringVar(&maliciousDir, "malicious-dir", "registry/malicious", "directory for malicious report output")
 	rootCmd.PersistentFlags().StringVar(&maliciousThreshold, "malicious-threshold", "MEDIUM", "minimum risk level for malicious report (LOW, MEDIUM, HIGH, CRITICAL)")
-	rootCmd.PersistentFlags().BoolVar(&injectionReport, "injection-report", true, "generate INJECTION_REPORT.md and patterns.json")
+	rootCmd.PersistentFlags().StringVar(&injectionDir, "injection-dir", "registry/security/injection", "directory for injection report output")
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "output JSON format")
 	rootCmd.PersistentFlags().IntVar(&batchSize, "batch-size", 100, "number of records to process per batch")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "validate without writing changes")
@@ -258,8 +260,30 @@ func runCrawl(cmd *cobra.Command, _ []string) error {
 		Workers:      workers,
 		OutputDir:    "registry",
 	}
+	if err := pipeline.Run(ctx, cfg); err != nil {
+		return err
+	}
 
-	return pipeline.Run(ctx, cfg)
+	// Auto-generate malicious and injection reports if enabled
+	servers, err := store.GetServers(ctx)
+	if err != nil {
+		return fmt.Errorf("get servers for reports: %w", err)
+	}
+	entities := make([]*models.Entity, 0, len(servers))
+	for i := range servers {
+		entities = append(entities, serverToEntity(&servers[i]))
+	}
+	if maliciousReport {
+		if err := generateMaliciousReport(entities, maliciousDir, maliciousThreshold); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: malicious report generation failed: %v\n", err)
+		}
+	}
+	if injectionReport {
+		if err := generateInjectionReport(entities, injectionDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: injection report generation failed: %v\n", err)
+		}
+	}
+	return nil
 }
 
 func runDiscover(cmd *cobra.Command, _ []string) error {
@@ -428,19 +452,86 @@ func runExport(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	// For now, just use security scanner for malicious report
+	// Convert servers to entities for export
+	entities := make([]*models.Entity, 0, len(servers))
+	for i := range servers {
+		entities = append(entities, serverToEntity(&servers[i]))
+	}
+
 	expDir := filepath.Join("registry")
+	if err := os.MkdirAll(expDir, 0755); err != nil {
+		return fmt.Errorf("create export dir: %w", err)
+	}
+
+	// Generate malicious report
 	if maliciousReport {
-		scanner := security.NewScanner()
-		for i := range servers {
-			result := scanner.ScanServer(&servers[i])
-			_ = result
+		if err := generateMaliciousReport(entities, maliciousDir, maliciousThreshold); err != nil {
+			return fmt.Errorf("malicious report: %w", err)
 		}
-		fmt.Printf("Malicious report generation skipped - implement export.New for full export\n")
+	}
+
+	// Generate injection report
+	if injectionReport {
+		if err := generateInjectionReport(entities, injectionDir); err != nil {
+			return fmt.Errorf("injection report: %w", err)
+		}
+	}
+
+	// Generate registry markdown if requested
+	if markdownExport {
+		// TODO: generate REGISTRY.md using ViewGenerator
+		fmt.Println("Registry markdown export: placeholder")
 	}
 
 	fmt.Println("Export complete: " + expDir)
 	return nil
+}
+
+// serverToEntity converts MCPServer to Entity for export purposes.
+func serverToEntity(s *models.MCPServer) *models.Entity {
+	now := models.RFC3339Time(time.Now().UTC())
+	return &models.Entity{
+		ID:          s.ID,
+		Name:        s.Name,
+		Slug:        s.Slug,
+		Description: s.Description,
+		Repository:  s.Repository,
+		Endpoints:   toEndpointWithTypes(s.Endpoints),
+		Tools:       s.Tools,
+		Resources:   s.Resources,
+		Prompts:     s.Prompts,
+		DataSources: s.DataSources,
+		Sources:     s.Sources,
+		FirstSeen:   now,
+		LastSeen:    now,
+		RawContent:  s.Readme,
+	}
+}
+
+func toEndpointWithTypes(endpoints []models.Endpoint) []models.EndpointWithType {
+	result := make([]models.EndpointWithType, 0, len(endpoints))
+	for _, ep := range endpoints {
+		result = append(result, models.EndpointWithType{
+			Endpoint: ep,
+		})
+	}
+	return result
+}
+
+func generateMaliciousReport(entities []*models.Entity, dir, threshold string) error {
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	exp := export.NewMaliciousExporter(entities, dir)
+	return exp.Export()
+}
+
+func generateInjectionReport(entities []*models.Entity, dir string) error {
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	exp := export.NewInjectionExporter(entities, dir)
+	return exp.Export()
 }
 
 func runStats(cmd *cobra.Command, _ []string) error {
