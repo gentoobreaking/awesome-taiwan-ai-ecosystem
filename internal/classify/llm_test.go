@@ -120,7 +120,7 @@ func TestCallLLM_Success(t *testing.T) {
 		t.Logf("Classify returned error (expected with mock): %v", err)
 	}
 	if result != nil {
-		if !isValidLevel(result.Level) {
+		if !isValidLevel(string(result.Level)) {
 			t.Errorf("invalid level: %s", result.Level)
 		}
 	}
@@ -206,7 +206,7 @@ func TestClassify_HallucinatedLevelRejected(t *testing.T) {
 	// we should get a fallback result
 	if err == nil {
 		// If no error, result should be valid
-		if !isValidLevel(result.Level) {
+		if !isValidLevel(string(result.Level)) {
 			t.Error("expected valid level or fallback")
 		}
 	}
@@ -293,7 +293,7 @@ func TestClassify_FactualMetadataUnchanged(t *testing.T) {
 	}
 
 	// Only TaiwanRelevance should be modified by caller
-	if result != nil && isValidLevel(result.Level) {
+	if result != nil && isValidLevel(string(result.Level)) {
 		// Good - classification result provided, but server metadata unchanged
 	}
 }
