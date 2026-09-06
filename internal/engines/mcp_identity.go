@@ -731,10 +731,8 @@ func (e *MCPIdentityEngine) determineStatus(
 	isServer := hasTransport && (hasToolDefs || hasExecutableEntry) && hasMCPServerImpl
 
 	if isServer {
-		// Check runtime verification
-		if hasTransport {
-			return models.MCPIdentityStatusRuntimeVerified, models.MCPRoleServer
-		}
+		// DetectMCPIdentity only performs static analysis;
+		// RuntimeVerificationStatus is set by RuntimeVerifier.Verify
 		return models.MCPIdentityStatusStaticVerified, models.MCPRoleServer
 	}
 

@@ -483,6 +483,7 @@ func (ec *EndpointClassifier) isPotentialMCPRuntimeEndpoint(normalized string, e
 			if strings.HasPrefix(normalized, "http://localhost") ||
 				strings.HasPrefix(normalized, "http://127.0.0.1") ||
 				strings.HasPrefix(normalized, "http://0.0.0.0") ||
+				strings.HasPrefix(normalized, "stdio:") ||
 				strings.HasPrefix(normalized, "https://") && (strings.Contains(normalized, "/mcp") || strings.Contains(normalized, "/api") || strings.Contains(normalized, "/rpc")) {
 				return true
 			}

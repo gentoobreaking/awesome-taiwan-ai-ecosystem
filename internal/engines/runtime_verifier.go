@@ -569,9 +569,9 @@ type clientInfo struct {
 }
 
 type initializeResult struct {
-	ProtocolVersion string            `json:"protocolVersion"`
-	Capabilities    map[string]bool   `json:"capabilities"`
-	ServerInfo      serverInfo        `json:"serverInfo"`
+	ProtocolVersion string                 `json:"protocolVersion"`
+	Capabilities    map[string]json.RawMessage `json:"capabilities"`
+	ServerInfo      serverInfo           `json:"serverInfo"`
 }
 
 type serverInfo struct {
