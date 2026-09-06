@@ -35,9 +35,9 @@ func NewEndpointClassifier() *EndpointClassifier {
 			regexp.MustCompile(`(?i)^https?://github\.com/[^/]+/[^/]+/wiki`),
 		},
 		repoPatterns: []*regexp.Regexp{
-			regexp.MustCompile(`(?i)^https?://github\.com/[^/]+/[^/]+/?$`),
-			regexp.MustCompile(`(?i)^https?://github\.com/[^/]+/[^/]+/tree/`),
-			regexp.MustCompile(`(?i)^https?://github\.com/[^/]+/[^/]+/blob/`),
+			regexp.MustCompile(`(?i)^https?://github\.com/[^/#?]+/[^/#?]+/?$`),
+			regexp.MustCompile(`(?i)^https?://github\.com/[^/#?]+/[^/#?]+/tree/`),
+			regexp.MustCompile(`(?i)^https?://github\.com/[^/#?]+/[^/#?]+/blob/`),
 			regexp.MustCompile(`(?i)^https?://gitlab\.com/[^/]+/[^/]+/?$`),
 			regexp.MustCompile(`(?i)^https?://gitlab\.com/[^/]+/[^/]+/-/tree/`),
 			regexp.MustCompile(`(?i)^https?://bitbucket\.org/[^/]+/[^/]+/?$`),
@@ -202,94 +202,252 @@ func (ec *EndpointClassifier) classifySingleURL(rawURL string, entity *models.En
 	var evidence []models.EndpointEvidence
 	now := models.RFC3339Time(time.Now().UTC())
 
+	// Track all matching patterns for evidence aggregation
+	type match struct {
+		endpointType models.EndpointType
+		rule         string
+		pattern      *regexp.Regexp
+		confidence   float64
+		source       string
+		matchedText  string
+	}
+	var matches []match
+
 	// Check DOCUMENTATION_URL patterns FIRST (more specific)
 	for _, pattern := range ec.docPatterns {
 		if pattern.MatchString(normalized) {
-			evidence = append(evidence, models.EndpointEvidence{
-				Rule:        "documentation_url_pattern",
-				Source:      source,
-				Location:    normalized,
-				MatchedText: pattern.String(),
-				Pattern:     pattern.String(),
-				Confidence:  0.85,
-				Timestamp:   now,
+			rule := ec.getDocPatternRule(pattern)
+			matches = append(matches, match{
+				endpointType: models.EndpointTypeDocumentation,
+				rule:         rule,
+				pattern:      pattern,
+				confidence:   ec.getConfidenceForRule(rule),
+				source:       source,
+				matchedText:  pattern.String(),
 			})
-			return models.EndpointTypeDocumentation, evidence, 0.85
 		}
 	}
 
 	// Check INSTALLER_URL patterns
 	for _, pattern := range ec.installerPatterns {
 		if pattern.MatchString(normalized) {
-			evidence = append(evidence, models.EndpointEvidence{
-				Rule:        "installer_url_pattern",
-				Source:      source,
-				Location:    normalized,
-				MatchedText: pattern.String(),
-				Pattern:     pattern.String(),
-				Confidence:  0.9,
-				Timestamp:   now,
+			rule := ec.getInstallerPatternRule(pattern)
+			matches = append(matches, match{
+				endpointType: models.EndpointTypeInstaller,
+				rule:         rule,
+				pattern:      pattern,
+				confidence:   ec.getConfidenceForRule(rule),
+				source:       source,
+				matchedText:  pattern.String(),
 			})
-			return models.EndpointTypeInstaller, evidence, 0.9
 		}
 	}
 
 	// Check REPOSITORY_URL patterns
 	for _, pattern := range ec.repoPatterns {
 		if pattern.MatchString(normalized) {
-			evidence = append(evidence, models.EndpointEvidence{
-				Rule:        "repository_url_pattern",
-				Source:      source,
-				Location:    normalized,
-				MatchedText: pattern.String(),
-				Pattern:     pattern.String(),
-				Confidence:  0.95,
-				Timestamp:   now,
+			rule := ec.getRepoPatternRule(pattern)
+			matches = append(matches, match{
+				endpointType: models.EndpointTypeRepositoryURL,
+				rule:         rule,
+				pattern:      pattern,
+				confidence:   ec.getConfidenceForRule(rule),
+				source:       source,
+				matchedText:  pattern.String(),
 			})
-			return models.EndpointTypeRepositoryURL, evidence, 0.95
 		}
 	}
 
 	// Check HOMEPAGE_URL - if it matches repository homepage
 	if entity.Repository.Homepage != "" && strings.EqualFold(normalized, strings.ToLower(entity.Repository.Homepage)) {
-		evidence = append(evidence, models.EndpointEvidence{
-			Rule:        "homepage_match",
-			Source:      source,
-			Location:    normalized,
-			MatchedText: entity.Repository.Homepage,
-			Pattern:     "repository_homepage",
-			Confidence:  0.9,
-			Timestamp:   now,
+		matches = append(matches, match{
+			endpointType: models.EndpointTypeHomepage,
+			rule:         "homepage_match",
+			pattern:      nil,
+			confidence:   0.9,
+			source:       source,
+			matchedText:  entity.Repository.Homepage,
 		})
-		return models.EndpointTypeHomepage, evidence, 0.9
 	}
 
 	// Check for potential MCP runtime endpoint patterns (static analysis)
-	// These are indicators in source code, not from registry/docs
 	if ec.isPotentialMCPRuntimeEndpoint(normalized, entity) {
-		evidence = append(evidence, models.EndpointEvidence{
-			Rule:        "potential_mcp_runtime_static",
-			Source:      source,
-			Location:    normalized,
-			MatchedText: "Potential MCP runtime endpoint from static analysis",
-			Pattern:     "mcp_endpoint_pattern",
-			Confidence:  0.4,
-			Timestamp:   now,
+		matches = append(matches, match{
+			endpointType: models.EndpointTypeMCPRuntime,
+			rule:         "potential_mcp_runtime_static",
+			pattern:      nil,
+			confidence:   0.4,
+			source:       source,
+			matchedText:  "Potential MCP runtime endpoint from static analysis",
 		})
-		return models.EndpointTypeMCPRuntime, evidence, 0.4
 	}
 
-	// Default to UNKNOWN
-	evidence = append(evidence, models.EndpointEvidence{
-		Rule:        "unknown",
-		Source:      source,
-		Location:    normalized,
-		MatchedText: rawURL,
-		Pattern:     "no_match",
-		Confidence:  0.1,
-		Timestamp:   now,
-	})
-	return models.EndpointTypeUnknown, evidence, 0.1
+	// If no matches, return UNKNOWN
+	if len(matches) == 0 {
+		evidence = append(evidence, models.EndpointEvidence{
+			Rule:        "unknown",
+			Source:      source,
+			Location:    normalized,
+			MatchedText: rawURL,
+			Pattern:     "no_match",
+			Confidence:  0.1,
+			Timestamp:   now,
+		})
+		return models.EndpointTypeUnknown, evidence, 0.1
+	}
+
+	// Group matches by endpoint type
+	typeGroups := make(map[models.EndpointType][]match)
+	for _, m := range matches {
+		typeGroups[m.endpointType] = append(typeGroups[m.endpointType], m)
+	}
+
+	// Select the endpoint type with highest total confidence
+	var bestType models.EndpointType
+	var bestConfidence float64
+	for epType, typeMatches := range typeGroups {
+		totalConf := 0.0
+		for _, m := range typeMatches {
+			totalConf += m.confidence
+		}
+		if totalConf > bestConfidence {
+			bestConfidence = totalConf
+			bestType = epType
+		}
+	}
+
+	// Build evidence for the best type
+	bestMatches := typeGroups[bestType]
+	for _, m := range bestMatches {
+		patternStr := ""
+		if m.pattern != nil {
+			patternStr = m.pattern.String()
+		} else {
+			patternStr = m.matchedText
+		}
+		evidence = append(evidence, models.EndpointEvidence{
+			Rule:        m.rule,
+			Source:      m.source,
+			Location:    normalized,
+			MatchedText: m.matchedText,
+			Pattern:     patternStr,
+			Confidence:  m.confidence,
+			Timestamp:   now,
+		})
+	}
+
+	// Calculate aggregated confidence (capped at 1.0)
+	if bestConfidence > 1.0 {
+		bestConfidence = 1.0
+	}
+
+	return bestType, evidence, bestConfidence
+}
+
+type match struct {
+	endpointType models.EndpointType
+	rule         string
+	pattern      *regexp.Regexp
+	confidence   float64
+	source       string
+	matchedText  string
+}
+
+// getDocPatternRule returns a specific rule name for documentation patterns.
+func (ec *EndpointClassifier) getDocPatternRule(pattern *regexp.Regexp) string {
+	patternStr := pattern.String()
+	switch {
+	case strings.Contains(patternStr, "github") && strings.Contains(patternStr, "wiki"):
+		return "github_wiki"
+	case strings.Contains(patternStr, "docs\\."):
+		return "docs_subdomain"
+	case strings.Contains(patternStr, "readthedocs"):
+		return "readthedocs_domain"
+	case strings.Contains(patternStr, "gitbook"):
+		return "gitbook_domain"
+	case strings.Contains(patternStr, "notion"):
+		return "notion_domain"
+	case strings.Contains(patternStr, "/docs/"):
+		return "docs_path"
+	case strings.Contains(patternStr, "/documentation/"):
+		return "documentation_path"
+	case strings.Contains(patternStr, "/wiki"):
+		return "wiki_path"
+	case strings.Contains(patternStr, "/README") || strings.Contains(patternStr, "#readme"):
+		return "readme_anchor"
+	case strings.Contains(patternStr, "\\.md"):
+		return "markdown_file"
+	default:
+		return "documentation_url_pattern"
+	}
+}
+
+// getInstallerPatternRule returns a specific rule name for installer patterns.
+func (ec *EndpointClassifier) getInstallerPatternRule(pattern *regexp.Regexp) string {
+	patternStr := pattern.String()
+	switch {
+	case strings.Contains(patternStr, "install\\.sh") || strings.Contains(patternStr, "setup\\.sh") || strings.Contains(patternStr, "bootstrap\\.sh"):
+		return "install_script_name"
+	case strings.Contains(patternStr, "raw.githubusercontent"):
+		return "raw_github_install"
+	case strings.Contains(patternStr, "get\\.") || strings.Contains(patternStr, "install\\."):
+		return "install_domain"
+	case strings.Contains(patternStr, "curl.*\\|") || strings.Contains(patternStr, "wget.*\\|"):
+		return "pipe_install"
+	default:
+		return "installer_url_pattern"
+	}
+}
+
+// getRepoPatternRule returns a specific rule name for repository patterns.
+func (ec *EndpointClassifier) getRepoPatternRule(pattern *regexp.Regexp) string {
+	patternStr := pattern.String()
+	switch {
+	case strings.Contains(patternStr, "github\\.com"):
+		return "github_repo_pattern"
+	case strings.Contains(patternStr, "gitlab\\.com"):
+		return "gitlab_repo_pattern"
+	case strings.Contains(patternStr, "bitbucket\\.org"):
+		return "bitbucket_repo_pattern"
+	case strings.Contains(patternStr, "sourceforge"):
+		return "sourceforge_repo_pattern"
+	case strings.Contains(patternStr, "git@"):
+		return "git_ssh_pattern"
+	default:
+		return "repository_url_pattern"
+	}
+}
+
+// getConfidenceForRule returns confidence based on rule name.
+func (ec *EndpointClassifier) getConfidenceForRule(rule string) float64 {
+	confidenceMap := map[string]float64{
+		"runtime_verified":         1.0,
+		"github_repo_pattern":      0.95,
+		"gitlab_repo_pattern":      0.95,
+		"bitbucket_repo_pattern":   0.95,
+		"sourceforge_repo_pattern": 0.9,
+		"git_ssh_pattern":          0.95,
+		"docs_subdomain":           0.9,
+		"readthedocs_domain":       0.9,
+		"gitbook_domain":           0.9,
+		"notion_domain":            0.9,
+		"docs_path":                0.85,
+		"documentation_path":       0.85,
+		"wiki_path":                0.85,
+		"readme_anchor":            0.85,
+		"markdown_file":            0.8,
+		"github_wiki":              0.85,
+		"install_script_name":      0.9,
+		"raw_github_install":       0.9,
+		"install_domain":           0.85,
+		"pipe_install":             0.85,
+		"homepage_match":           0.9,
+		"potential_mcp_runtime_static": 0.4,
+	}
+	if c, ok := confidenceMap[rule]; ok {
+		return c
+	}
+	return 0.5
 }
 
 // isPotentialMCPRuntimeEndpoint checks if a URL looks like an MCP runtime endpoint
