@@ -1,0 +1,98 @@
+# Pipeline Configuration
+# Defines the order, enable/disable status, and parameters for each pipeline stage.
+# Corresponds to spec §43 pipeline flow.
+
+pipeline:
+  # Global settings
+  global:
+    db: "./data/registry.db"
+    workers: 4
+    batch_size: 100
+    dry_run: false
+    verbose: false
+    output_dir: "registry"
+
+  # Stage definitions in execution order
+  stages:
+    - name: "DISCOVERY"
+      enabled: true
+      order: 1
+      parallel: true
+      # Sources to crawl; "all" means all configured sources
+      sources: "all"
+      max_per_source: 1000
+
+    - name: "NORMALIZER"
+      enabled: true
+      order: 2
+      parallel: true
+      # Deduplication settings
+      dedup_fields: ["repository_url"]
+
+    - name: "TAIWAN_RELEVANCE"
+      enabled: true
+      order: 3
+      parallel: true
+      # Uses T068 signals: domains, keywords, organizations
+      min_score: 0.1
+
+    - name: "AI_RELEVANCE"
+      enabled: true
+      order: 4
+      parallel: true
+      # Uses T070 signals: AI frameworks, model usage, tool categories
+      min_score: 0.1
+
+    - name: "CLASSIFIER"
+      enabled: true
+      order: 5
+      parallel: true
+      # T072: Primary classification into MCP_SERVER, AI_AGENT, etc.
+
+    - name: "MCP_IDENTITY"
+      enabled: true
+      order: 6
+      parallel: true
+      # T074: Static analysis for MCP role detection (server, client, host)
+
+    - name: "RUNTIME_VERIFICATION"
+      enabled: true
+      order: 7
+      parallel: true
+      # T078: MCP protocol handshake verification
+      timeout_seconds: 10
+
+    - name: "SECURITY_SCANNER"
+      enabled: true
+      order: 8
+      parallel: true
+      # T080: Scan for malicious patterns, credential extraction
+      max_risk_level: "HIGH"
+
+    - name: "QUALITY_SCORING"
+      enabled: true
+      order: 9
+      parallel: true
+      # T082: 10-component quality scoring
+
+    - name: "REGISTRY_VIEWS"
+      enabled: true
+      order: 10
+      parallel: false
+      # T083: Generate all registry views
+      output_dir: "registry/views"
+
+  # Mode presets — each maps to a subset of stages
+  modes:
+    full:
+      stages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    discovery-only:
+      stages: [1, 2]
+    classify-only:
+      stages: [3, 4, 5, 6, 9]
+    verify-only:
+      stages: [7]
+    scan-only:
+      stages: [8]
+    score-only:
+      stages: [9]

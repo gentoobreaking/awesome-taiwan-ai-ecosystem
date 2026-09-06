@@ -54,6 +54,9 @@ var (
 	maxPerSource    int
 	pipelineFlag    string
 	history         bool
+	batchSize       int
+	dryRun          bool
+	verbose         bool
 )
 
 func main() {
@@ -79,6 +82,62 @@ func main() {
 		Use:   "crawl",
 		Short: "Run the crawler pipeline",
 		RunE:  runCrawl,
+	})
+
+	// Run (full pipeline - alias for crawl with pipeline coordinator)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "run",
+		Short: "Run the full discovery pipeline",
+		Long:  "Run the complete pipeline: Discovery → Normalize → Classify → Verify → Scan → Score → Export",
+		RunE:  runCrawl,
+	})
+
+	// Discover (discovery-only mode)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "discover",
+		Short: "Run discovery only — output candidates",
+		Long:  "Run only the discovery stage across all configured sources, outputting raw candidates.",
+		RunE:  runDiscover,
+	})
+
+	// Classify (classify-only mode)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "classify",
+		Short: "Run classification and scoring",
+		Long:  "Load candidates from the database and execute Taiwan/AI relevance scoring and classification.",
+		RunE:  runClassify,
+	})
+
+	// Verify (verify-only mode)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "verify",
+		Short: "Run runtime verification on STATIC_VERIFIED servers",
+		Long:  "Execute runtime verification (MCP protocol handshake) on servers with STATIC_VERIFIED status.",
+		RunE:  runVerify,
+	})
+
+	// Scan (security scan)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "scan",
+		Short: "Run security scanning",
+		Long:  "Execute security scanning on entities to detect malicious patterns, obfuscation, and credential extraction.",
+		RunE:  runScan,
+	})
+
+	// Score (quality scoring)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "score",
+		Short: "Run quality scoring",
+		Long:  "Compute quality scores for entities based on 10 components: data sources, maintenance, documentation, MCP compliance, tool schema, health, repository, license, security, community.",
+		RunE:  runScore,
+	})
+
+	// Migrate (data migration)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "migrate",
+		Short: "Run database migration",
+		Long:  "Run the V1→V2 database schema migration for the new Entity model.",
+		RunE:  runMigrate,
 	})
 
 	// Export
@@ -107,7 +166,7 @@ func main() {
 		RunE:  runSearch,
 	})
 
-// Global flags
+	// Global flags
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", "config/sources.yaml", "config file path")
 	rootCmd.PersistentFlags().StringVar(&dbPath, "db", "./data/registry.db", "SQLite database path")
 	rootCmd.PersistentFlags().StringVar(&sourceFlag, "source", "all", "source to crawl (github, registry, mcpserversorg, mcpmarket, all)")
@@ -122,6 +181,9 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&maliciousThreshold, "malicious-threshold", "MEDIUM", "minimum risk level for malicious report (LOW, MEDIUM, HIGH, CRITICAL)")
 	rootCmd.PersistentFlags().BoolVar(&injectionReport, "injection-report", true, "generate INJECTION_REPORT.md and patterns.json")
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "output JSON format")
+	rootCmd.PersistentFlags().IntVar(&batchSize, "batch-size", 100, "number of records to process per batch")
+	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "validate without writing changes")
+	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "enable verbose logging")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -198,6 +260,161 @@ func runCrawl(cmd *cobra.Command, _ []string) error {
 	}
 
 	return pipeline.Run(ctx, cfg)
+}
+
+func runDiscover(cmd *cobra.Command, _ []string) error {
+	store, err := openStore()
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	_, pipeline := setupCrawler(store)
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	cfg := coordinator.PipelineConfig{
+		Mode:         coordinator.ModeDiscoveryOnly,
+		MaxPerSource: maxPerSource,
+		Workers:      workers,
+		OutputDir:    "registry",
+	}
+
+	if dryRun {
+		fmt.Println("DRY RUN: discovery would run with config:", cfg)
+		return nil
+	}
+
+	return pipeline.Run(ctx, cfg)
+}
+
+func runClassify(cmd *cobra.Command, _ []string) error {
+	store, err := openStore()
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	_, pipeline := setupCrawler(store)
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	cfg := coordinator.PipelineConfig{
+		Mode:         coordinator.ModeClassifyOnly,
+		MaxPerSource: maxPerSource,
+		Workers:      workers,
+		OutputDir:    "registry",
+	}
+
+	if dryRun {
+		fmt.Println("DRY RUN: classify would run with config:", cfg)
+		return nil
+	}
+
+	return pipeline.Run(ctx, cfg)
+}
+
+func runVerify(cmd *cobra.Command, _ []string) error {
+	store, err := openStore()
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	_, pipeline := setupCrawler(store)
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	cfg := coordinator.PipelineConfig{
+		Mode:         coordinator.ModeVerifyOnly,
+		MaxPerSource: maxPerSource,
+		Workers:      workers,
+		OutputDir:    "registry",
+	}
+
+	if dryRun {
+		fmt.Println("DRY RUN: verify would run with config:", cfg)
+		return nil
+	}
+
+	return pipeline.Run(ctx, cfg)
+}
+
+func runScan(cmd *cobra.Command, _ []string) error {
+	store, err := openStore()
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	_, pipeline := setupCrawler(store)
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	cfg := coordinator.PipelineConfig{
+		Mode:         coordinator.ModeFull,
+		MaxPerSource: maxPerSource,
+		Workers:      workers,
+		OutputDir:    "registry",
+	}
+
+	if dryRun {
+		fmt.Println("DRY RUN: scan would run with config:", cfg)
+		return nil
+	}
+
+	// Security scanning is embedded in the full pipeline; for standalone, run full pipeline
+	return pipeline.Run(ctx, cfg)
+}
+
+func runScore(cmd *cobra.Command, _ []string) error {
+	store, err := openStore()
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	_, pipeline := setupCrawler(store)
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	cfg := coordinator.PipelineConfig{
+		Mode:         coordinator.ModeFull,
+		MaxPerSource: maxPerSource,
+		Workers:      workers,
+		OutputDir:    "registry",
+	}
+
+	if dryRun {
+		fmt.Println("DRY RUN: score would run with config:", cfg)
+		return nil
+	}
+
+	// Quality scoring is embedded in the full pipeline; for standalone, run full pipeline
+	return pipeline.Run(ctx, cfg)
+}
+
+func runMigrate(cmd *cobra.Command, _ []string) error {
+	store, err := openStore()
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	ctx := context.Background()
+	if err := store.Migrate(ctx); err != nil {
+		return fmt.Errorf("migration failed: %w", err)
+	}
+
+	if verbose {
+		fmt.Println("Migration completed successfully")
+	}
+	return nil
 }
 
 func runExport(cmd *cobra.Command, _ []string) error {
