@@ -674,6 +674,85 @@ docker compose run --rm crawler stats --db /data/db/registry.db --json
 docker compose run --rm crawler export --db /data/db/registry.db --markdown
 ```
 
+## REST API (T048)
+
+The API server provides HTTP endpoints for registry search and metadata.
+
+```bash
+# Build and run
+go build -o bin/api ./cmd/api
+./bin/api --port 8080 --db ./data/registry.db --rate-limit 100
+
+# Or via Makefile
+make api
+```
+
+### API Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/health` | Server health check |
+| `GET` | `/api/v1/health` | Server health check (API namespace) |
+| `GET` | `/api/v1/servers` | List servers with pagination & filters |
+| `GET` | `/api/v1/servers/{id}` | Get a single server by ID |
+| `GET` | `/api/v1/search?q=...` | Search servers by keyword + filters |
+| `GET` | `/api/v1/registry` | Full registry dump |
+| `GET` | `/api/v1/statistics` | Registry statistics |
+
+### Query Parameters
+
+```
+# List servers
+GET /api/v1/servers?page=1&limit=50&level=T3&category=AI_AGENT&min-score=70&status=VERIFIED
+
+# Search
+GET /api/v1/search?q=taiwan&level=T4&category=MCP_SERVER&min-score=80&page=1&limit=50
+```
+
+Pagination: `page` (default 1), `limit` (default 50, max 200).
+
+Rate limiting: 100 requests/minute per IP (configurable via `--rate-limit`).
+
+### Docker Compose
+
+```bash
+# API server
+docker compose up api
+
+# Full stack (crawler + API + Web UI)
+docker compose up
+```
+
+API will be available at `http://localhost:8080`.
+
+## Web UI (T049)
+
+The Web UI is a React + Vite + TypeScript application with Tailwind CSS styling.
+
+```bash
+# Install dependencies and run dev server
+cd web && pnpm install && pnpm run dev
+
+# Build for production
+cd web && pnpm run build
+
+# Via Makefile
+make web-build    # build for production
+make web-dev      # run dev server
+```
+
+### Pages
+
+| Route | Description |
+|---|---|
+| `/` | Dashboard — statistics, Taiwan level breakdown, health, quality grades |
+| `/servers` | Server list — search, filter by level/category/health/quality, pagination |
+| `/servers/:id` | Server detail — full metadata, tools, resources, endpoints |
+| `/search` | Search — keyword search with filters |
+
+The Web UI calls the REST API (T048) for all data. In Docker, the Web UI is built as static files served by nginx.
+
+
 ## Development
 
 ```bash

@@ -28,3 +28,63 @@ services:
         cpus: "0.5"
         memory: "256M"
     restart: unless-stopped
+
+  api:
+    image: awesome-taiwan-ai-ecosystem:api
+    build:
+      context: .
+      dockerfile: Dockerfile.multi
+      target: api
+    container_name: awesome-taiwan-ai-ecosystem-api
+    ports:
+      - "8080:8080"
+    command: [
+      "--port", "8080",
+      "--db", "/data/db/registry.db",
+      "--rate-limit", "100"
+    ]
+    volumes:
+      - ./data:/data/db
+      - ./registry:/data/registry
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: "256M"
+      reservations:
+        cpus: "0.25"
+        memory: "128M"
+    restart: unless-stopped
+
+  web:
+    image: awesome-taiwan-ai-ecosystem:web
+    build:
+      context: .
+      dockerfile: Dockerfile.multi
+      target: web
+    container_name: awesome-taiwan-ai-ecosystem-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    environment:
+      - VITE_API_URL=http://api:8080/api/v1
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: "256M"
+      reservations:
+        cpus: "0.25"
+        memory: "128M"
+    restart: unless-stopped

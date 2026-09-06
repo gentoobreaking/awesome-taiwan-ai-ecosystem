@@ -28,3 +28,9 @@ test-registry/
 	data/
 /tests/fixtures/ground_truth/fp_rate_report.json
 /tests/fixtures/ground_truth/fp_rate_history.json
+
+# Web UI
+web/node_modules/
+web/dist/
+web/.vite/
+web/coverage/
