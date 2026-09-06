@@ -1,0 +1,16 @@
+{
+  "id": "scraper-083",
+  "name": "Web Scraper 84",
+  "description": "Web scraping tool (instance 84)",
+  "raw_content": "# Web Scraper\n\nA python project for data processing.\n\n## Installation\n\npip install scraper-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "data",
+    "python",
+    "tool"
+  ],
+  "package_files": {
+    "requirements.txt": "requests>=2.0\npandas\n"
+  },
+  "is_mcp_server": false,
+  "category": "non_ai"
+}

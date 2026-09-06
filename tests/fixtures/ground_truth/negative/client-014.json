@@ -1,0 +1,16 @@
+{
+  "id": "client-014",
+  "name": "MCP Client 15",
+  "description": "MCP client implementation (instance 15)",
+  "raw_content": "# MCP Client\n\nA typescript project for data processing.\n\n## Installation\n\npip install client-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "mcp",
+    "typescript",
+    "tool"
+  ],
+  "package_files": {
+    "package.json": "{\"name\": \"test-lib\", \"main\": \"index.js\"}"
+  },
+  "is_mcp_server": false,
+  "category": "client"
+}

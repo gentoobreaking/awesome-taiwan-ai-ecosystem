@@ -1,0 +1,16 @@
+{
+  "id": "importer-097",
+  "name": "Data Importer 98",
+  "description": "Data import tool (instance 98)",
+  "raw_content": "# Data Importer\n\nA python project for data processing.\n\n## Installation\n\npip install importer-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "data",
+    "python",
+    "tool"
+  ],
+  "package_files": {
+    "requirements.txt": "requests>=2.0\npandas\n"
+  },
+  "is_mcp_server": false,
+  "category": "data"
+}

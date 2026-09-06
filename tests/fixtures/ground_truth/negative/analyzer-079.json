@@ -1,0 +1,16 @@
+{
+  "id": "analyzer-079",
+  "name": "Data Analyzer 80",
+  "description": "Data analysis tool (instance 80)",
+  "raw_content": "# Data Analyzer\n\nA python project for data processing.\n\n## Installation\n\npip install analyzer-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "data",
+    "python",
+    "tool"
+  ],
+  "package_files": {
+    "requirements.txt": "requests>=2.0\npandas\n"
+  },
+  "is_mcp_server": false,
+  "category": "data"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "tool-065",
+  "name": "CLI Tool 66",
+  "description": "Command line tool for data processing (instance 66)",
+  "raw_content": "# CLI Tool\n\nA go project for data processing.\n\n## Installation\n\npip install tool-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "data",
+    "go",
+    "tool"
+  ],
+  "package_files": {
+    "go.mod": "module test\n\ngo 1.22\n"
+  },
+  "is_mcp_server": false,
+  "category": "non_ai"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "wrapper-036",
+  "name": "API Wrapper 37",
+  "description": "API wrapper library (instance 37)",
+  "raw_content": "# API Wrapper\n\nA python project for data processing.\n\n## Installation\n\npip install wrapper-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "mcp",
+    "python",
+    "tool"
+  ],
+  "package_files": {
+    "requirements.txt": "requests>=2.0\npandas\n"
+  },
+  "is_mcp_server": false,
+  "category": "sdk"
+}

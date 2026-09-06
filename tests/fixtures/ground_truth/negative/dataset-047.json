@@ -1,0 +1,16 @@
+{
+  "id": "dataset-047",
+  "name": "Dataset Tool 48",
+  "description": "Dataset processing tool (instance 48)",
+  "raw_content": "# Dataset Tool\n\nA python project for data processing.\n\n## Installation\n\npip install dataset-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "data",
+    "python",
+    "tool"
+  ],
+  "package_files": {
+    "requirements.txt": "requests>=2.0\npandas\n"
+  },
+  "is_mcp_server": false,
+  "category": "data"
+}

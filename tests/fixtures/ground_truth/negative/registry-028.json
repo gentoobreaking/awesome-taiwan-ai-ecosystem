@@ -1,0 +1,16 @@
+{
+  "id": "registry-028",
+  "name": "MCP Registry 29",
+  "description": "Registry of MCP servers (instance 29)",
+  "raw_content": "# MCP Registry\n\nA typescript project for data processing.\n\n## Installation\n\npip install registry-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "mcp",
+    "typescript",
+    "tool"
+  ],
+  "package_files": {
+    "package.json": "{\"name\": \"test-lib\", \"main\": \"index.js\"}"
+  },
+  "is_mcp_server": false,
+  "category": "collection"
+}

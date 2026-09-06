@@ -24,4 +24,6 @@ test-registry/
 .idea/
 *.swp
 *.swo
-/data/
+	data/
+/tests/fixtures/ground_truth/fp_rate_report.json
+/tests/fixtures/ground_truth/fp_rate_history.json

@@ -1,0 +1,16 @@
+{
+  "id": "bot-056",
+  "name": "AI Bot 57",
+  "description": "AI chatbot using MCP (instance 57)",
+  "raw_content": "# AI Bot\n\nA python project for data processing.\n\n## Installation\n\npip install bot-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "mcp",
+    "python",
+    "tool"
+  ],
+  "package_files": {
+    "requirements.txt": "requests>=2.0\npandas\n"
+  },
+  "is_mcp_server": false,
+  "category": "ai_agent"
+}

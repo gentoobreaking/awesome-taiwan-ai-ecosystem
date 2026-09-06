@@ -1,0 +1,14 @@
+{
+  "id": "webapp-064",
+  "name": "Web App 65",
+  "description": "Web application for data (instance 65)",
+  "raw_content": "# Web App\n\nA javascript project for data processing.\n\n## Installation\n\npip install webapp-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "data",
+    "javascript",
+    "tool"
+  ],
+  "package_files": null,
+  "is_mcp_server": false,
+  "category": "non_ai"
+}

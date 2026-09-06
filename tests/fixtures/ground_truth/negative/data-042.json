@@ -1,0 +1,16 @@
+{
+  "id": "data-042",
+  "name": "Taiwan Data Library 43",
+  "description": "Taiwan data library (instance 43)",
+  "raw_content": "# Taiwan Data Library\n\nA python project for data processing.\n\n## Installation\n\npip install data-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "data",
+    "python",
+    "tool"
+  ],
+  "package_files": {
+    "requirements.txt": "requests>=2.0\npandas\n"
+  },
+  "is_mcp_server": false,
+  "category": "data"
+}

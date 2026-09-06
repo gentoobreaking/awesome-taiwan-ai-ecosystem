@@ -1,0 +1,16 @@
+{
+  "id": "sdk-033",
+  "name": "MCP SDK 34",
+  "description": "MCP SDK library (instance 34)",
+  "raw_content": "# MCP SDK\n\nA typescript project for data processing.\n\n## Installation\n\npip install sdk-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "mcp",
+    "typescript",
+    "tool"
+  ],
+  "package_files": {
+    "package.json": "{\"name\": \"test-lib\", \"main\": \"index.js\"}"
+  },
+  "is_mcp_server": false,
+  "category": "sdk"
+}

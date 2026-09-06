@@ -1,0 +1,17 @@
+{
+  "id": "guide-008",
+  "name": "MCP Guide 9",
+  "description": "Guide for MCP usage (instance 9)",
+  "raw_content": "# MCP Guide\n\nA python project for data processing.\n\n## Installation\n\npip install guide-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "mcp",
+    "python",
+    "tool",
+    "mcp"
+  ],
+  "package_files": {
+    "requirements.txt": "requests>=2.0\npandas\n"
+  },
+  "is_mcp_server": false,
+  "category": "tutorial"
+}

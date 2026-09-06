@@ -1,0 +1,16 @@
+{
+  "id": "agent-050",
+  "name": "AI Agent 51",
+  "description": "AI agent using MCP (instance 51)",
+  "raw_content": "# AI Agent\n\nA python project for data processing.\n\n## Installation\n\npip install agent-tool\n\n## Usage\n\nRun the script.\n",
+  "topics": [
+    "mcp",
+    "python",
+    "tool"
+  ],
+  "package_files": {
+    "requirements.txt": "requests>=2.0\npandas\n"
+  },
+  "is_mcp_server": false,
+  "category": "ai_agent"
+}
