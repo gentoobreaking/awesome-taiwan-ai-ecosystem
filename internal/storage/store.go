@@ -19,6 +19,9 @@ const schemaVersion = "0.1"
 type Store struct {
 	db *sql.DB
 }
+// DB returns the underlying *sql.DB for advanced operations like EntityStore.
+func (s *Store) DB() *sql.DB { return s.db }
+
 
 // Open creates or opens a SQLite database at the given path.
 func Open(dbPath string) (*Store, error) {

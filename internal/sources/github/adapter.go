@@ -117,18 +117,20 @@ func (a *GitHubAdapter) Name() string { return "github" }
 // TrustScore returns the trust score for this source.
 func (a *GitHubAdapter) TrustScore() float64 { return TrustScore }
 
-// New creates a new GitHubAdapter.
+// New creates a new GitHubAdapter with a default HTTP client.
 func New(token string) *GitHubAdapter {
 	return &GitHubAdapter{
-		Token:   token,
-		BaseURL: "https://api.github.com",
+		Token:      token,
+		BaseURL:    "https://api.github.com",
+		HTTPClient:  NewStdHTTPClient(&http.Client{Timeout: 30 * time.Second}),
 	}
 }
-
-// Discover searches GitHub for repositories matching Taiwan+AI keyword signals (spec §42).
 func (a *GitHubAdapter) Discover(ctx context.Context) ([]models.RawCandidate, error) {
 	if a.BaseURL == "" {
 		a.BaseURL = "https://api.github.com"
+	}
+	if a.HTTPClient == nil {
+		a.HTTPClient = NewStdHTTPClient(&http.Client{Timeout: 30 * time.Second})
 	}
 
 	headers := map[string]string{}
@@ -205,8 +207,8 @@ func (a *GitHubAdapter) Discover(ctx context.Context) ([]models.RawCandidate, er
 
 // Fetch retrieves full metadata for a candidate from GitHub.
 func (a *GitHubAdapter) Fetch(ctx context.Context, candidate models.RawCandidate) (*models.RawRecord, error) {
-	if a.BaseURL == "" {
-		a.BaseURL = "https://api.github.com"
+	if a.HTTPClient == nil {
+		a.HTTPClient = NewStdHTTPClient(&http.Client{Timeout: 30 * time.Second})
 	}
 
 	headers := map[string]string{}

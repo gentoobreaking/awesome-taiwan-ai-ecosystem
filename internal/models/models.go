@@ -258,13 +258,13 @@ type Prompt struct {
 // RawRecord is a fully fetched candidate with all metadata (§12, §16).
 type RawRecord struct {
 	RawCandidate
-	Repository RepositoryInfo `json:"repository"`
-	Endpoints  []Endpoint     `json:"endpoints"`
-	Transport  []string       `json:"transport"`
-	Readme     string         `json:"readme"`
-	PackageFiles map[string]string `json:"package_files"`
+	Repository        RepositoryInfo `json:"repository"`
+	Endpoints         []Endpoint     `json:"endpoints"`
+	Transport         []string       `json:"transport"`
+	Readme            string         `json:"readme"`
+	PackageFiles      map[string]string `json:"package_files"`
+	SourceTrustScore  float64        `json:"source_trust_score"`
 }
-
 // MCPServer is the normalized, classified MCP server (§13).
 // Deprecated: Use Entity with ToMCPServerView() instead.
 type MCPServer struct {

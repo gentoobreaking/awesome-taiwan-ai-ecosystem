@@ -12,6 +12,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/david/awesome-taiwan-mcp/internal/crawler"
+	"github.com/david/awesome-taiwan-mcp/internal/coordinator"
 	"github.com/david/awesome-taiwan-mcp/internal/metrics"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 	"github.com/david/awesome-taiwan-mcp/internal/normalize"
@@ -33,15 +34,15 @@ var (
 	date    = "unknown"
 
 	// Flags
-	configPath     string
-	dbPath         string
-	sourceFlag     string
-	fullCrawl      bool
-	incremental    bool
-	workers        int
-	jsonOutput     bool
-	minScore       int
-	levelFilter    string
+	configPath      string
+	dbPath          string
+	sourceFlag      string
+	fullCrawl       bool
+	incremental     bool
+	workers         int
+	jsonOutput      bool
+	minScore        int
+	levelFilter     string
 	catFilter       string
 	capabilityFlag  string
 	markdownExport  bool
@@ -51,6 +52,7 @@ var (
 	injectionReport bool
 	injectionDir    string
 	maxPerSource    int
+	pipelineFlag    string
 	history         bool
 )
 
@@ -110,7 +112,7 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&dbPath, "db", "./data/registry.db", "SQLite database path")
 	rootCmd.PersistentFlags().StringVar(&sourceFlag, "source", "all", "source to crawl (github, registry, mcpserversorg, mcpmarket, all)")
 	rootCmd.PersistentFlags().BoolVar(&incremental, "incremental", false, "run incremental crawl")
-	rootCmd.PersistentFlags().IntVar(&maxPerSource, "max-per-source", 10, "max candidates per source (0=unlimited)")
+	rootCmd.PersistentFlags().StringVar(&pipelineFlag, "pipeline", "full", "pipeline mode: full|discovery-only|classify-only|verify-only")
 	rootCmd.PersistentFlags().IntVar(&workers, "workers", 4, "number of workers per source")
 	rootCmd.PersistentFlags().IntVar(&minScore, "min-score", 0, "minimum quality score filter")
 	rootCmd.PersistentFlags().StringVar(&capabilityFlag, "capability", "", "search by capability keywords")
@@ -141,7 +143,8 @@ func openStore() (*storage.Store, error) {
 	return store, nil
 }
 
-func setupCrawler(store *storage.Store) *crawler.CrawlCoordinator {
+// setupCrawler creates both the legacy and new pipeline coordinators.
+func setupCrawler(store *storage.Store) (*crawler.CrawlCoordinator, *coordinator.PipelineCoordinator) {
 	logger := metrics.New(false)
 	var adapters []sources.SourceAdapter
 	adapters = append(adapters, github.New(os.Getenv("GITHUB_TOKEN")))
@@ -151,9 +154,12 @@ func setupCrawler(store *storage.Store) *crawler.CrawlCoordinator {
 	adapters = append(adapters, mcpserversorg.New())
 	adapters = append(adapters, mcpmarket.New())
 	norm := normalize.New()
-	return crawler.NewCrawlCoordinator(store, norm, adapters, logger)
+	legacy := crawler.NewCrawlCoordinator(store, norm, adapters, logger)
+	pipeline := coordinator.New(store, norm, adapters, logger)
+	return legacy, pipeline
 }
 
+// runCrawl runs the crawler, using the new pipeline coordinator when --pipeline mode is set.
 func runCrawl(cmd *cobra.Command, _ []string) error {
 	store, err := openStore()
 	if err != nil {
@@ -161,49 +167,45 @@ func runCrawl(cmd *cobra.Command, _ []string) error {
 	}
 	defer store.Close()
 
-	coord := setupCrawler(store)
+	_, pipeline := setupCrawler(store)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	if incremental && !fullCrawl {
-		incr := crawler.NewIncrementalCrawler(coord)
-		return incr.RunIncremental(ctx, sourceFlag)
+	if incremental && !fullCrawl && pipelineFlag == "full" {
+		incr := crawler.NewIncrementalCrawler(nil)
+		_ = incr
+		// Fall back to pipeline for incremental
 	}
 
-	err = coord.Run(ctx, crawler.CrawlOptions{
-		Source:      sourceFlag,
-		FullCrawl:   fullCrawl,
-		Workers:     workers,
+	var mode coordinator.PipelineMode
+	switch pipelineFlag {
+	case "discovery-only":
+		mode = coordinator.ModeDiscoveryOnly
+	case "classify-only":
+		mode = coordinator.ModeClassifyOnly
+	case "verify-only":
+		mode = coordinator.ModeVerifyOnly
+	default:
+		mode = coordinator.ModeFull
+	}
+
+	cfg := coordinator.PipelineConfig{
+		Mode:         mode,
 		MaxPerSource: maxPerSource,
-	})
-	if err != nil {
-		return err
+		Workers:      workers,
+		OutputDir:    "registry",
 	}
 
-	// Generate malicious report after crawl
-	if maliciousReport {
-		servers, err := store.GetServers(context.Background())
-		if err != nil {
-			return fmt.Errorf("get servers for malicious report: %w", err)
-		}
-		scanner := security.NewScanner()
-		for i := range servers {
-			result := scanner.ScanServer(&servers[i])
-			_ = result
-		}
-		fmt.Printf("Malicious report generation skipped - use 'export' command with --malicious-report flag\n")
-	}
-
-	return nil
+	return pipeline.Run(ctx, cfg)
 }
+
 func runExport(cmd *cobra.Command, _ []string) error {
 	store, err := openStore()
 	if err != nil {
 		return err
 	}
 	defer store.Close()
-
 	servers, err := store.GetServers(context.Background())
 	if err != nil {
 		return err
