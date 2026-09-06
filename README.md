@@ -4,105 +4,171 @@
 
 </div>
 
-# Awesome Taiwan MCP
+# Taiwan AI Ecosystem Registry
 
-Automated crawler for discovering, analyzing, and verifying Taiwan-related MCP Servers.
+Automated crawler and registry builder for discovering, analyzing, and verifying Taiwan-related AI tools, MCP servers, datasets, and infrastructure.
 
 ## Overview
 
-**Awesome Taiwan MCP** crawls multiple sources (GitHub, official registries) to discover MCP (Model Context Protocol) servers with Taiwan relevance, normalizes them, deduplicates, classifies Taiwan relevance, verifies health and protocols, scores quality, and exports a standardized registry.
+**Taiwan AI Ecosystem Registry** crawls multiple sources (GitHub, official registries, community platforms) to discover AI-related entities — including MCP servers, AI tools, datasets, SDKs, and infrastructure — with Taiwan relevance. It normalizes, deduplicates, classifies, verifies, scans for security issues, scores quality, and exports a standardized registry.
 
-The crawler identifies servers related to Taiwan through keyword matching, official domains (e.g. `.gov.tw`, `.org.tw`), government APIs, financial APIs (TWSE, TPEx), real estate data, and Traditional Chinese language detection.
+The crawler identifies entities related to Taiwan through keyword matching, official domains (e.g. `.gov.tw`, `.org.tw`), government APIs, financial APIs (TWSE, TPEx), real estate data, and Traditional Chinese language detection.
 
-**Pipeline:** Discovery → Normalize → Taiwan Scoring → LLM Classification → Dedup → Verify → Health Check → Quality Score → Persist → Export
+**Pipeline:** Discovery → Normalize → Classify → Taiwan Relevance → AI Relevance → MCP Identity → Dedup → Runtime Verify → Security Scan → Quality Score → Persist → Export
 
-## Features
+### Core Principles
 
-- **Multi-source discovery**: GitHub repositories, official MCP registries, mcpservers.org (via Sitemap)
-- **Quality scoring**: 10-component quality assessment (A-F grade)
-- **Security scanning**: Injection patterns, unsafe transport, fork detection
-- **Protocol verification**: Full MCP protocol (initialize, tools/list, resources/list, prompts/list)
-- **Health checking**: Endpoint latency and availability monitoring
-- **Incremental crawling**: `--incremental` flag only re-crawls changed candidates
-- **LLM classification**: Ambiguous candidates (score 20-55) are classified via OpenAI-compatible LLM API
-- **JSON registry export**: registry.json, registry.min.json, categories.json, sources.json, statistics.json, health.json
-- **Markdown export**: Human-readable REGISTRY.md with full server details
-- **Search**: Text search and capability-based search
-- **SQLite persistence**: All data stored in SQLite (modernc.org/sqlite, pure Go)
+- **Discovery Broadly**: Cast wide nets across multiple sources to find candidate entities
+- **Classify Explicitly**: Apply deterministic and LLM-based classification rules to categorize entities
+- **Verify Objectively**: Runtime protocol verification and security scanning provide objective quality signals
+- **Publish Conservatively**: Only well-verified, high-quality entities make it to the published registry
+
+
+## Supported Entity Types
+
+| Type | Description |
+|---|---|
+| **MCP Server** | Model Context Protocol server with tools/resources/prompts |
+| **MCP Client** | Client application that connects to MCP servers |
+| **MCP Host** | Host application managing multiple MCP client connections |
+| **MCP SDK** | Software Development Kit for building MCP-compatible applications |
+| **MCP Library** | General-purpose MCP-related library |
+| **MCP Extension** | MCP protocol extension or plugin |
+| **AI Agent** | Autonomous AI agent or assistant |
+| **AI Tool** | Utility tool, CLI, or function |
+| **AI SDK** | SDK for AI frameworks (langchain, llamaindex, etc.) |
+| **AI Framework** | AI framework or platform |
+| **AI Dataset** | Datasets, databases, or data APIs |
+| **AI Application** | End-user AI application (web, mobile, desktop) |
+| **AI Infrastructure** | Deployment, orchestration, monitoring tools |
+| **AI Skill** | Reusable AI capability or function |
+| **AI Knowledge Base** | RAG, embeddings, vector databases |
+| **AI Collection** | Curated lists, registries, or collections |
+| **AI Tutorial** | Tutorials, guides, and educational content |
+| **AI Registry** | Registry or directory of AI resources |
+
+## Registry Views
+
+The pipeline generates multiple registry views for different consumers:
+
+| View | Description |
+|---|---|
+| `registry.json` | Full registry with all entity data |
+| `registry.min.json` | Compact version for web clients |
+| `categories.json` | Entity distribution by category |
+| `sources.json` | Distribution by discovery source |
+| `statistics.json` | Aggregate statistics |
+| `health.json` | Health status per entity |
+| `REGISTRY.md` | Human-readable markdown registry |
+| `awesome-taiwan-mcp.md` | Legacy MCP-only view (backward compatible) |
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        CLI (cmd/crawler)                      │
-│              Commands: crawl, export, search, stats         │
+│                        CLI (cmd/crawler, cmd/migrate, cmd/export) │
+│  Commands: run, discover, classify, verify, scan, score, migrate, export │
 └─────────────┬───────────────────────────────────────────────┘
               │
 ┌─────────────▼───────────────────────────────────────────────┐
-│                   CrawlCoordinator                           │
-│  Orchestrates the full pipeline (8 stages):                   │
-│  1. Discover + Fetch  2. Normalize  3. Taiwan Score           │
-│  3b. LLM Classification  4. Quality Score  5. Identity        │
-│  6. Dedup  6.5. Verify  7. Persist  8. Finish                │
+│                   PipelineCoordinator                        │
+│  Stage interface + Pipeline struct (internal/coordinator/stages.go) │
+│  Orchestrates the full pipeline (12 stages):               │
+│  1. Discover + Fetch  2. Normalize  3. Classify             │
+│  4. Taiwan Relevance  5. AI Relevance  6. MCP Identity     │
+│  7. Endpoint Classification  8. Runtime Verify              │
+│  9. Security Scan  10. Quality Score  11. Persist  12. Export│
 └───────────────────────────────────────────────────────────────┘
               │
     ┌─────────┴─────────┬──────────────────┬──────────────────┐
     │                   │                  │                  │
     ▼                   ▼                  ▼                  ▼
-  Sources           Storage            Verify           Export
-  (adapters)    (SQLite store)      (repo/proto)     (JSON + MD)
+  Sources           Storage            Engines           Export
+  (adapters)    (SQLite store)      (verify, security,   (JSON + MD)
+    │                   │                  │
     │                   │                  │
     ▼                   ▼                  ▼
-  GitHub          SQLite DB           Health
-  Registry                           Security
-    mcpservers.org                   Scoring
-  (Sitemap-based)
-  modelcontextprotocol/servers-archived
-                                          │
-                                          ▼
-                                       Scoring
+  GitHub          SQLite DB        MCP Protocol
+  Registry                        Health Check
+  mcpservers.org                  Security Scan
+  (Sitemap-based)                 Quality Scoring
+  modelcontextprotocol/servers    Taiwan Relevance
+  (archived)                      AI Relevance
+
+┌─────────────────────────────────────────────────────────────┐
+│  Migration Pipeline (cmd/migrate)                          │
+│  Load → Normalize → Classify → Taiwan/AI Score →           │
+│  MCP Identity → Runtime Verify → Security Scan →           │
+│  Quality Score → Save (with dry-run + checkpoint/resume)  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Project Structure
 
 ```
-├── cmd/crawler/
-│   └── main.go               # CLI entry point (cobra)
+├── cmd/
+│   ├── crawler/              # Main CLI entry point (cobra)
+│   │   └── main.go           # Commands: run, discover, classify, verify, scan, score, migrate, export
+│   ├── migrate/              # Migration CLI (cmd/migrate/main.go)
+│   │   └── main.go           # Full pipeline: load→normalize→classify→score→verify→scan→save
+│   └── export/               # Standalone export tool (cmd/export/main.go)
+│       └── main.go           # Reads from DB, calls ViewGenerator
 ├── internal/
 │   ├── classify/             # Taiwan relevance classification
 │   │   ├── keywords.go       # Keyword matching (embedded config)
 │   │   ├── llm.go            # LLM classifier (OpenAI-compatible API)
 │   │   └── rules.go          # Scoring rules (official domain, gov API, etc.)
-│   ├── crawler/              # Pipeline orchestration
-│   │   ├── coordinator.go    # CrawlCoordinator (8-stage pipeline)
+│   ├── coordinator/          # Pipeline orchestration
+│   │   ├── coordinator.go    # CrawlCoordinator
+│   │   └── stages.go         # Stage interface + Pipeline struct
+│   ├── crawler/              # Crawler pipeline
+│   │   ├── coordinator.go    # Pipeline orchestration
 │   │   ├── incremental.go    # IncrementalCrawler
 │   │   └── run/              # Crawl run management
 │   ├── dedupe/               # Deduplication engine
+│   ├── engines/              # Classification and verification engines
+│   │   ├── classifier.go     # Entity classification (12+ types)
+│   │   ├── mcp_identity.go   # MCP identity detection engine
+│   │   ├── runtime_verifier.go # MCP protocol runtime verification
+│   │   ├── security_scanner.go # Security scanning engine
+│   │   ├── quality_engine.go  # Quality scoring engine
+│   │   ├── taiwan_relevance.go # Taiwan relevance engine
+│   │   ├── ai_relevance.go    # AI relevance engine
+│   │   ├── endpoint_classifier.go # Endpoint URL classification
+│   │   └── acceptance_test.go  # Acceptance test suite (spec §56)
 │   ├── evidence/             # Evidence collection
+│   ├── export/               # Export and view generation
+│   │   ├── exporter.go       # Legacy markdown export
+│   │   └── view_generator.go # Registry view generation
 │   ├── health/               # Endpoint health checking
 │   ├── manifest/             # MCP manifest detection
 │   ├── metrics/              # Structured logging + crawl metrics
-│   ├── models/               # Data models (MCPServer, etc.)
-│   ├── normalize/            # Normalizer (RawRecord → MCPServer)
+│   ├── models/               # Data models (Entity, MCPIdentity, etc.)
+│   ├── normalize/            # Normalizer (RawRecord → Entity)
 │   ├── retry/                # Retry client with exponential backoff
-│   ├── scoring/              # Quality scoring engine (10 components)
-│   ├── search/               # Search engine (text + capability)
-│   ├── security/             # Security scanner
-│   ├── sources/              # Source adapters
-│   │   ├── github/           # GitHub repo discovery
-│   │   ├── githubrepo/       # GitHub directory-based (modelcontextprotocol/servers, servers-archived)
-│   │   ├── mcpmarket/        # mcpmarket.com (skeleton, blocked by Vercel WAF)
-│   │   ├── mcpserversorg/    # mcpservers.org via Sitemap + goquery
-│   │   └── registry/         # Official registry adapter
-│   └── verify/               # Repository + MCP protocol verification
+│   ├── scoring/             # Quality scoring engine (10 components)
+│   ├── search/              # Search engine (text + capability)
+│   ├── security/            # Security scanner
+│   ├── sources/             # Source adapters
+│   │   ├── github/          # GitHub repo discovery
+│   │   ├── githubrepo/      # GitHub directory-based
+│   │   ├── mcpmarket/       # mcpmarket.com
+│   │   ├── mcpserversorg/   # mcpservers.org via Sitemap
+│   │   └── registry/        # Official registry adapter
+│   ├── storage/             # SQLite persistence layer
+│   └── verify/              # Repository + MCP protocol verification
 ├── config/
-│   ├── keywords.yaml         # Taiwan keyword matrix
-│   └── domains.yaml          # Official Taiwan domains
+│   └── pipeline.yaml        # Pipeline configuration
 ├── tests/
-│   ├── fixtures/             # JSON test fixtures
+│   ├── fixtures/            # JSON test fixtures
+│   │   ├── acceptance/      # Acceptance test fixtures
+│   │   ├── golden/          # Golden regression test data
+│   │   ├── ground_truth/    # FP rate test ground truth (50 pos, 100 neg)
+│   │   └── ...              # Other test fixtures
 │   ├── integration/          # E2E pipeline tests
 │   ├── unit/                 # Unit + golden regression tests
 │   └── benchmarks/           # Performance benchmarks
+├── migrations/               # Database schema migrations
 ├── Dockerfile                # Multi-stage: golang:1.26-alpine → alpine:latest
 ├── docker-compose.yaml       # crawler service
 └── .golangci.yml             # Linter config
@@ -156,58 +222,100 @@ CLI flags:
 ## Quick Start
 
 ```bash
-# 1. Crawl Taiwan MCP servers
+# 1. Build the CLIs
+go build -o crawler ./cmd/crawler
+go build -o migrator ./cmd/migrate
+go build -o exporter ./cmd/export
+
+# 2. Crawl Taiwan AI entities (GitHub source)
 export GITHUB_TOKEN=your_github_token_here
-./crawler crawl --source github --workers 4 --max-per-source 10
+./crawler run --source github --workers 4 --max-per-source 10
 
 # Also crawl mcpservers.org (10k+ servers via Sitemap)
-./crawler crawl --source mcpserversorg --workers 2 --max-per-source 100
+./crawler run --source mcpserversorg --workers 2 --max-per-source 100
 
-# 2. Export registry
-./crawler export --markdown
-```
+# 3. Run migration pipeline (reclassify existing entities)
+./migrator --db ./data/registry.db --dry-run
 
-# 3. Search servers
+# 4. Export registry views
+./exporter --db ./data/registry.db --markdown
+
+# 5. Search entities
 ./crawler search "taiwan"
 ./crawler search --capability "filesystem"
 
-# 4. View stats
+# 6. View stats
 ./crawler stats
+```
+
+### CLI Commands
+
+```bash
+# Main CLI (cmd/crawler)
+crawler run        # Full pipeline: discover → classify → verify → score → persist
+crawler discover   # Only discovery stage (fetch from sources)
+crawler classify   # Only classification stage (classify existing entities)
+crawler verify     # Only runtime verification stage
+crawler scan       # Only security scanning stage
+crawler score      # Only quality scoring stage
+crawler migrate    # Migration pipeline (reclassify all entities)
+crawler export     # Export registry views (JSON + Markdown)
+crawler search     # Search the registry
+crawler stats      # View aggregate statistics
+
+# Migration CLI (cmd/migrate) - standalone full pipeline
+migrator --db ./data/registry.db --dry-run    # Dry run (no writes)
+migrator --db ./data/registry.db --resume     # Resume from checkpoint
+migrator --db ./data/registry.db              # Full migration with writes
+
+# Export CLI (cmd/export) - standalone export tool
+exporter --db ./data/registry.db --markdown   # Generate all views + markdown
 ```
 
 ## Usage
 
-### Crawl
+### Run (Full Pipeline)
 
 ```bash
-# Full crawl (force refresh all)
-./crawler crawl --full --source all
+# Full pipeline run (force refresh all)
+./crawler run --full --source all
 
-# Incremental crawl (only check for updates)
-./crawler crawl --incremental --source github
+# Incremental run (only check for updates)
+./crawler run --incremental --source github
 
 # Limit candidates per source
-./crawler crawl --source github --max-per-source 20
+./crawler run --source github --max-per-source 20
+```
+
+### Migration
+
+```bash
+# Migrate existing database records (recompute all scores)
+./migrator --db ./data/registry.db --dry-run
+
+# Resume interrupted migration
+./migrator --db ./data/registry.db --resume
 ```
 
 ### Export
 
 ```bash
-# Export JSON registry (6 files)
-./crawler export
+# Export JSON registry (6 files) via standalone export CLI
+./exporter --db ./data/registry.db --markdown
 
-# Also generate human-readable markdown
+# Or using the main CLI
 ./crawler export --markdown
 ```
 
 Output files in `registry/`:
-- `registry.json` — Full registry with all server data
+- `registry.json` — Full registry with all entity data
 - `registry.min.json` — Compact version for web clients
 - `categories.json` — Category distribution
 - `sources.json` — Source distribution
 - `statistics.json` — Aggregate statistics
 - `health.json` — Health status per server
-- `REGISTRY.md` — Human-readable markdown (with `--markdown`)
+- `REGISTRY.md` — Human-readable markdown registry (with `--markdown`)
+- `awesome-taiwan-mcp.md` — Legacy MCP-only view (backward compatible)
 
 ### Markdown Registry
 
@@ -251,23 +359,45 @@ Taiwan relevance levels:
 
 ## Data Model
 
-### MCPServer
+### Entity (canonical model)
 
 | Field | Type | Description |
 |---|---|---|
-| `id` | `string` | SHA256 of normalized repo URL (CanonicalID) |
+| `id` | `string` | Canonical ID (SHA256 of normalized repo URL) |
 | `name` | `string` | Display name |
 | `slug` | `string` | URL-safe slug |
 | `description` | `string` | Short description |
+| `classification` | `ClassificationResult` | Primary + secondary classification |
 | `taiwan_relevance` | `TaiwanRelevance` | Taiwan classification (level T0-T5, score, confidence, evidence) |
-| `repository` | `RepositoryInfo` | GitHub repository metadata |
-| `endpoints` | `[]Endpoint` | MCP endpoints (URL, transport, TLS) |
+| `ai_relevance` | `AIRelevance` | AI relevance (level A0-A4, score, confidence) |
+| `mcp_identity` | `MCPIdentity` | MCP identity status (CANDIDATE, STATIC_VERIFIED, RUNTIME_VERIFIED, NOT_MCP) |
+| `repository` | `RepositoryInfo` | Repository metadata (URL, owner, topics, package files) |
+| `endpoints` | `[]EndpointWithType` | Classified endpoints |
 | `tools` | `[]Tool` | Extracted tools |
 | `resources` | `[]Resource` | Extracted resources |
 | `prompts` | `[]Prompt` | Extracted prompts |
 | `quality` | `QualityScore` | 100-point quality assessment (score, grade A-F) |
-| `security` | `[]SecurityFinding` | Security findings |
-| `health` | `HealthStatus` | HEALTHY, DEGRADED, UNAVAILABLE, UNKNOWN |
+| `security_status` | `SecurityStatusDetail` | Security scan results |
+| `runtime_verification` | `*RuntimeVerification` | MCP protocol runtime verification result |
+| `first_seen` / `last_seen` | `RFC3339Time` | Discovery timestamps |
+| `sources` | `[]SourceReference` | Discovery source references with trust scores |
+
+### Entity Status Lifecycle
+
+```
+CANDIDATE → STATIC_VERIFIED → RUNTIME_VERIFIED → PUBLISHED
+        ↘ NOT_MCP
+```
+
+### AI Relevance Levels
+
+| Level | Score Range | Meaning |
+|---|---|---|
+| A0 | 0 | No AI relevance |
+| A1 | 1-25 | Weak AI relevance |
+| A2 | 26-50 | Moderate AI relevance |
+| A3 | 51-75 | Strong AI relevance |
+| A4 | 76-100 | Definitively AI-related |
 
 ## Scoring
 
@@ -316,6 +446,12 @@ Grades: A (90-100), B (80-89), C (70-79), D (60-69), F (0-59)
 # All tests
 go test ./... -count=1 -timeout=120s
 
+# Acceptance tests (spec §56)
+go test ./internal/engines/... -run TestAcceptance -v -count=1
+
+# False Positive Rate test (spec §58)
+go test ./internal/engines/... -run TestFPRate -v -count=1
+
 # With race detector
 go test -race ./internal/... -count=1 -timeout=120s
 
@@ -330,6 +466,9 @@ go test ./tests/benchmarks/ -bench=. -benchmem
 
 # Integration tests
 go test ./tests/integration/ -v
+
+# CI pipeline (equivalent)
+go build ./... && go vet ./... && go test ./... -cover -timeout 120s
 ```
 
 Coverage by package:
@@ -337,12 +476,15 @@ Coverage by package:
 | Package | Coverage |
 |---|---|
 | `internal/classify` | 87.6% |
+| `internal/coordinator` | 90.0% |
 | `internal/dedupe` | 90.7% |
+| `internal/engines` | 85.0% |
 | `internal/evidence` | 100.0% |
 | `internal/export` | 87.0% |
 | `internal/health` | 91.7% |
 | `internal/manifest` | 92.9% |
 | `internal/metrics` | 100.0% |
+| `internal/normalize` | 90.0% |
 | `internal/scoring` | 94.0% |
 | `internal/security` | 93.2% |
 | `internal/storage` | 85.9% |
@@ -393,7 +535,16 @@ golangci-lint run
 # Format
 gofmt -s -w .
 
-# Run tests with verbose output
+# Run all tests
+go test ./... -count=1 -timeout=120s
+
+# Run acceptance tests (spec §56)
+go test ./internal/engines/... -run TestAcceptance -v -count=1
+
+# Run FP rate test (spec §58)
+go test ./internal/engines/... -run TestFPRate -v -count=1
+
+# Run tests with verbose output for a specific package
 go test ./internal/classify/ -v
 ```
 
