@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
 
 // RiskLevel represents the risk level of a malicious finding.
@@ -45,6 +47,16 @@ type MaliciousDetector struct {
 	MinRepos              int
 }
 
+// MaliciousDetectorConfig provides configurable thresholds for the detector.
+type MaliciousDetectorConfig struct {
+	EntropyThreshold      float64
+	ReadmeSizeThreshold   int
+	NonTextRatioThreshold float64
+	AccountAgeThreshold   time.Duration
+	MinFollowers          int
+	MinRepos              int
+}
+
 // NewMaliciousDetector creates a new detector with default thresholds.
 func NewMaliciousDetector() *MaliciousDetector {
 	return &MaliciousDetector{
@@ -55,6 +67,38 @@ func NewMaliciousDetector() *MaliciousDetector {
 		MinFollowers:          0,
 		MinRepos:              5,
 	}
+}
+
+// NewMaliciousDetectorWithConfig creates a detector with custom thresholds.
+// Zero values in the config use defaults.
+func NewMaliciousDetectorWithConfig(cfg MaliciousDetectorConfig) *MaliciousDetector {
+	d := &MaliciousDetector{
+		EntropyThreshold:      7.0,
+		ReadmeSizeThreshold:   100 * 1024,
+		NonTextRatioThreshold: 0.30,
+		AccountAgeThreshold:   90 * 24 * time.Hour,
+		MinFollowers:          0,
+		MinRepos:              5,
+	}
+	if cfg.EntropyThreshold > 0 {
+		d.EntropyThreshold = cfg.EntropyThreshold
+	}
+	if cfg.ReadmeSizeThreshold > 0 {
+		d.ReadmeSizeThreshold = cfg.ReadmeSizeThreshold
+	}
+	if cfg.NonTextRatioThreshold > 0 {
+		d.NonTextRatioThreshold = cfg.NonTextRatioThreshold
+	}
+	if cfg.AccountAgeThreshold > 0 {
+		d.AccountAgeThreshold = cfg.AccountAgeThreshold
+	}
+	if cfg.MinFollowers >= 0 {
+		d.MinFollowers = cfg.MinFollowers
+	}
+	if cfg.MinRepos > 0 {
+		d.MinRepos = cfg.MinRepos
+	}
+	return d
 }
 
 // Detect analyzes a repository for malicious characteristics.
@@ -374,6 +418,24 @@ type RepositoryInfo struct {
 	OwnerFollowers *int
 	OwnerBio       *string
 	OwnerRepos     *int
+}
+// ToSecurityFindings converts a MaliciousResult into SecurityFinding slice.
+// Each signal produces one finding with mapped severity.
+func (d *MaliciousDetector) ToSecurityFindings(result MaliciousResult, location string) []models.SecurityFinding {
+	findings := make([]models.SecurityFinding, 0, len(result.Signals))
+	for _, signal := range result.Signals {
+		severity := string(signal.Severity)
+		findings = append(findings, models.SecurityFinding{
+			Type:       "malicious_repository",
+			Severity:   severity,
+			Source:     "malicious_detector",
+			Location:   location,
+			Evidence:   signal.Evidence,
+			Rule:       signal.Type,
+			Confidence: signal.Confidence,
+		})
+	}
+	return findings
 }
 
 // formatFloat formats a float64 to string with given precision.

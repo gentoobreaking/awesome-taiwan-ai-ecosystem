@@ -663,4 +663,82 @@ func (e *Entity) ToMCPServerView() *MCPServerView {
 		LastSeen:        e.LastSeen,
 		LastVerified:    e.LastVerified,
 	}
+}// ToMCPServerCandidateView converts Entity to MCP server candidate view.
+// Includes entities with Classification.Primary == MCP_SERVER and 
+// MCPIdentity.Status in (CANDIDATE, STATIC_VERIFIED).
+func (e *Entity) ToMCPServerCandidateView() *MCPServerView {
+	if e.Classification.Primary != PrimaryClassificationMCPServer {
+		return nil
+	}
+	if e.MCPIdentity.Status != MCPIdentityStatusCandidate && e.MCPIdentity.Status != MCPIdentityStatusStaticVerified {
+		return nil
+	}
+
+	// Filter endpoints to only MCP_RUNTIME_ENDPOINT
+	var mcpEndpoints []Endpoint
+	for _, ep := range e.Endpoints {
+		if ep.Type == EndpointTypeMCPRuntime {
+			mcpEndpoints = append(mcpEndpoints, ep.Endpoint)
+		}
+	}
+
+	// Extract transports from endpoints
+	var transports []string
+	for _, ep := range mcpEndpoints {
+		transports = append(transports, ep.Transport)
+	}
+
+	// Map EntityStatus to legacy Status
+	var legacyStatus Status
+	switch e.EntityStatus {
+	case EntityStatusVerified:
+		legacyStatus = StatusActive
+	case EntityStatusCandidate:
+		legacyStatus = StatusActive
+	case EntityStatusQuarantined:
+		legacyStatus = StatusDormant
+	case EntityStatusRejected:
+		legacyStatus = StatusArchived
+	default:
+		legacyStatus = StatusUnknown
+	}
+
+	return &MCPServerView{
+		ID:              e.ID,
+		Name:            e.Name,
+		Slug:            e.Slug,
+		Description:     e.Description,
+		Category:        []string{}, // Could be derived from TaiwanRelevance evidence
+		Region:          []string{"TW"},
+		TaiwanRelevance: e.TaiwanRelevance,
+		Repository:      e.Repository,
+		Endpoints:       mcpEndpoints,
+		Transport:       transports,
+		Tools:           e.Tools,
+		Resources:       e.Resources,
+		Prompts:         e.Prompts,
+		DataSources:     e.DataSources,
+		License:         e.Repository.License,
+		Status:          legacyStatus,
+		Quality:         e.Quality,
+		Sources:         e.Sources,
+		FirstSeen:       e.FirstSeen,
+		LastSeen:        e.LastSeen,
+		LastVerified:    e.LastVerified,
+	}
+}
+
+// IsVerifiedMCPServer returns true if the entity is a verified MCP server.
+// This implements the Registry View filtering logic from spec §44, §54:
+// Verified MCP Servers = Classification.Primary == MCP_SERVER AND MCPIdentity.Status == RUNTIME_VERIFIED
+func (e *Entity) IsVerifiedMCPServer() bool {
+	return e.Classification.Primary == PrimaryClassificationMCPServer && e.MCPIdentity.Status == MCPIdentityStatusRuntimeVerified
+}
+
+// IsMCPServerCandidate returns true if the entity is an MCP server candidate.
+// This implements the Registry View filtering logic from spec §44, §54:
+// MCP Candidates = Classification.Primary == MCP_SERVER AND MCPIdentity.Status IN (CANDIDATE, STATIC_VERIFIED)
+func (e *Entity) IsMCPServerCandidate() bool {
+	return e.Classification.Primary == PrimaryClassificationMCPServer &&
+		(e.MCPIdentity.Status == MCPIdentityStatusCandidate || e.MCPIdentity.Status == MCPIdentityStatusStaticVerified)
 }
