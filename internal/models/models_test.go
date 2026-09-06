@@ -40,7 +40,7 @@ func TestMCPServerJSONRoundTrip(t *testing.T) {
 			Archived: false,
 			License:  "MIT",
 			Topics:   []string{"mcp", "taiwan"},
-			PushedAt: now,
+		PushedAt: RFC3339Time(now),
 		},
 		Endpoints: []Endpoint{
 			{URL: "https://twstock-mcp.example.com/mcp", Transport: "streamable-http", TLS: true},
@@ -108,36 +108,36 @@ func TestRawCandidateJSON(t *testing.T) {
 
 func TestRawRecordJSON(t *testing.T) {
 	r := RawRecord{
-		Source:        "github",
-		Name:          "mcp",
-		RepositoryURL: "https://github.com/example/mcp",
-		Readme:        "# My MCP",
-		License:       "MIT",
+		RawCandidate: RawCandidate{
+			Source:        "github",
+			Name:          "mcp",
+			RepositoryURL: "https://github.com/example/mcp",
+		},
+		Readme: "# My MCP",
 	}
 	data, _ := json.Marshal(r)
 	var restored RawRecord
 	json.Unmarshal(data, &restored)
-	if restored.License != "MIT" {
-		t.Error("License mismatch")
+	if restored.Name != "mcp" {
+		t.Error("Name mismatch")
 	}
 }
-
 func TestScoreToLevel(t *testing.T) {
 	tests := []struct {
 		score    float64
-		expected string
+		expected TaiwanRelevanceLevel
 	}{
-		{75, "T5"},
-		{60, "T4"},
-		{50, "T3"},
-		{30, "T2"},
-		{10, "T1"},
-		{3, "T0"},
+		{75, TaiwanRelevanceLevelT5},
+		{60, TaiwanRelevanceLevelT4},
+		{50, TaiwanRelevanceLevelT3},
+		{30, TaiwanRelevanceLevelT2},
+		{10, TaiwanRelevanceLevelT1},
+		{3, TaiwanRelevanceLevelT0},
 	}
 	for _, tt := range tests {
-		got := ScoreToLevel(tt.score)
+		got := ScoreToTaiwanLevel(tt.score)
 		if got != tt.expected {
-			t.Errorf("ScoreToLevel(%f) = %s, want %s", tt.score, got, tt.expected)
+			t.Errorf("ScoreToTaiwanLevel(%f) = %s, want %s", tt.score, got, tt.expected)
 		}
 	}
 }
@@ -160,14 +160,3 @@ func TestIsValidLevel(t *testing.T) {
 	}
 }
 
-func TestGradeForScore(t *testing.T) {
-	if GradeForScore(95) != "A" {
-		t.Error("95 should be A")
-	}
-	if GradeForScore(75) != "C" {
-		t.Error("75 should be C")
-	}
-	if GradeForScore(30) != "F" {
-		t.Error("30 should be F")
-	}
-}
