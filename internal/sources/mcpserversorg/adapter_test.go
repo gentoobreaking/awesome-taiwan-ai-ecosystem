@@ -146,7 +146,7 @@ func TestFetch_ExtractGitHub(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Fetch failed: %v", err)
 	}
-	if rec.Repository == nil || rec.Repository.URL != "https://github.com/taiwan/mcp-server" {
+	if rec.Repository.URL == "" || rec.Repository.URL != "https://github.com/taiwan/mcp-server" {
 		t.Fatalf("expected github URL https://github.com/taiwan/mcp-server, got %+v", rec.Repository)
 	}
 	if !strings.Contains(rec.Readme, "A test MCP for Taiwan") {
@@ -178,11 +178,11 @@ func TestFetch_FallbackHomepage(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Fetch failed: %v", err)
 	}
-	if rec.Repository != nil {
+	if rec.Repository.URL != "" {
 		t.Errorf("expected no repository, got %+v", rec.Repository)
 	}
-	if rec.Candidate.HomepageURL != "https://example.com/homepage" {
-		t.Errorf("expected homepage fallback, got %q", rec.Candidate.HomepageURL)
+	if rec.HomepageURL != "https://example.com/homepage" {
+		t.Errorf("expected homepage fallback, got %q", rec.HomepageURL)
 	}
 }
 

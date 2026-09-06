@@ -38,6 +38,8 @@ func New(repoPath, token string) *GitHubRepoAdapter {
 }
 
 func (a *GitHubRepoAdapter) Name() string { return "github-repo:" + a.RepoPath }
+// TrustScore returns the trust score for GitHub repo source.
+func (a *GitHubRepoAdapter) TrustScore() float64 { return 0.9 }
 
 // Discover lists directories in the GitHub repo and creates candidates.
 // Placeholder: returns empty; real implementation would call GitHub Contents API.

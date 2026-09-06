@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
-	"github.com/david/awesome-taiwan-mcp/internal/retry"
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
 )
 
@@ -19,15 +18,19 @@ func TestNew(t *testing.T) {
 	if adapter.Name() != "github" {
 		t.Errorf("Expected name 'github', got '%s'", adapter.Name())
 	}
+	if adapter.TrustScore() != 0.95 {
+		t.Errorf("Expected trust score 0.95, got %f", adapter.TrustScore())
+	}
 }
 
 func TestKeywordMatrix(t *testing.T) {
-	if len(KeywordMatrix) < 10 {
-		t.Errorf("Expected at least 10 keywords, got %d", len(KeywordMatrix))
+	if len(KeywordMatrix) < 20 {
+		t.Errorf("Expected at least 20 keywords, got %d", len(KeywordMatrix))
 	}
 	foundTaiwan := false
 	foundTWSE := false
 	foundGovData := false
+	foundAI := false
 	for _, kw := range KeywordMatrix {
 		if kw == "mcp Taiwan" {
 			foundTaiwan = true
@@ -37,6 +40,9 @@ func TestKeywordMatrix(t *testing.T) {
 		}
 		if kw == `mcp "data.gov.tw"` {
 			foundGovData = true
+		}
+		if kw == "Taiwan AI" {
+			foundAI = true
 		}
 	}
 	if !foundTaiwan {
@@ -48,49 +54,48 @@ func TestKeywordMatrix(t *testing.T) {
 	if !foundGovData {
 		t.Error("Missing 'mcp \"data.gov.tw\"' keyword")
 	}
+	if !foundAI {
+		t.Error("Missing 'Taiwan AI' keyword")
+	}
 }
 
 func TestDiscoverWithMockServer(t *testing.T) {
+	// Temporarily override KeywordMatrix to test with a single keyword
+	original := KeywordMatrix
+	KeywordMatrix = []string{"Taiwan AI"}
+	defer func() { KeywordMatrix = original }()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/search/repositories" {
 			resp := map[string]any{
 				"total_count": 2,
 				"items": []map[string]any{
 					{
-						"id":          1,
-						"name":        "twstock-mcp",
-						"full_name":    "mock/twstock-mcp",
-						"description": "Taiwan stock MCP server",
-						"html_url":     "https://github.com/mock/twstock-mcp",
+						"id":               1,
+						"name":             "twstock-mcp",
+						"full_name":        "mock/twstock-mcp",
+						"description":      "Taiwan stock MCP server",
+						"html_url":         "https://github.com/mock/twstock-mcp",
 						"stargazers_count": 100,
-						"forks_count": 10,
-						"language":    "Python",
-						"license": map[string]any{"spdx_id": "MIT"},
-						"owner": map[string]any{"login": "mock"},
-						"pushed_at":    "2026-09-01T00:00:00Z",
+						"forks_count":      10,
+						"language":         "Python",
+						"owner":            map[string]any{"login": "mock"},
+						"pushed_at":        "2026-09-01T00:00:00Z",
 					},
 					{
-						"id":          2,
-						"name":        "finmind-mcp",
-						"full_name":    "mock/finmind-mcp",
-						"description": "FinMind financial MCP",
-						"html_url":     "https://github.com/mock/finmind-mcp",
-						"stargazers_count": 50,
-						"language":    "Go",
-						"owner": map[string]any{"login": "mock"},
-						"pushed_at":    "2026-09-01T00:00:00Z",
+						"id":               2,
+						"name":             "finmind-mcp",
+						"full_name":        "mock/finmind-mcp",
+						"description":      "FinMind financial MCP",
+						"html_url":         "https://github.com/mock/finmind-mcp",
+						"stargazers_count":   50,
+						"forks_count":      5,
+						"language":         "Go",
+						"owner":            map[string]any{"login": "mock"},
+						"pushed_at":        "2026-09-01T00:00:00Z",
 					},
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
-			return
-		}
-		if r.URL.Path == "/repos/mock/twstock-mcp/topics" {
-			json.NewEncoder(w).Encode(map[string]any{"names": []string{"mcp", "taiwan", "stock"}})
-			return
-		}
-		if r.URL.Path == "/repos/mock/finmind-mcp/topics" {
-			json.NewEncoder(w).Encode(map[string]any{"names": []string{"mcp", "finance"}})
 			return
 		}
 		http.NotFound(w, r)
@@ -98,11 +103,9 @@ func TestDiscoverWithMockServer(t *testing.T) {
 	defer server.Close()
 
 	adapter := &GitHubAdapter{
-		HTTPClient: retry.NewClient(retry.Config{
-			MaxRetries: 3, BaseDelay: 10 * time.Millisecond, MaxDelay: 50 * time.Millisecond,
-		}),
-		Token:   "test",
-		BaseURL: server.URL,
+		HTTPClient: NewStdHTTPClient(server.Client()),
+		Token:      "test",
+		BaseURL:    server.URL,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -136,11 +139,9 @@ func TestDiscoverWithMockServer(t *testing.T) {
 
 func TestDiscoverContextCancellation(t *testing.T) {
 	adapter := &GitHubAdapter{
-		HTTPClient: retry.NewClient(retry.Config{
-			MaxRetries: 3, BaseDelay: 10 * time.Millisecond, MaxDelay: 50 * time.Millisecond,
-		}).WithHTTPClient(&http.Client{Timeout: 1 * time.Second}),
-		Token:   "",
-		BaseURL: "https://invalid-url-that-does-not-exist.invalid",
+		HTTPClient: NewStdHTTPClient(&http.Client{Timeout: 1 * time.Second}),
+		Token:      "",
+		BaseURL:    "https://invalid-url-that-does-not-exist.invalid",
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
@@ -154,40 +155,41 @@ func TestDiscoverRateLimit(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	}))
+	defer server.Close()
 	adapter := &GitHubAdapter{
-		HTTPClient: retry.NewClient(retry.Config{
-			MaxRetries: 3, BaseDelay: 10 * time.Millisecond, MaxDelay: 50 * time.Millisecond,
-		}).WithHTTPClient(server.Client()),
-		Token:   "test",
-		BaseURL: server.URL,
+		HTTPClient: NewStdHTTPClient(server.Client()),
+		Token:      "test",
+		BaseURL:    server.URL,
 	}
 
 	candidates, err := adapter.Discover(context.Background())
 	if err != nil {
 		// Error is acceptable for rate limit
 	}
-	if candidates == nil {
-		candidates = []models.RawCandidate{}
-	}
+	_ = candidates
 }
 
 func TestFetchWithMockServer(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/repos/mock/test-mcp" {
 			repo := map[string]any{
-				"name": "test-mcp", "full_name": "mock/test-mcp", "description": "Test MCP",
-				"html_url": "https://github.com/mock/test-mcp", "stargazers_count": 100,
-				"subscribers_count": 5, "language": "Python",
-				"license": map[string]any{"spdx_id": "MIT"},
-				"default_branch": "main", "pushed_at": "2026-09-01T00:00:00Z",
-				"topics": []string{"mcp", "taiwan"},
-				"owner": map[string]any{"login": "mock"},
+				"name":             "test-mcp",
+				"full_name":        "mock/test-mcp",
+				"description":      "Test MCP",
+				"html_url":         "https://github.com/mock/test-mcp",
+				"stargazers_count": 100,
+				"subscribers_count": 5,
+				"language":         "Python",
+				"license":          map[string]any{"spdx_id": "MIT"},
+				"default_branch":   "main",
+				"pushed_at":        "2026-09-01T00:00:00Z",
+				"owner":            map[string]any{"login": "mock"},
 			}
 			json.NewEncoder(w).Encode(repo)
 			return
 		}
 		if r.URL.Path == "/repos/mock/test-mcp/contents/README.md" {
-			encoded := base64.StdEncoding.EncodeToString([]byte("TWSE stock data MCP server"))
+			encoded := base64.StdEncoding.EncodeToString([]byte("TWSE stock data MCP server with stdio transport"))
 			json.NewEncoder(w).Encode(map[string]any{
 				"content":  encoded,
 				"encoding": "base64",
@@ -204,12 +206,11 @@ func TestFetchWithMockServer(t *testing.T) {
 		}
 		http.NotFound(w, r)
 	}))
+	defer server.Close()
 	adapter := &GitHubAdapter{
-		HTTPClient: retry.NewClient(retry.Config{
-			MaxRetries: 3, BaseDelay: 10 * time.Millisecond, MaxDelay: 50 * time.Millisecond,
-		}).WithHTTPClient(server.Client()),
-		Token:   "test",
-		BaseURL: server.URL,
+		HTTPClient: NewStdHTTPClient(server.Client()),
+		Token:      "test",
+		BaseURL:    server.URL,
 	}
 
 	candidate := models.RawCandidate{
@@ -224,8 +225,8 @@ func TestFetchWithMockServer(t *testing.T) {
 		t.Fatalf("Fetch failed: %v", err)
 	}
 
-	if record.Repository == nil {
-		t.Fatal("Repository should not be nil")
+	if record.Repository.URL == "" {
+		t.Fatal("Repository URL should not be empty")
 	}
 	if record.Repository.Stars != 100 {
 		t.Errorf("Expected 100 stars, got %d", record.Repository.Stars)
@@ -236,7 +237,7 @@ func TestFetchWithMockServer(t *testing.T) {
 	if record.Readme == "" {
 		t.Error("README should not be empty")
 	}
-	if record.Readme != "TWSE stock data MCP server" {
+	if record.Readme != "TWSE stock data MCP server with stdio transport" {
 		t.Errorf("Unexpected README content: %s", record.Readme)
 	}
 	if record.PackageFiles["pyproject.toml"] == "" {
@@ -244,6 +245,55 @@ func TestFetchWithMockServer(t *testing.T) {
 	}
 	if len(record.Transport) == 0 {
 		t.Error("Transport should be extracted from README")
+	}
+}
+
+func TestFetchExtractsTransportFromReadme(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/repos/mock/transport-test" {
+			repo := map[string]any{
+				"html_url":         "https://github.com/mock/transport-test",
+				"stargazers_count": 1,
+			}
+			json.NewEncoder(w).Encode(repo)
+			return
+		}
+		if r.URL.Path == "/repos/mock/transport-test/contents/README.md" {
+			encoded := base64.StdEncoding.EncodeToString([]byte("Server with http transport"))
+			json.NewEncoder(w).Encode(map[string]any{
+				"content":  encoded,
+				"encoding": "base64",
+			})
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer server.Close()
+	adapter := &GitHubAdapter{
+		HTTPClient: NewStdHTTPClient(server.Client()),
+		Token:      "test",
+		BaseURL:    server.URL,
+	}
+
+	candidate := models.RawCandidate{
+		Source:        "github",
+		Name:          "transport-test",
+		RepositoryURL: "https://github.com/mock/transport-test",
+	}
+
+	record, err := adapter.Fetch(context.Background(), candidate)
+	if err != nil {
+		t.Fatalf("Fetch failed: %v", err)
+	}
+
+	foundHTTP := false
+	for _, t := range record.Transport {
+		if t == "http" {
+			foundHTTP = true
+		}
+	}
+	if !foundHTTP {
+		t.Error("Expected http transport from README")
 	}
 }
 

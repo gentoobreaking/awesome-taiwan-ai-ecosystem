@@ -41,6 +41,9 @@ func New() *Adapter {
 
 func (a *Adapter) Name() string { return "mcpserversorg" }
 
+// TrustScore returns the trust score for mcpservers.org source.
+func (a *Adapter) TrustScore() float64 { return 0.7 }
+
 var _ sources.SourceAdapter = (*Adapter)(nil)
 
 // sitemapIndex mirrors <sitemapindex><sitemap><loc>

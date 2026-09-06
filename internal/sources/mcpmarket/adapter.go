@@ -30,6 +30,9 @@ func New() *Adapter {
 
 func (a *Adapter) Name() string { return "mcpmarket" }
 
+// TrustScore returns the trust score for MCPMarket source (registry-based, lower than GitHub).
+func (a *Adapter) TrustScore() float64 { return 0.7 }
+
 var _ sources.SourceAdapter = (*Adapter)(nil)
 
 // Discover returns ErrNotAvailable because Vercel WAF blocks all automated discovery.
