@@ -362,15 +362,15 @@ func (c *CrawlCoordinator) normalizeServers(
 func getSourceTrustScore(source string) float64 {
 	switch source {
 	case "github":
-		return models.SourceTrustScores{}.GitHub
+		return models.DefaultSourceTrustScores.GitHub
 	case "registry":
-		return models.SourceTrustScores{}.Registry
+		return models.DefaultSourceTrustScores.Registry
 	case "mcpserversorg":
-		return models.SourceTrustScores{}.Mcpserversorg
+		return models.DefaultSourceTrustScores.Mcpserversorg
 	case "mcpmarket":
-		return models.SourceTrustScores{}.Mcpmarket
+		return models.DefaultSourceTrustScores.Mcpmarket
 	case "githubrepo":
-		return models.SourceTrustScores{}.GithubRepo
+		return models.DefaultSourceTrustScores.GithubRepo
 	default:
 		return 0.5
 	}
