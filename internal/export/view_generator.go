@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
+	"unicode/utf8"
 )
 
 // ViewConfig controls how views are generated.
@@ -251,7 +252,117 @@ func (vg *ViewGenerator) GenerateViews(entities []*models.Entity, outputDir stri
 		}
 	}
 
+	// Generate backward-compatible awesome-taiwan-mcp.md (spec §53)
+	// Uses old serverMarkdown format for backward compatibility.
+	// Only includes RUNTIME_VERIFIED MCP servers — stricter than the old version.
+	if err := vg.generateLegacyMarkdown(outputDir, entities); err != nil {
+		return fmt.Errorf("generate legacy markdown: %w", err)
+	}
+
 	return nil
+}
+
+// generateLegacyMarkdown generates the backward-compatible awesome-taiwan-mcp.md
+// using the old serverMarkdown format. Only includes verified MCP servers (RUNTIME_VERIFIED).
+// Spec §53: backward-compatible view for downstream consumers.
+func (vg *ViewGenerator) generateLegacyMarkdown(outputDir string, entities []*models.Entity) error {
+	var views []*models.MCPServerView
+	for _, e := range entities {
+		if view := e.ToMCPServerView(); view != nil {
+			views = append(views, view)
+		}
+	}
+
+	// Sort by quality score descending (same as old format)
+	sort.Slice(views, func(i, j int) bool {
+		return views[i].Quality.Score > views[j].Quality.Score
+	})
+
+	var sb strings.Builder
+	sb.WriteString("# Awesome Taiwan MCP\n\n")
+	sb.WriteString(fmt.Sprintf("> Generated at: %s\n\n", vg.config.GeneratedAt.UTC().Format(time.RFC3339)))
+	sb.WriteString(fmt.Sprintf("Total servers: %d\n\n", len(views)))
+	sb.WriteString("## Taiwan-relevant MCP Servers\n\n")
+
+	for _, v := range views {
+		sb.WriteString(legacyServerMarkdown(v))
+	}
+
+	markdown := sanitizeUTF8([]byte(sb.String()))
+	markdown = strings.ToValidUTF8(markdown, "�")
+	path := filepath.Join(outputDir, "awesome-taiwan-mcp.md")
+	return os.WriteFile(path, []byte(markdown), 0644)
+}
+
+// legacyServerMarkdown renders a single server in the old markdown format (backward compatible).
+func legacyServerMarkdown(s *models.MCPServerView) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("### %s\n\n", sanitizeUTF8([]byte(s.Name))))
+	// Description: strip HTML, ensure UTF-8 valid, then rune-safe truncation
+	desc := stripHTMLTags(s.Description)
+	if !utf8.ValidString(desc) {
+		desc = sanitizeUTF8([]byte(desc))
+	}
+	desc = strings.ToValidUTF8(desc, "�")
+	runes := []rune(desc)
+	if len(runes) > 150 {
+		desc = string(runes[:150]) + "..."
+	}
+	sb.WriteString(fmt.Sprintf("%s\n\n", desc))
+	if s.Repository.URL != "" {
+		sb.WriteString(fmt.Sprintf("- **Repository**: [%s](%s)\n",
+			sanitizeUTF8([]byte(s.Repository.URL)), sanitizeUTF8([]byte(s.Repository.URL))))
+	}
+	if s.TaiwanRelevance.Level != "" {
+		desc := levelDescription(string(s.TaiwanRelevance.Level))
+		if desc != "" && desc != "Unknown" {
+			sb.WriteString(fmt.Sprintf("- **Taiwan**: %s (score: %.0f) - %s\n",
+				sanitizeUTF8([]byte(string(s.TaiwanRelevance.Level))), s.TaiwanRelevance.Score, desc))
+		} else {
+			sb.WriteString(fmt.Sprintf("- **Taiwan**: %s (score: %.0f)\n",
+				sanitizeUTF8([]byte(string(s.TaiwanRelevance.Level))), s.TaiwanRelevance.Score))
+		}
+	}
+	if len(s.TaiwanRelevance.Evidence) > 0 {
+		for _, e := range s.TaiwanRelevance.Evidence {
+			if e.Type == "" && e.MatchedText == "" && e.Rule == "" {
+				continue
+			}
+			evText := sanitizeUTF8([]byte(e.MatchedText))
+			evRunes := []rune(evText)
+			if len(evRunes) > 80 {
+				evText = string(evRunes[:80]) + "..."
+			}
+			typeLabel := e.Type
+			if typeLabel == "" {
+				typeLabel = e.Rule
+			}
+			if evText != "" {
+				sb.WriteString(fmt.Sprintf("  - Evidence: %s (%s)\n", evText, typeLabel))
+			} else {
+				sb.WriteString(fmt.Sprintf("  - Evidence: %s\n", typeLabel))
+			}
+		}
+	}
+	if s.License != "" {
+		sb.WriteString(fmt.Sprintf("- **License**: %s\n", sanitizeUTF8([]byte(s.License))))
+	}
+	if len(s.Transport) > 0 {
+		sb.WriteString(fmt.Sprintf("- **Transport**: %s\n", strings.Join(s.Transport, ", ")))
+	}
+	if len(s.Tools) > 0 {
+		sb.WriteString("- **Tools**:\n")
+		for _, t := range s.Tools {
+			toolDesc := sanitizeUTF8([]byte(t.Description))
+			toolRunes := []rune(toolDesc)
+			if len(toolRunes) > 100 {
+				toolDesc = string(toolRunes[:100]) + "..."
+			}
+			sb.WriteString(fmt.Sprintf("  - `%s`: %s\n", sanitizeUTF8([]byte(t.Name)), toolDesc))
+		}
+	}
+	sb.WriteString("\n")
+	return sb.String()
 }
 
 // generateJSON produces a JSON registry view file.
