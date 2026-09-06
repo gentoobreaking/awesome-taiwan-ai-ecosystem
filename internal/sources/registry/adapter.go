@@ -14,7 +14,7 @@ import (
 )
 
 // TrustScore for official registry source — discovery source, not authoritative proof (spec §5, §207-211).
-const TrustScore = 0.8
+const TrustScore = 0.9
 
 // HTTPClient is the interface for making HTTP requests.
 type HTTPClient interface {

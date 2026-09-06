@@ -19,8 +19,8 @@ func TestNew(t *testing.T) {
 	if adapter.BaseURL != "https://api.mcp-servers.dev" {
 		t.Errorf("Expected default BaseURL, got %s", adapter.BaseURL)
 	}
-	if adapter.TrustScore() != 0.8 {
-		t.Errorf("Expected trust score 0.8, got %f", adapter.TrustScore())
+	if adapter.TrustScore() != 0.9 {
+		t.Errorf("Expected trust score 0.9, got %f", adapter.TrustScore())
 	}
 }
 

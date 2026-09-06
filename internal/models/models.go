@@ -91,6 +91,15 @@ type SourceTrustScores struct {
 	GithubRepo    float64
 }
 
+// DefaultSourceTrustScores provides the standard trust scores (spec §64).
+var DefaultSourceTrustScores = SourceTrustScores{
+	GitHub:        0.95,
+	Registry:      0.90,
+	Mcpserversorg: 0.70,
+	Mcpmarket:     0.70,
+	GithubRepo:    0.95,
+}
+
 // ValidCategories is the controlled vocabulary for server categories (§19).
 var ValidCategories = []string{
 	"finance", "stock", "etf", "banking", "insurance",
