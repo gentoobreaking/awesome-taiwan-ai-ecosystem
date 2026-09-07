@@ -71,6 +71,9 @@ func (a *Adapter) Discover(ctx context.Context) ([]models.RawCandidate, error) {
 	if a.BaseURL == "" {
 		a.BaseURL = "https://api.mcp-servers.dev"
 	}
+	if a.HTTPClient == nil {
+		a.HTTPClient = &StdHTTPClient{Client: &http.Client{Timeout: 30 * time.Second}}
+	}
 
 	headers := map[string]string{}
 	if a.Token != "" {
@@ -120,6 +123,9 @@ func (a *Adapter) Discover(ctx context.Context) ([]models.RawCandidate, error) {
 func (a *Adapter) Fetch(ctx context.Context, candidate models.RawCandidate) (*models.RawRecord, error) {
 	if a.BaseURL == "" {
 		a.BaseURL = "https://api.mcp-servers.dev"
+	}
+	if a.HTTPClient == nil {
+		a.HTTPClient = &StdHTTPClient{Client: &http.Client{Timeout: 30 * time.Second}}
 	}
 
 	headers := map[string]string{}
