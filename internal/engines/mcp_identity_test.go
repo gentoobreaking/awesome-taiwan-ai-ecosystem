@@ -863,3 +863,77 @@ func main() {
 		t.Errorf("§56 Test 49: Expected CLIENT for AI agent using MCP, got %s", result.MCPRole)
 	}
 }
+func TestComputeMCPIdentityConfidence_Weighted(t *testing.T) {
+	// T110: spec §27 weights.
+	// mcp_server_classes (25) + executable_entrypoint (15) + tools_list (10) = 50
+	evs := []models.Evidence{
+		{Rule: "mcp_server_classes", Confidence: 1.0},
+		{Rule: "executable_entrypoint", Confidence: 1.0},
+		{Rule: "tools_list_success", Confidence: 1.0},
+	}
+	if got := computeMCPIdentityConfidence(evs); got != 50 {
+		t.Errorf("expected 50, got %f", got)
+	}
+}
+
+func TestComputeMCPIdentityConfidence_Cap(t *testing.T) {
+	// T110: 5+5+10+25+15+15+10+20+10+5+5 = 125, capped at 100.
+	all := []string{
+		"mcp_keyword", "mcp_topic", "mcp_sdk_dependency", "mcp_server_classes",
+		"mcp_tool_definitions", "executable_entrypoint", "valid_server_config",
+		"runtime_handshake", "tools_list_success", "resources_list_success",
+		"prompts_list_success",
+	}
+	evs := make([]models.Evidence, len(all))
+	for i, r := range all {
+		evs[i] = models.Evidence{Rule: r, Confidence: 1.0}
+	}
+	if got := computeMCPIdentityConfidence(evs); got != 100 {
+		t.Errorf("expected cap at 100, got %f", got)
+	}
+}
+
+func TestHardRule_KeywordOnly(t *testing.T) {
+	// T110: spec §28 — only mcp_keyword/mcp_topic is not enough.
+	if hasStrongMCPIdentityEvidence([]models.Evidence{
+		{Rule: "mcp_keyword", Confidence: 1.0},
+		{Rule: "mcp_topic", Confidence: 1.0},
+	}) {
+		t.Error("expected no strong evidence for keyword-only set")
+	}
+	if !hasStrongMCPIdentityEvidence([]models.Evidence{
+		{Rule: "mcp_keyword", Confidence: 1.0},
+		{Rule: "mcp_server_classes", Confidence: 1.0},
+	}) {
+		t.Error("expected strong evidence with mcp_server_classes present")
+	}
+}
+
+func TestHardRule_SDKBridgeOnly(t *testing.T) {
+	// T110: spec §29 — SDK dep alone is not enough.
+	if hasSDKBridgeEvidence([]models.Evidence{
+		{Rule: "mcp_sdk_dependency", Confidence: 1.0},
+	}) {
+		t.Error("expected SDK dep alone to lack bridge evidence")
+	}
+	if !hasSDKBridgeEvidence([]models.Evidence{
+		{Rule: "mcp_sdk_dependency", Confidence: 1.0},
+		{Rule: "executable_entrypoint", Confidence: 1.0},
+	}) {
+		t.Error("expected executable_entrypoint to be bridge evidence")
+	}
+}
+
+func TestHardRule_RuntimeVerification(t *testing.T) {
+	// T110: spec §30 — registry listing without runtime is not promoted.
+	if hasRuntimeVerification([]models.Evidence{
+		{Rule: "mcp_server_classes", Confidence: 1.0},
+	}) {
+		t.Error("expected no runtime verification from non-runtime evidence")
+	}
+	if !hasRuntimeVerification([]models.Evidence{
+		{Rule: "runtime_handshake", Confidence: 1.0},
+	}) {
+		t.Error("expected runtime_handshake to count as runtime verification")
+	}
+}

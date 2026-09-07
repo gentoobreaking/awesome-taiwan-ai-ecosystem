@@ -880,3 +880,79 @@ func (e *MCPIdentityEngine) determineSecondaryRoles(
 
 	return unique
 }
+
+// mcpIdentityEvidenceWeights implements spec section 27's 11-row
+// evidence weighting table. Total max = 125; the compute function
+// caps at 100. (T110)
+var mcpIdentityEvidenceWeights = map[string]float64{
+	"mcp_keyword":            5,
+	"mcp_topic":              5,
+	"mcp_sdk_dependency":     10,
+	"mcp_server_classes":     25,
+	"mcp_tool_definitions":   15,
+	"executable_entrypoint":  15,
+	"valid_server_config":    10,
+	"runtime_handshake":      20,
+	"tools_list_success":     10,
+	"resources_list_success": 5,
+	"prompts_list_success":   5,
+}
+
+// computeMCPIdentityConfidence returns the spec §27 weighted score
+// (0..100, capped). (T110)
+func computeMCPIdentityConfidence(evidences []models.Evidence) float64 {
+	sum := 0.0
+	for _, e := range evidences {
+		w, ok := mcpIdentityEvidenceWeights[e.Rule]
+		if !ok {
+			continue
+		}
+		sum += w * e.Confidence
+	}
+	if sum > 100 {
+		sum = 100
+	}
+	return sum
+}
+
+// hasStrongMCPIdentityEvidence reports whether the evidence set
+// contains anything beyond a README mention of 'MCP' (spec §28 hard
+// rule: keyword alone is not enough). (T110)
+func hasStrongMCPIdentityEvidence(evidences []models.Evidence) bool {
+	for _, e := range evidences {
+		switch e.Rule {
+		case "mcp_keyword", "mcp_topic":
+			continue
+		}
+		return true
+	}
+	return false
+}
+
+// hasSDKBridgeEvidence reports whether there is a rule besides
+// 'mcp_sdk_dependency' that the project actually implements a
+// server (spec §29: SDK dep alone is not enough). (T110)
+func hasSDKBridgeEvidence(evidences []models.Evidence) bool {
+	for _, e := range evidences {
+		switch e.Rule {
+		case "mcp_keyword", "mcp_topic", "mcp_sdk_dependency":
+			continue
+		}
+		return true
+	}
+	return false
+}
+
+// hasRuntimeVerification reports whether runtime evidence is
+// present. Used for the §30 hard rule: a registry listing without
+// runtime verification must not promote MCP_RUNTIME_VERIFIED.
+// (T110)
+func hasRuntimeVerification(evidences []models.Evidence) bool {
+	for _, e := range evidences {
+		if e.Rule == "runtime_handshake" || e.Rule == "tools_list_success" ||
+			e.Rule == "resources_list_success" || e.Rule == "prompts_list_success" {
+			return true
+		}
+	}
+	return false
+}
