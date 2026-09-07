@@ -63,6 +63,12 @@ func (s *SecurityScanner) Scan(entity *models.Entity) SecurityScanResult {
 	// 4. Shell injection
 	findings = append(findings, s.scanShellInjection(content)...)
 
+	// 4b. Prompt injection — obfuscated payloads smuggled in via
+	// README/description. This is what caught the clearsdunker-create/ez
+	// and ipal1veee/test repos that wrapped a Lua payload in
+	// `return(function(nq,nL,nW,...))`.
+	findings = append(findings, s.scanPromptInjection(content)...)
+
 	// 5. Persistence mechanisms
 	findings = append(findings, s.scanPersistence(content)...)
 
@@ -181,12 +187,55 @@ func (s *SecurityScanner) scanObfuscation(content string) []models.SecurityFindi
 	return findings
 }
 
+// promptInjectionPatterns catch the obfuscated-payload-as-README
+// style attack that three 9/5-era GitHub repos shipped in their
+// default READMEs (clearsdunker-create/ez, XeroxSp/XEZAHUB,
+// ipal1veee/test). The pattern set covers Lua-style immediate
+// invocation, charcode-based string assembly, and direct
+// "ignore previous instructions" style English strings.
+var promptInjectionPatterns = []struct {
+	rule        string
+	pattern     *regexp.Regexp
+	severity    string
+	description string
+}{
+	{
+		"lua_iife_payload",
+		regexp.MustCompile(`return\s*\(\s*function\s*\(`),
+		"HIGH",
+		"obfuscated IIFE-style payload (return(function(...)))",
+	},
+	{
+		"lua_obfuscation_markers",
+		regexp.MustCompile(`\b(local\s+ny=type|local\s+nm=ny\(""\)|string\.byte\()`),
+		"HIGH",
+		"Lua obfuscation markers (local ny=type / nm=ny(\"\") / string.byte)",
+	},
+	{
+		"hex_encoded_payload",
+		regexp.MustCompile(`(\\\\x[0-9A-Fa-f]{2}){8,}`),
+		"MEDIUM",
+		"long run of \\\\xNN hex escapes — typical obfuscation",
+	},
+	{
+		"english_override",
+		regexp.MustCompile(`(?i)\b(ignore|disregard|forget)\b[^.\n]{0,40}\b(previous|prior|above|system)\b[^.\n]{0,40}\b(instructions?|prompts?|rules?)\b`),
+		"MEDIUM",
+		"English prompt-override phrasing",
+	},
+	{
+		"english_jailbreak",
+		regexp.MustCompile(`(?i)\b(do anything now|dan mode|developer mode|jailbreak|reveal (the )?(system|hidden) prompt)\b`),
+		"HIGH",
+		"English jailbreak phrasing",
+	},
+}
+
 // credentialPatterns are regex patterns for common credential formats.
 var credentialPatterns = []struct {
 	rule   string
 	pattern *regexp.Regexp
-}{
-	{
+}{	{
 		"github_token",
 		regexp.MustCompile(`gh[pousr]_[A-Za-z0-9]{36,}`),
 	},
@@ -226,6 +275,33 @@ var credentialPatterns = []struct {
 		"env_var_theft",
 		regexp.MustCompile(`(process\.env\.[A-Z_]+|os\.environ\[|os\.getenv\()`),
 	},
+}
+
+// scanPromptInjection detects obfuscated payloads and English
+// jailbreak phrasing smuggled into README / description. The
+// "obfuscated code" branch (Lua IIFE, charcode, long \xNN runs) is
+// what we hit in practice; the English branch is a defensive
+// fallback for future attackers who drop the obfuscation step.
+func (s *SecurityScanner) scanPromptInjection(content string) []models.SecurityFinding {
+	var findings []models.SecurityFinding
+	for _, p := range promptInjectionPatterns {
+		matches := p.pattern.FindAllStringIndex(content, -1)
+		for _, m := range matches {
+			start, end := m[0], m[1]
+			ctxStart := maxInt(0, start-40)
+			ctxEnd := minInt(len(content), end+40)
+			findings = append(findings, models.SecurityFinding{
+				Type:       "prompt_injection",
+				Severity:   p.severity,
+				Source:     "readme/source",
+				Location:   "readme/source",
+				Evidence:   content[ctxStart:ctxEnd],
+				Rule:       p.rule,
+				Confidence: 0.9,
+			})
+		}
+	}
+	return findings
 }
 
 // scanCredentials checks for hardcoded secrets and credential extraction (spec §12).
