@@ -1,27 +1,79 @@
 package engines
 
 import (
+	"context"
+	"fmt"
 	"strings"
 
 	"github.com/david/awesome-taiwan-mcp/internal/config"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
 
-// Classifier performs rule-based primary classification of entities.
+// Classifier performs rule-based primary classification of entities,
+// with an optional LLM fallback that runs when rule confidence is low
+// (T108).
 type Classifier struct {
-	signals *config.TaiwanSignals
+	signals     *config.TaiwanSignals
+	llmFallback *LLMClassifierFallback // optional; nil = pure rule-based
 }
 
-// NewClassifier creates a new entity classifier.
-func NewClassifier() *Classifier {
-	return &Classifier{
-		signals: config.DefaultTaiwanSignals(),
+// ClassifierOption configures a Classifier.
+type ClassifierOption func(*Classifier)
+
+// WithLLMFallback attaches an LLM fallback. If nil is passed the
+// option is a no-op.
+func WithLLMFallback(fb *LLMClassifierFallback) ClassifierOption {
+	return func(c *Classifier) {
+		if fb != nil {
+			c.llmFallback = fb
+		}
 	}
 }
 
-// Classify determines the primary classification of an entity.
-// Rules are applied in priority order; first match wins.
+// NewClassifier creates a new entity classifier.
+func NewClassifier(opts ...ClassifierOption) *Classifier {
+	c := &Classifier{
+		signals: config.DefaultTaiwanSignals(),
+	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
+}
+
+// Classify is the legacy no-ctx entry point. It runs rule-based
+// classification only. New callers should prefer ClassifyWithCtx.
 func (c *Classifier) Classify(entity *models.Entity) models.ClassificationResult {
+	return c.ClassifyWithCtx(context.Background(), entity)
+}
+
+// ClassifyWithCtx runs rule-based classification, then falls back to
+// the LLM classifier (if attached) when the rule confidence is below
+// the LLM trigger threshold. (T108)
+func (c *Classifier) ClassifyWithCtx(ctx context.Context, entity *models.Entity) models.ClassificationResult {
+	result := c.classifyByRules(entity)
+
+	if c.llmFallback == nil {
+		return result
+	}
+	if !ShouldTriggerLLM(result, entity.TaiwanRelevance.Score, entity.AIRelevance.Score) {
+		return result
+	}
+
+	llmResult := c.llmFallback.ClassifyWithLLM(ctx, entity, result)
+	// Merge rule evidence + LLM evidence, and prepend an LLM-fallback
+	// note to the reasoning string.
+	llmResult.Evidence = append(llmResult.Evidence, result.Evidence...)
+	llmResult.Reasoning = fmt.Sprintf(
+		"[LLM fallback triggered; rule confidence %.2f] %s",
+		result.Confidence,
+		llmResult.Reasoning,
+	)
+	return llmResult
+}
+
+// classifyByRules contains the original rule-based logic.
+func (c *Classifier) classifyByRules(entity *models.Entity) models.ClassificationResult {
 	var evidence []models.ClassificationEvidence
 	reasoning := []string{}
 

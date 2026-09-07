@@ -96,6 +96,14 @@ func WithSecurityScanner(s *security.Scanner) CoordinatorOption {
 	}
 }
 
+// WithClassifier sets a custom classifier. Used by T108 to inject a
+// classifier configured with an LLM fallback.
+func WithClassifier(c *engines.Classifier) CoordinatorOption {
+	return func(pc *PipelineCoordinator) {
+		pc.classifier = c
+	}
+}
+
 // New creates a new PipelineCoordinator with the given dependencies.
 func New(
 	store *storage.Store,

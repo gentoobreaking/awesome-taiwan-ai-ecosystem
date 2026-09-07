@@ -14,6 +14,7 @@ import (
 
 	"github.com/david/awesome-taiwan-mcp/internal/crawler"
 	"github.com/david/awesome-taiwan-mcp/internal/coordinator"
+	"github.com/david/awesome-taiwan-mcp/internal/engines"
 	"github.com/david/awesome-taiwan-mcp/internal/export"
 	"github.com/david/awesome-taiwan-mcp/internal/metrics"
 	"github.com/david/awesome-taiwan-mcp/internal/models"
@@ -60,6 +61,7 @@ var (
 	verbose         bool
 	includeMCPAnchored bool
 	enableMcpMarket   bool
+	enableLLM         bool
 )
 
 func main() {
@@ -178,6 +180,7 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&pipelineFlag, "pipeline", "full", "pipeline mode: full|discovery-only|classify-only|verify-only")
 	rootCmd.PersistentFlags().BoolVar(&includeMCPAnchored, "include-mcp-anchored", false, "opt-in to MCP-anchored GitHub discovery queries (default off, spec §3 #1)")
 	rootCmd.PersistentFlags().BoolVar(&enableMcpMarket, "enable-mcpmarket", false, "opt-in to mcpmarket source (currently behind Vercel WAF, disabled by default, T105)")
+	rootCmd.PersistentFlags().BoolVar(&enableLLM, "enable-llm-classifier", true, "use LLM fallback for ambiguous classification when OPENAI_API_KEY is set (default on, T108)")
 	rootCmd.PersistentFlags().IntVar(&workers, "workers", 4, "number of workers per source")
 	rootCmd.PersistentFlags().IntVar(&minScore, "min-score", 0, "minimum quality score filter")
 	rootCmd.PersistentFlags().StringVar(&capabilityFlag, "capability", "", "search by capability keywords")
@@ -227,7 +230,19 @@ func setupCrawler(store *storage.Store) (*crawler.CrawlCoordinator, *coordinator
 	adapters = append(adapters, mm)
 	norm := normalize.New()
 	legacy := crawler.NewCrawlCoordinator(store, norm, adapters, logger)
-	pipeline := coordinator.New(store, norm, adapters, logger)
+
+	// Build the pipeline classifier. T108: optionally attach an LLM
+	// fallback when --enable-llm-classifier (default on) and an
+	// OPENAI_API_KEY is present.
+	classifier := engines.NewClassifier()
+	if enableLLM && os.Getenv("OPENAI_API_KEY") != "" {
+		fb := engines.NewLLMClassifierFallback(nil) // reads OPENAI_* env
+		if fb != nil {
+			classifier = engines.NewClassifier(engines.WithLLMFallback(fb))
+		}
+	}
+	pipeline := coordinator.New(store, norm, adapters, logger,
+		coordinator.WithClassifier(classifier))
 	return legacy, pipeline
 }
 
