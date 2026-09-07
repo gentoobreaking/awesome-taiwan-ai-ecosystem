@@ -12,6 +12,7 @@ import (
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 
 	_ "embed"
+	_ "modernc.org/sqlite"
 )
 
 const schemaVersion = "0.1"
@@ -45,6 +46,7 @@ func (s *Store) Migrate(ctx context.Context) error {
 	}{
 		{"001_init_schema", migration001Up},
 		{"002_server_snapshots", migration002Up},
+		{"003_schema_v2", schemaV2Raw},
 	}
 
 	for _, m := range migrations {
@@ -58,30 +60,15 @@ func (s *Store) Migrate(ctx context.Context) error {
 			continue // already applied
 		}
 
-		_, err = s.db.ExecContext(ctx, m.up)
-		if err != nil {
+		if _, err = s.db.ExecContext(ctx, m.up); err != nil {
 			return fmt.Errorf("apply migration %s: %w", m.name, err)
 		}
 
-		_, err = s.db.ExecContext(ctx,
+		if _, err = s.db.ExecContext(ctx,
 			"INSERT INTO _crawler_migrations (name, applied_at) VALUES (?, ?)",
-			m.name, time.Now().UTC().Format(time.RFC3339))
-		if err != nil {
+			m.name, time.Now().UTC().Format(time.RFC3339)); err != nil {
 			return fmt.Errorf("record migration %s: %w", m.name, err)
 		}
-}
-
-// Apply V2 schema (entities table and indexes)
-	var err error
-	if _, err = s.db.ExecContext(ctx, schemaV2Raw); err != nil {
-		return fmt.Errorf("apply V2 schema: %w", err)
-	}
-
-	// Record V2 schema migration
-	if _, err = s.db.ExecContext(ctx,
-		"INSERT INTO _crawler_migrations (name, applied_at) VALUES (?, ?)",
-		"003_schema_v2", time.Now().UTC().Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("record V2 migration: %w", err)
 	}
 
 	return nil
