@@ -201,6 +201,14 @@ func (a *Adapter) Discover(ctx context.Context) ([]models.RawCandidate, error) {
 		if seen[slug] {
 			continue
 		}
+		// Pre-filter on URL slug to keep the candidate list manageable.
+		// mcpservers.org's sitemap exposes every server (~10k); without
+		// this filter we'd fetch the whole site. Keep signals that hint
+		// at Taiwan relevance OR an MCP-style slug. Other servers are
+		// still discoverable via the GitHub KeywordMatrix path (T101).
+		if !hasRelevantSlug(slug) {
+			continue
+		}
 		seen[slug] = true
 		candidates = append(candidates, models.RawCandidate{
 			Source:       "mcpserversorg",
@@ -211,6 +219,32 @@ func (a *Adapter) Discover(ctx context.Context) ([]models.RawCandidate, error) {
 		})
 	}
 	return candidates, nil
+}
+
+// hasRelevantSlug returns true if the slug carries a Taiwan or MCP signal.
+// Conservative: missing a candidate here is recoverable (other sources cover
+// the same repos); admitting the full ~10k list is not.
+func hasRelevantSlug(slug string) bool {
+	s := strings.ToLower(slug)
+	taiwanSignals := []string{
+		"taiwan", "taipei", "taichung", "tainan", "kaohsiung",
+		"twse", "taifex", "tpex", "mops", "gov.tw", "edu.tw",
+		"台灣", "臺灣",
+	}
+	mcpSignals := []string{
+		"-mcp", "mcp-", "_mcp", "mcp_", "mcpserver", "mcp_server",
+	}
+	for _, sig := range taiwanSignals {
+		if strings.Contains(s, sig) {
+			return true
+		}
+	}
+	for _, sig := range mcpSignals {
+		if strings.Contains(s, sig) {
+			return true
+		}
+	}
+	return false
 }
 
 // canonicalSlug extracts slug after /servers/ and strips locale prefix.

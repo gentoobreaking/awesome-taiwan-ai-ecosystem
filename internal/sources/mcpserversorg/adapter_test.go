@@ -226,3 +226,24 @@ func (t *testHTTPClient) Get(ctx context.Context, url string, headers map[string
 	}
 	return body, resp.StatusCode, nil
 }
+
+func TestHasRelevantSlug(t *testing.T) {
+	cases := []struct {
+		slug string
+		want bool
+	}{
+		{"taiwan-stock-mcp", true},
+		{"twse-market-mcp", true},
+		{"taipei-ai-mcp", true},
+		{"claude-mcp-server", true},
+		{"mcp_postgres", true},
+		{"random-app", false},
+		{"some-other-tool", false},
+		{"", false},
+	}
+	for _, tc := range cases {
+		if got := hasRelevantSlug(tc.slug); got != tc.want {
+			t.Errorf("hasRelevantSlug(%q) = %v, want %v", tc.slug, got, tc.want)
+		}
+	}
+}
