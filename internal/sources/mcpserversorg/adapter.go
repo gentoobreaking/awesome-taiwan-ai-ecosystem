@@ -14,6 +14,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
+	"github.com/david/awesome-taiwan-mcp/internal/retry"
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
 )
 
@@ -27,7 +28,7 @@ type Adapter struct {
 	HTTPClient HTTPClient
 	BaseURL    string
 	SitemapURL string
-	HTTP       *http.Client
+	HTTP       *retry.RetryableClient
 }
 
 // New creates a new mcpservers.org adapter.
@@ -35,7 +36,15 @@ func New() *Adapter {
 	return &Adapter{
 		BaseURL:    "https://mcpservers.org",
 		SitemapURL: "https://mcpservers.org/sitemap.xml",
-		HTTP:       &http.Client{Timeout: 30 * time.Second},
+		// Concurrency capped at 2 to stay under mcpservers.org rate limit;
+		// 429s are retried with exponential backoff up to 30s. Going to 1
+		// serialized 10k fetches into hours — 2 is a measured compromise.
+		HTTP: retry.NewClient(retry.Config{
+			BaseDelay:      2 * time.Second,
+			MaxRetries:     4,
+			MaxDelay:       30 * time.Second,
+			MaxConcurrency: 2,
+		}),
 	}
 }
 
@@ -75,7 +84,9 @@ func (a *Adapter) get(ctx context.Context, target string) ([]byte, error) {
 	}
 	client := a.HTTP
 	if client == nil {
-		client = &http.Client{Timeout: 30 * time.Second}
+		// Fallback to a fresh retry client if New() wasn't used (e.g. tests
+		// constructing Adapter literal directly).
+		client = retry.NewClient(retry.Config{BaseDelay: 2 * time.Second, MaxRetries: 4})
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
 	if err != nil {
@@ -83,7 +94,7 @@ func (a *Adapter) get(ctx context.Context, target string) ([]byte, error) {
 	}
 	req.Header.Set("User-Agent", "awesome-taiwan-ai-ecosystem/1.0")
 	req.Header.Set("Accept", "application/xml, text/xml, */*")
-	resp, err := client.Do(req)
+	resp, err := client.Do(ctx, req)
 	if err != nil {
 		return nil, err
 	}

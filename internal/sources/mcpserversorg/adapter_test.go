@@ -3,6 +3,7 @@ package mcpserversorg
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -65,7 +66,7 @@ func TestDiscover_SitemapParsingAndDedup(t *testing.T) {
 	a := &Adapter{
 		SitemapURL: server.URL + "/sitemap.xml",
 		BaseURL:    server.URL,
-		HTTP:       server.Client(),
+		HTTPClient: &testHTTPClient{client: server.Client(), base: server.URL},
 	}
 
 	candidates, err := a.Discover(context.Background())
@@ -136,7 +137,7 @@ func TestFetch_ExtractGitHub(t *testing.T) {
 	}))
 	defer server.Close()
 
-	a := &Adapter{HTTP: server.Client()}
+	a := &Adapter{HTTPClient: &testHTTPClient{client: server.Client(), base: server.URL}}
 	cand := models.RawCandidate{
 		Source:    "mcpserversorg",
 		SourceURL: server.URL + "/servers/taiwan-mcp",
@@ -168,7 +169,7 @@ func TestFetch_FallbackHomepage(t *testing.T) {
 	}))
 	defer server.Close()
 
-	a := &Adapter{HTTP: server.Client()}
+	a := &Adapter{HTTPClient: &testHTTPClient{client: server.Client(), base: server.URL}}
 	cand := models.RawCandidate{
 		Source:    "mcpserversorg",
 		SourceURL: server.URL + "/servers/no-github",
@@ -196,4 +197,32 @@ func TestInterfaceImplementation(t *testing.T) {
 	if New().Name() != "mcpserversorg" {
 		t.Error("Name mismatch")
 	}
+}
+
+// testHTTPClient wraps an *http.Client to satisfy the HTTPClient interface
+// (Get returns body, status, error) for adapter tests that need a real
+// network round-trip. Avoids constructing a full *retry.RetryableClient.
+type testHTTPClient struct {
+	client *http.Client
+	base   string
+}
+
+func (t *testHTTPClient) Get(ctx context.Context, url string, headers map[string]string) ([]byte, int, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+	resp, err := t.client.Do(req)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, resp.StatusCode, err
+	}
+	return body, resp.StatusCode, nil
 }

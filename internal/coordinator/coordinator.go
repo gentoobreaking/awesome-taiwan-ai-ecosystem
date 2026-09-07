@@ -187,6 +187,12 @@ func (pc *PipelineCoordinator) Run(ctx context.Context, cfg PipelineConfig) erro
 	pc.runQualityScoring(ctx, crawlID, entities)
 	results = append(results, StageResult{Stage: "QUALITY_SCORING", ItemCount: len(entities)})
 
+	// Stage 9.5: PERSIST — write all entities to DB (idempotent upsert, T098)
+	if err := pc.persistEntities(ctx, entities); err != nil {
+		return fmt.Errorf("persist stage: %w", err)
+	}
+	results = append(results, StageResult{Stage: "PERSIST", ItemCount: len(entities)})
+
 	// Stage 10: REGISTRY VIEWS
 	if cfg.Mode == ModeFull {
 		pc.runRegistryViews(ctx, crawlID, entities, cfg.OutputDir)
@@ -500,6 +506,30 @@ func (pc *PipelineCoordinator) runQualityScoring(ctx context.Context, crawlID st
 		e.Quality = pc.qualityEngine.Score(e)
 	}
 	pc.logger.Info(ctx, crawlID, "QUALITY_SCORING", "complete", "entities", len(entities))
+}
+
+// persistEntities writes all entities to the entity store (idempotent upsert).
+// Failures are logged per-entity but do not abort the pipeline so that one
+// bad entity doesn't lose the entire batch. A nil entityStore is a no-op
+// (useful in tests). Added in T098 to fix the DB-stays-empty bug.
+func (pc *PipelineCoordinator) persistEntities(ctx context.Context, entities []*models.Entity) error {
+	if pc.entityStore == nil {
+		pc.logger.Warn(ctx, "", "PERSIST", "skipped", "reason", "entity_store_nil")
+		return nil
+	}
+	var saved, failed int
+	for _, e := range entities {
+		if err := pc.entityStore.Save(ctx, e); err != nil {
+			pc.logger.Warn(ctx, "", "PERSIST", "save_failed",
+				"entity_id", e.ID, "name", e.Name, "error", err.Error())
+			failed++
+			continue
+		}
+		saved++
+	}
+	pc.logger.Info(ctx, "", "PERSIST", "save_complete",
+		"saved", saved, "failed", failed, "total", len(entities))
+	return nil
 }
 
 // runRegistryViews generates registry views (T083).
