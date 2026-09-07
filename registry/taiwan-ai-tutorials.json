@@ -1,9 +1,96 @@
 {
   "crawler_version": "1.0.0",
   "description": "AI Tutorials and Examples",
-  "entities": null,
+  "entities": [
+    {
+      "id": "06ecc39999bcbbe2f6f88556859c0e31d2cdc984e4eaedd42ea83ac7861600db",
+      "name": "pydantic-ai-tutorial",
+      "slug": "pydantic-ai-tutorial",
+      "description": "[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)",
+      "classification": {
+        "primary": "AI_TUTORIAL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 20,
+        "level": "T2",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "",
+        "evidence": null,
+        "confidence": 0,
+        "role": ""
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 67,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/twtrubiks/pydantic-ai-tutorial",
+        "host": "",
+        "owner": "",
+        "name": "pydantic-ai-tutorial",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T13:10:19Z",
+      "last_seen": "2026-09-07T14:04:26Z"
+    }
+  ],
   "generated_at": "0001-01-01T00:00:00Z",
   "schema_version": "2.0",
-  "total_entities": 0,
+  "total_entities": 1,
   "view_name": "taiwan-ai-tutorials"
 }

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -95,6 +96,78 @@ func main() {
 	fmt.Printf("Done: %d entities\n", len(servers))
 }
 
+// heuristicPrimary picks a PrimaryClassification from name +
+// description signals when the legacy category field is empty.
+// Conservative — defaults to MCP_SERVER when nothing matches, so
+// genuine MCP servers are not silently re-classified.
+func heuristicPrimary(name, description string) models.PrimaryClassification {
+	nameLow := strings.ToLower(name)
+	descLow := strings.ToLower(description)
+	text := nameLow + " " + descLow
+
+	// Pass 1: name patterns are the strongest signal — try them
+	// first and return early.
+	if primary := namePrimary(nameLow); primary != models.PrimaryClassification("") {
+		return primary
+	}
+	// Pass 2: description keywords.
+	if primary := descPrimary(text); primary != models.PrimaryClassification("") {
+		return primary
+	}
+	return models.PrimaryClassificationMCPServer
+}
+
+// namePrimary matches high-confidence name patterns.
+func namePrimary(name string) models.PrimaryClassification {
+	switch {
+	case containsAny(name, []string{"tutorial", "demo", "example", "getting-started", "how-to"}):
+		return models.PrimaryClassificationAITutorial
+	case containsAny(name, []string{"awesome-", "-awesome", "awesome_", "-collection", "curated-", "-awesome-list", "awesome-"}):
+		return models.PrimaryClassificationMCPCollection
+	case containsAny(name, []string{"-framework", "_framework", "framework-", "orchestrator", "crewai", "langgraph"}):
+		return models.PrimaryClassificationAIFramework
+	case containsAny(name, []string{"-agent", "_agent", "agent-", "agent_", "react-agent", "crew-", "chatbot"}):
+		return models.PrimaryClassificationAIAgent
+	case containsAny(name, []string{"-sdk", "_sdk", "sdk-", "client-py", "client-go", "client-ts"}):
+		return models.PrimaryClassificationAISDK
+	case containsAny(name, []string{"twmarket", "twstock", "twdataset", "taiwandata", "data-", "finmind", "fugle-data"}):
+		return models.PrimaryClassificationAIDataset
+	case containsAny(name, []string{"cli", "-cli", "_cli", "cli-", "cmd-"}):
+		return models.PrimaryClassificationAITool
+	}
+	return models.PrimaryClassification("")
+}
+
+// descPrimary matches description text signals.
+func descPrimary(text string) models.PrimaryClassification {
+	switch {
+	case containsAny(text, []string{"orchestration framework", "workflow engine", "agent framework", "multi-agent orchestration"}):
+		return models.PrimaryClassificationAIFramework
+	case containsAny(text, []string{"ai agent", "agentic", "autonomous agent", "react agent", "multi-agent system", "chatbot powered by"}):
+		return models.PrimaryClassificationAIAgent
+	case containsAny(text, []string{"data library", "market data", "stock data", "data feed", "data pipeline", "data api", "etl pipeline", "postgres schema", "twse api", "tpex api", "taiwan stock data", "taiwan market data"}):
+		return models.PrimaryClassificationAIDataset
+	case containsAny(text, []string{"client library", "python sdk", "go sdk", "typescript sdk", "rust sdk"}):
+		return models.PrimaryClassificationAISDK
+	case containsAny(text, []string{"tutorial", "getting started", "step-by-step", "minimal example"}):
+		return models.PrimaryClassificationAITutorial
+	case containsAny(text, []string{"awesome list", "curated list", "awesome collection", "list of mcp"}):
+		return models.PrimaryClassificationMCPCollection
+	case containsAny(text, []string{"command-line", "command line tool"}):
+		return models.PrimaryClassificationAITool
+	}
+	return models.PrimaryClassification("")
+}
+
+func containsAny(haystack string, needles []string) bool {
+	for _, n := range needles {
+		if strings.Contains(haystack, n) {
+			return true
+		}
+	}
+	return false
+}
+
 func toEntity(s legacyServer, now models.RFC3339Time) *models.Entity {
 	repo := models.RepositoryInfo{}
 	if s.Repository != nil {
@@ -125,7 +198,10 @@ func toEntity(s legacyServer, now models.RFC3339Time) *models.Entity {
 	}
 	primary := models.PrimaryClassification("MCP_SERVER")
 	// Use the legacy category as a crude primary classification signal
-	// so seeded entities don't all end up in the same view.
+	// so seeded entities don't all end up in the same view. Falls
+	// through to a heuristic pass over name + description if the
+	// legacy category is empty (the 9/5 registry.json has no
+	// categories at all).
 	if len(s.Category) > 0 {
 		switch s.Category[0] {
 		case "AI_AGENT", "AGENT":
@@ -139,6 +215,8 @@ func toEntity(s legacyServer, now models.RFC3339Time) *models.Entity {
 		case "TUTORIAL":
 			primary = models.PrimaryClassificationAITutorial
 		}
+	} else {
+		primary = heuristicPrimary(s.Name, s.Description)
 	}
 
 	return &models.Entity{
