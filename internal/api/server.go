@@ -90,6 +90,7 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/registry", s.handleRegistry)
 	mux.HandleFunc("/api/v1/statistics", s.handleStatistics)
 	mux.HandleFunc("/api/v1/health", s.handleHealth)
+	mux.HandleFunc("/api/v1/entities", s.handleEntities)
 }
 
 // handleAPIRoot returns the API index listing available endpoints.
@@ -146,6 +147,50 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 		Version:   "v0.1",
 		DBCount:   count,
+	})
+}
+
+// handleEntities returns the full v2 entity list. This is the canonical
+// endpoint per spec §43 / §60 — the legacy /api/v1/servers filter
+// remains for backward compat but only returns MCP_SERVER views.
+// (T-frontend)
+func (s *Server) handleEntities(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+
+	page, limit, err := parsePagination(r)
+	if err != nil {
+		s.writeAPIError(w, http.StatusBadRequest, "invalid_pagination", err.Error())
+		return
+	}
+
+	filter := parseEntityFilter(r)
+	filter.Limit = limit
+	filter.Offset = (page - 1) * limit
+
+	es := storage.NewEntityStore(s.store.DB())
+	entities, err := es.List(ctx, filter)
+	if err != nil {
+		s.logger.Error("Failed to list entities", "error", err)
+		s.writeAPIError(w, http.StatusInternalServerError, "database_error", err.Error())
+		return
+	}
+
+	total, err := es.Count(ctx, filter)
+	if err != nil {
+		s.logger.Error("Failed to count entities", "error", err)
+		s.writeAPIError(w, http.StatusInternalServerError, "database_error", err.Error())
+		return
+	}
+
+	s.writeJSON(w, http.StatusOK, EntitiesResponse{
+		Entities:  entities,
+		Pagination: makePagination(page, limit, total),
 	})
 }
 
@@ -356,6 +401,14 @@ type Pagination struct {
 type ServersResponse struct {
 	Servers    []models.MCPServerView `json:"servers"`
 	Pagination Pagination             `json:"pagination"`
+}
+
+// EntitiesResponse is the /api/v1/entities response — full v2 entity
+// list per spec §43. Pagination shape matches ServersResponse so
+// the existing web table can use the same loader.
+type EntitiesResponse struct {
+	Entities   []*models.Entity `json:"entities"`
+	Pagination Pagination       `json:"pagination"`
 }
 
 // ServerResponse is the /api/v1/servers/{id} response.

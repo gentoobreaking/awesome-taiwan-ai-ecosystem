@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api, type ServerListParams } from '../utils/api';
-import type { MCPServer } from '../types/api';
+import type { Entity } from '../types/api';
 import { LevelBadge } from '../components/LevelBadge';
 import { GradeBadge } from '../components/GradeBadge';
-import { HealthBadge } from '../components/HealthBadge';
 
 export default function ServerList() {
-  const [servers, setServers] = useState<MCPServer[]>([]);
+  const [entities, setEntities] = useState<Entity[]>([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, total_pages: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,8 +16,8 @@ export default function ServerList() {
       setLoading(true);
       setError(null);
       try {
-        const data = await api.servers(filters);
-        setServers(data.servers);
+        const data = await api.entities(filters);
+        setEntities(data.entities);
         setPagination(data.pagination);
       } catch (err) {
         setError((err as Error).message);
@@ -92,10 +91,10 @@ export default function ServerList() {
       {!loading && !error && (
         <>
           <div className="space-y-4">
-            {servers.map((s) => (
-              <ServerCard key={s.id} server={s} />
+            {entities.map((s) => (
+              <EntityCard key={s.id} entity={s} />
             ))}
-            {servers.length === 0 && <div className="text-center py-8 text-gray-500">No servers found</div>}
+            {entities.length === 0 && <div className="text-center py-8 text-gray-500">No entities found</div>}
           </div>
 
           {/* Pagination */}
@@ -126,34 +125,39 @@ export default function ServerList() {
   );
 }
 
-function ServerCard({ server }: { server: MCPServer }) {
+function EntityCard({ entity }: { entity: Entity }) {
   return (
     <div className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">{server.name}</h3>
-          <p className="text-sm text-gray-600 mt-1">{server.description}</p>
-          {server.repository?.url && (
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900">{entity.name}</h3>
+            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
+              {entity.classification?.primary || 'UNKNOWN'}
+            </span>
+          </div>
+          <p className="text-sm text-gray-600 mt-1">{entity.description}</p>
+          {entity.repository?.url && (
             <a
-              href={server.repository.url}
+              href={entity.repository.url}
               className="text-xs text-blue-600 hover:underline block mt-1"
               target="_blank"
               rel="noopener noreferrer"
             >
-              {server.repository.url}
+              {entity.repository.url}
             </a>
           )}
         </div>
         <div className="flex gap-2 ml-4">
-          <LevelBadge level={server.taiwan_relevance.level} />
-          <GradeBadge grade={server.quality.grade} />
-          <HealthBadge health={server.health} />
+          <LevelBadge level={entity.taiwan_relevance?.level || 'T0'} />
+          <GradeBadge grade={entity.quality?.grade || 'F'} />
         </div>
       </div>
       <div className="flex gap-4 mt-3 text-xs text-gray-500">
-        <span>⭐ {server.repository?.stars || 0}</span>
-        <span>🛠️ {server.tools?.length || 0} tools</span>
-        <span>📡 {server.endpoints?.length || 0} endpoints</span>
+        <span>⭐ {entity.repository?.stars || 0}</span>
+        <span>🛠️ {entity.tools?.length || 0} tools</span>
+        <span>📡 {entity.endpoints?.length || 0} endpoints</span>
+        <span>MCP: {entity.mcp_identity?.status || '—'}</span>
       </div>
     </div>
   );

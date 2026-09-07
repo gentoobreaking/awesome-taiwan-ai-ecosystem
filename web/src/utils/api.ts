@@ -5,9 +5,11 @@ import type {
   SearchResponse,
   Statistics,
   RegistryResponse,
+  EntitiesResponse,
+  Entity,
   MCPServer,
   TaiwanLevel,
-} from './types/api';
+} from '../types/api';
 
 export interface SearchParams {
   q?: string;
@@ -108,5 +110,20 @@ export const api = {
   // Get full registry
   registry(): Promise<RegistryResponse> {
     return apiFetch<RegistryResponse>('/registry');
+  },
+
+  // List all v2 entities (canonical per spec §43 / §60).
+  entities(params?: ServerListParams): Promise<EntitiesResponse> {
+    const p: Record<string, string> = {};
+    if (params?.page) p.page = String(params.page);
+    if (params?.limit) p.limit = String(params.limit);
+    if (params?.level) p.level = params.level;
+    if (params?.category) p.category = params.category;
+    return apiFetch<EntitiesResponse>('/entities', p);
+  },
+
+  // Get single entity by ID.
+  entity(id: string): Promise<{ entity: Entity }> {
+    return apiFetch<{ entity: Entity }>(`/entities/${encodeURIComponent(id)}`);
   },
 };

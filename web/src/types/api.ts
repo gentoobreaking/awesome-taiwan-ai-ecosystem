@@ -106,3 +106,62 @@ export interface RegistryResponse {
   statistics: Statistics;
   servers: MCPServer[];
 }
+
+// V2 canonical entity model (spec §37). Returned by /api/v1/entities.
+export type MCPIdentityStatus =
+  | 'CANDIDATE'
+  | 'STATIC_VERIFIED'
+  | 'RUNTIME_VERIFIED'
+  | 'VERIFIED'
+  | 'NOT_MCP'
+  | string;
+
+export interface Classification {
+  primary: string;
+  secondary?: string[];
+  confidence: number;
+  evidence?: unknown[];
+  reasoning?: string;
+}
+
+export interface MCPIdentity {
+  related: boolean;
+  status: MCPIdentityStatus;
+  confidence: number;
+  role: string;
+}
+
+export interface Endpoint {
+  url: string;
+  transport: string;
+  type: string;
+  verified: boolean;
+}
+
+export interface Entity {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  classification: Classification;
+  taiwan_relevance: TaiwanRelevance;
+  ai_relevance: { score: number; level: string; evidence: unknown[] };
+  mcp_identity: MCPIdentity;
+  endpoints: Endpoint[];
+  tools: unknown[];
+  resources: unknown[];
+  prompts: unknown[];
+  data_sources: unknown[];
+  sources: unknown[];
+  repository: RepositoryInfo;
+  quality: QualityScore;
+  entity_status: string;
+  first_seen: string;
+  last_seen: string;
+  last_verified: string | null;
+}
+
+export interface EntitiesResponse {
+  entities: Entity[];
+  pagination: Pagination;
+}
