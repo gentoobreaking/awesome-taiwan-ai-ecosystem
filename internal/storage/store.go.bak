@@ -10,8 +10,7 @@ import (
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
-
-	_ "embed"
+	_ "modernc.org/sqlite"
 )
 
 const schemaVersion = "0.1"
@@ -69,19 +68,6 @@ func (s *Store) Migrate(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("record migration %s: %w", m.name, err)
 		}
-}
-
-// Apply V2 schema (entities table and indexes)
-	var err error
-	if _, err = s.db.ExecContext(ctx, schemaV2Raw); err != nil {
-		return fmt.Errorf("apply V2 schema: %w", err)
-	}
-
-	// Record V2 schema migration
-	if _, err = s.db.ExecContext(ctx,
-		"INSERT INTO _crawler_migrations (name, applied_at) VALUES (?, ?)",
-		"003_schema_v2", time.Now().UTC().Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("record V2 migration: %w", err)
 	}
 
 	return nil
