@@ -85,7 +85,7 @@ USER crawler
 VOLUME ["/data/registry", "/data/db", "/app/config"]
 
 ENTRYPOINT ["/usr/local/bin/api"]
-CMD ["--port", "8080"]
+CMD ["--port", "8003"]
 
 # ============================================================
 # Runtime stage: web (nginx static server)

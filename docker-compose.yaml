@@ -1,10 +1,11 @@
 services:
   crawler:
-    image: awesome-taiwan-ai-ecosystem:crawler
+    image: ai-ecosystem-crawler:latest
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: awesome-taiwan-ai-ecosystem-crawler
+    container_name: ai-ecosystem-crawler
+    hostname: ai-ecosystem-crawler
     command: ["--help"]
     volumes:
       - ./registry:/data/registry
@@ -20,26 +21,28 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-    resources:
-      limits:
-        cpus: "1.0"
-        memory: "512M"
-      reservations:
-        cpus: "0.5"
-        memory: "256M"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
     restart: unless-stopped
 
   api:
-    image: awesome-taiwan-ai-ecosystem:api
+    image: ai-ecosystem-api:latest
     build:
       context: .
       dockerfile: Dockerfile.multi
-      target: api
-    container_name: awesome-taiwan-ai-ecosystem-api
+      target: runtime-api
+    container_name: ai-ecosystem-api
+    hostname: ai-ecosystem-api
     ports:
-      - "8080:8080"
+      - "8003:8003"
     command: [
-      "--port", "8080",
+      "--port", "8003",
       "--db", "/data/db/registry.db",
       "--rate-limit", "100"
     ]
@@ -53,38 +56,41 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-    resources:
-      limits:
-        cpus: "0.5"
-        memory: "256M"
-      reservations:
-        cpus: "0.25"
-        memory: "128M"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "256M"
+        reservations:
+          cpus: "0.25"
+          memory: "128M"
     restart: unless-stopped
 
   web:
-    image: awesome-taiwan-ai-ecosystem:web
+    image: ai-ecosystem-web:latest
     build:
       context: .
       dockerfile: Dockerfile.multi
       target: web
-    container_name: awesome-taiwan-ai-ecosystem-web
+    container_name: ai-ecosystem-web
+    hostname: ai-ecosystem-web
     ports:
       - "3000:80"
     depends_on:
       - api
     environment:
-      - VITE_API_URL=http://api:8080/api/v1
+      - VITE_API_URL=http://api:8003/api/v1
     security_opt:
       - no-new-privileges:true
     read_only: true
     tmpfs:
       - /tmp
-    resources:
-      limits:
-        cpus: "0.5"
-        memory: "256M"
-      reservations:
-        cpus: "0.25"
-        memory: "128M"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "256M"
+        reservations:
+          cpus: "0.25"
+          memory: "128M"
     restart: unless-stopped
