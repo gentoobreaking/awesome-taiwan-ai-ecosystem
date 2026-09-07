@@ -40,3 +40,4 @@ web/coverage/
 exporter
 migrator
 bin/seed
+web/pnpm-workspace.yaml
