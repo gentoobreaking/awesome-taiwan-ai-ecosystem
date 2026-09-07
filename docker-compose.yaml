@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: ai-ecosystem-crawler
     hostname: ai-ecosystem-crawler
-    command: ["--help"]
+    command: ["run"]
     volumes:
       - ./registry:/data/registry
       - ./data:/data/db
