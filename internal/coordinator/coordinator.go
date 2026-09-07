@@ -183,6 +183,12 @@ func (pc *PipelineCoordinator) Run(ctx context.Context, cfg PipelineConfig) erro
 	pc.runSecurityScan(ctx, crawlID, entities)
 	results = append(results, StageResult{Stage: "SECURITY_SCANNER", ItemCount: len(entities)})
 
+	// Stage 8.5: MCP_IDENTITY_PROMOTE — apply spec §33 state machine
+	// (Candidate -> StaticVerified -> RuntimeVerified -> Verified).
+	// (T102)
+	pc.runMCPIdentityPromote(ctx, crawlID, entities)
+	results = append(results, StageResult{Stage: "MCP_IDENTITY_PROMOTE", ItemCount: len(entities)})
+
 	// Stage 9: QUALITY SCORING
 	pc.runQualityScoring(ctx, crawlID, entities)
 	results = append(results, StageResult{Stage: "QUALITY_SCORING", ItemCount: len(entities)})
@@ -493,6 +499,57 @@ func (pc *PipelineCoordinator) runSecurityScan(ctx context.Context, crawlID stri
 		e.SecurityStatus = *statusDetail
 	}
 	pc.logger.Info(ctx, crawlID, "SECURITY_SCANNER", "complete", "entities", len(entities))
+}
+
+// runMCPIdentityPromote applies the spec §33 state machine transitions
+// to every entity. After MCP identity has run (stage 6) and runtime
+// verification (stage 7) and security scan (stage 8) have produced
+// their verdicts, we may be able to promote the entity to the
+// terminal MCPIdentityStatusVerified state. (T102)
+func (pc *PipelineCoordinator) runMCPIdentityPromote(ctx context.Context, crawlID string, entities []*models.Entity) {
+	var promoted int
+	for _, e := range entities {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		staticChecked := e.MCPIdentity.StaticCheckedAt != nil
+		var runtimeStatus models.RuntimeVerificationStatus
+		if e.RuntimeVerification != nil {
+			runtimeStatus = e.RuntimeVerification.Status
+		}
+		securityStatus := e.SecurityStatus.Status
+
+		if !e.MCPIdentity.Status.ShouldPromoteToVerified(
+			staticChecked,
+			e.RuntimeVerification != nil,
+			runtimeStatus,
+			securityStatus,
+		) {
+			continue
+		}
+
+		newStatus := e.MCPIdentity.Status.Promote(
+			staticChecked,
+			runtimeStatus,
+			securityStatus,
+		)
+		if newStatus != e.MCPIdentity.Status {
+			pc.logger.Info(ctx, crawlID, "MCP_IDENTITY_PROMOTE", "transition",
+				"entity_id", e.ID, "name", e.Name,
+				"from", string(e.MCPIdentity.Status), "to", string(newStatus))
+			e.MCPIdentity.Status = newStatus
+			if newStatus == models.MCPIdentityStatusRuntimeVerified ||
+				newStatus == models.MCPIdentityStatusVerified {
+				now := models.RFC3339Time(time.Now().UTC())
+				e.MCPIdentity.RuntimeVerifiedAt = &now
+			}
+			promoted++
+		}
+	}
+	pc.logger.Info(ctx, crawlID, "MCP_IDENTITY_PROMOTE", "complete",
+		"entities", len(entities), "promoted", promoted)
 }
 
 // runQualityScoring executes quality scoring (T082).

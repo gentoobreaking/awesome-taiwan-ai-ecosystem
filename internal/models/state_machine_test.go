@@ -30,3 +30,72 @@ func TestCanTransitionMCPIdentityStatus_Transitions(t *testing.T) {
 		})
 	}
 }
+
+func TestPromote_StateMachine(t *testing.T) {
+	// Candidate + staticChecked -> StaticVerified
+	got := MCPIdentityStatusCandidate.Promote(true, RuntimeVerificationStatusFailed, SecurityStatusClean)
+	if got != MCPIdentityStatusStaticVerified {
+		t.Errorf("Candidate + static -> want StaticVerified, got %s", got)
+	}
+	// Candidate without staticChecked -> stays Candidate
+	got = MCPIdentityStatusCandidate.Promote(false, RuntimeVerificationStatusPassed, SecurityStatusClean)
+	if got != MCPIdentityStatusCandidate {
+		t.Errorf("Candidate no static -> want Candidate, got %s", got)
+	}
+	// StaticVerified + runtime pass -> RuntimeVerified
+	got = MCPIdentityStatusStaticVerified.Promote(true, RuntimeVerificationStatusPassed, SecurityStatusClean)
+	if got != MCPIdentityStatusRuntimeVerified {
+		t.Errorf("StaticVerified + runtime -> want RuntimeVerified, got %s", got)
+	}
+	// RuntimeVerified + static + runtime + security clean -> Verified
+	got = MCPIdentityStatusRuntimeVerified.Promote(true, RuntimeVerificationStatusPassed, SecurityStatusClean)
+	if got != MCPIdentityStatusVerified {
+		t.Errorf("RuntimeVerified all pass -> want Verified, got %s", got)
+	}
+	// RuntimeVerified + security BLOCKED -> stays RuntimeVerified
+	got = MCPIdentityStatusRuntimeVerified.Promote(true, RuntimeVerificationStatusPassed, SecurityStatusBlocked)
+	if got != MCPIdentityStatusRuntimeVerified {
+		t.Errorf("RuntimeVerified BLOCKED -> want RuntimeVerified, got %s", got)
+	}
+	// NotMCP never moves
+	got = MCPIdentityStatusNotMCP.Promote(true, RuntimeVerificationStatusPassed, SecurityStatusClean)
+	if got != MCPIdentityStatusNotMCP {
+		t.Errorf("NotMCP should not transition, got %s", got)
+	}
+	// Verified stays Verified
+	got = MCPIdentityStatusVerified.Promote(true, RuntimeVerificationStatusPassed, SecurityStatusClean)
+	if got != MCPIdentityStatusVerified {
+		t.Errorf("Verified should not regress, got %s", got)
+	}
+}
+
+func TestShouldPromoteToVerified_Gating(t *testing.T) {
+	if MCPIdentityStatusStaticVerified.ShouldPromoteToVerified(false, true, RuntimeVerificationStatusPassed, SecurityStatusClean) {
+		t.Error("should not promote without staticChecked")
+	}
+	if MCPIdentityStatusStaticVerified.ShouldPromoteToVerified(true, false, RuntimeVerificationStatusPassed, SecurityStatusClean) {
+		t.Error("should not promote without runtimeChecked")
+	}
+	if MCPIdentityStatusStaticVerified.ShouldPromoteToVerified(true, true, RuntimeVerificationStatusFailed, SecurityStatusClean) {
+		t.Error("should not promote with runtime not Passed")
+	}
+	if MCPIdentityStatusStaticVerified.ShouldPromoteToVerified(true, true, RuntimeVerificationStatusPassed, SecurityStatusBlocked) {
+		t.Error("should not promote with security BLOCKED")
+	}
+	if !MCPIdentityStatusStaticVerified.ShouldPromoteToVerified(true, true, RuntimeVerificationStatusPassed, SecurityStatusClean) {
+		t.Error("should promote when all conditions met")
+	}
+}
+
+func TestValidMCPIdentityStatuses_IncludesVerified(t *testing.T) {
+	found := false
+	for _, s := range ValidMCPIdentityStatuses {
+		if s == MCPIdentityStatusVerified {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("MCPIdentityStatusVerified missing from ValidMCPIdentityStatuses (T102)")
+	}
+}

@@ -75,6 +75,9 @@ const (
 	MCPIdentityStatusStaticVerified MCPIdentityStatus = "STATIC_VERIFIED"
 	// MCPIdentityStatusRuntimeVerified - Runtime handshake passed (T078).
 	MCPIdentityStatusRuntimeVerified MCPIdentityStatus = "RUNTIME_VERIFIED"
+	// MCPIdentityStatusVerified - Full verification: static + runtime + basic
+	// security checks all passed. Final state per spec §33. (T102)
+	MCPIdentityStatusVerified MCPIdentityStatus = "VERIFIED"
 	// MCPIdentityStatusNotMCP - Confirmed non-MCP server (tutorial, client-only, collection, etc.).
 	MCPIdentityStatusNotMCP MCPIdentityStatus = "NOT_MCP"
 )
@@ -84,7 +87,60 @@ var ValidMCPIdentityStatuses = []MCPIdentityStatus{
 	MCPIdentityStatusCandidate,
 	MCPIdentityStatusStaticVerified,
 	MCPIdentityStatusRuntimeVerified,
+	MCPIdentityStatusVerified,
 	MCPIdentityStatusNotMCP,
+}
+
+// Promote applies a state transition per spec §33. Returns the new
+// state or the current state if no transition is valid. The transition
+// path is: Candidate -> StaticVerified (if staticChecked) -> RuntimeVerified
+// (if runtime passed) -> Verified (if static + runtime passed + security not
+// blocked). Already-terminal states (NotMCP, Verified) are returned
+// unchanged. (T102)
+func (s MCPIdentityStatus) Promote(
+	staticChecked bool,
+	runtimeStatus RuntimeVerificationStatus,
+	securityStatus SecurityStatus,
+) MCPIdentityStatus {
+	switch s {
+	case MCPIdentityStatusCandidate:
+		if staticChecked {
+			return MCPIdentityStatusStaticVerified
+		}
+	case MCPIdentityStatusStaticVerified:
+		if runtimeStatus == RuntimeVerificationStatusPassed {
+			return MCPIdentityStatusRuntimeVerified
+		}
+	case MCPIdentityStatusRuntimeVerified:
+		if staticChecked && runtimeStatus == RuntimeVerificationStatusPassed &&
+			securityStatus != SecurityStatusBlocked {
+			return MCPIdentityStatusVerified
+		}
+	}
+	return s
+}
+
+// ShouldPromoteToVerified reports whether an entity with the given
+// static/runtime/security state is eligible to be promoted out of its
+// current MCP identity status. spec §33. (T102)
+func (s MCPIdentityStatus) ShouldPromoteToVerified(
+	staticChecked bool,
+	runtimeChecked bool,
+	runtimeStatus RuntimeVerificationStatus,
+	securityStatus SecurityStatus,
+) bool {
+	if !staticChecked || !runtimeChecked {
+		return false
+	}
+	if runtimeStatus != RuntimeVerificationStatusPassed {
+		return false
+	}
+	if securityStatus == SecurityStatusBlocked {
+		return false
+	}
+	return s == MCPIdentityStatusStaticVerified ||
+		s == MCPIdentityStatusRuntimeVerified ||
+		s == MCPIdentityStatusVerified
 }
 
 var validMCPIdentityStatusSet = map[MCPIdentityStatus]bool{
@@ -123,6 +179,8 @@ func CanTransitionMCPIdentityStatus(from, to MCPIdentityStatus) bool {
 	case MCPIdentityStatusStaticVerified:
 		return to == MCPIdentityStatusRuntimeVerified || to == MCPIdentityStatusNotMCP
 	case MCPIdentityStatusRuntimeVerified:
+		return to == MCPIdentityStatusVerified || to == MCPIdentityStatusNotMCP
+	case MCPIdentityStatusVerified:
 		return to == MCPIdentityStatusNotMCP
 	default:
 		return false
