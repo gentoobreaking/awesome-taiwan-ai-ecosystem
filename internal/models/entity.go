@@ -393,13 +393,21 @@ type AIRelevance struct {
 
 // MCPIdentity holds MCP identity verification result (spec §4.3, §45, §59).
 type MCPIdentity struct {
-	Status              MCPIdentityStatus      `json:"status"`
-	Evidence            []Evidence             `json:"evidence"`
-	Confidence          float64                `json:"confidence"`
-	Role                MCPRole                `json:"role"`
-	SecondaryRoles      []MCPRole              `json:"secondary_roles,omitempty"`
-	StaticCheckedAt     *RFC3339Time           `json:"static_checked_at,omitempty"`
-	RuntimeVerifiedAt   *RFC3339Time           `json:"runtime_verified_at,omitempty"`
+	Related            bool                   `json:"related"`             // T104: spec §37 mcp.related
+	Status             MCPIdentityStatus      `json:"status"`
+	Evidence           []Evidence             `json:"evidence"`
+	Confidence         float64                `json:"confidence"`
+	Role               MCPRole                `json:"role"`
+	SecondaryRoles     []MCPRole              `json:"secondary_roles,omitempty"`
+	StaticCheckedAt    *RFC3339Time           `json:"static_checked_at,omitempty"`
+	RuntimeVerifiedAt  *RFC3339Time           `json:"runtime_verified_at,omitempty"`
+}
+
+// IsMCPRelated reports whether the entity has any MCP-related signal,
+// independent of its MCP identity status (spec §37 mcp.related).
+// (T104)
+func (e *Entity) IsMCPRelated() bool {
+	return e.MCPIdentity.Related
 }
 
 // RuntimeVerificationStatus represents runtime verification status.
@@ -552,8 +560,9 @@ type RepositoryInfo struct {
 	PackageFiles  map[string]string `json:"package_files"`
 }
 
-// SourceReference holds discovery source info (spec §16, §64).
+// SourceReference holds discovery source info (spec §16, §37, §64).
 type SourceReference struct {
+	Primary      bool        `json:"primary"`        // T104: spec §37 source.primary
 	Source       string      `json:"source"`        // github, glama, pulsemcp, mcpso, official-registry, manual, recursive
 	URL          string      `json:"url"`
 	DiscoveredAt RFC3339Time `json:"discovered_at"`

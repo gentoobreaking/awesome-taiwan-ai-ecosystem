@@ -745,3 +745,38 @@ func TestToMCPServerView(t *testing.T) {
 		t.Error("ToMCPServerView() should return nil for non-RUNTIME_VERIFIED")
 	}
 }
+func TestEntity_SourceReference_Primary(t *testing.T) {
+	// T104: SourceReference.Primary is the first source after normalize.
+	e := &Entity{
+		Sources: []SourceReference{
+			{Source: "github", URL: "https://github.com/foo/bar", Primary: true},
+			{Source: "mcpserversorg", URL: "https://mcpservers.org/servers/bar"},
+		},
+	}
+	if !e.Sources[0].Primary {
+		t.Error("first source must have Primary=true")
+	}
+	if e.Sources[1].Primary {
+		t.Error("second source must have Primary=false")
+	}
+}
+
+func TestEntity_MCPIdentity_Related(t *testing.T) {
+	// T104: mcp.related boolean is independent of mcp.identity.status.
+	e := &Entity{
+		MCPIdentity: MCPIdentity{
+			Related: true,
+			Status:  MCPIdentityStatusNotMCP,
+		},
+	}
+	if !e.IsMCPRelated() {
+		t.Error("IsMCPRelated() should return true when Related is true")
+	}
+	// And without Related set.
+	e2 := &Entity{
+		MCPIdentity: MCPIdentity{Status: MCPIdentityStatusNotMCP},
+	}
+	if e2.IsMCPRelated() {
+		t.Error("IsMCPRelated() should be false by default")
+	}
+}

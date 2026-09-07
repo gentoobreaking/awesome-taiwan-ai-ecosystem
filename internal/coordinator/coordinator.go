@@ -325,6 +325,15 @@ func (pc *PipelineCoordinator) runNormalize(ctx context.Context, crawlID string,
 		entities = append(entities, pc.serverToEntity(s))
 	}
 
+	// T104: mark the first source as primary per spec §37 source.primary.
+	// serverToEntity copies all sources verbatim; we apply the boolean here
+	// so the helper stays a plain conversion.
+	for _, e := range entities {
+		for i := range e.Sources {
+			e.Sources[i].Primary = i == 0
+		}
+	}
+
 	pc.logger.Info(ctx, crawlID, "NORMALIZER", "complete",
 		"input", len(servers), "output", len(entities))
 	return entities, nil
@@ -442,6 +451,19 @@ func (pc *PipelineCoordinator) runClassifier(ctx context.Context, crawlID string
 func (pc *PipelineCoordinator) runMCPIdentity(ctx context.Context, crawlID string, entities []*models.Entity) {
 	for i := range entities {
 		e := entities[i]
+		// T104: any MCP evidence collection makes the entity MCP-related
+		// (spec §37 mcp.related), independent of the final status.
+		// Classifier can also flag related categories (MCP_CLIENT,
+		// MCP_HOST, etc.) so we OR in those signals too.
+		e.MCPIdentity.Related = e.Classification.Primary == models.PrimaryClassificationMCPServer ||
+			e.Classification.Primary == models.PrimaryClassificationMCPClient ||
+			e.Classification.Primary == models.PrimaryClassificationMCPHost ||
+			e.Classification.Primary == models.PrimaryClassificationMCPSDK ||
+			e.Classification.Primary == models.PrimaryClassificationMCPLibrary ||
+			e.Classification.Primary == models.PrimaryClassificationMCPCollection ||
+			e.Classification.Primary == models.PrimaryClassificationMCPExtension ||
+			e.Classification.Primary == models.PrimaryClassificationMCPSkill
+
 		if e.Classification.Primary == models.PrimaryClassificationMCPServer {
 			e.MCPIdentity.Status = models.MCPIdentityStatusStaticVerified
 		} else {
