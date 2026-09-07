@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -31,7 +32,7 @@ func TestKeywordMatrix(t *testing.T) {
 	foundTWSE := false
 	foundGovData := false
 	foundAI := false
-	for _, kw := range KeywordMatrix {
+	for _, kw := range MCPKeywordMatrix {
 		if kw == "mcp Taiwan" {
 			foundTaiwan = true
 		}
@@ -41,29 +42,35 @@ func TestKeywordMatrix(t *testing.T) {
 		if kw == `mcp "data.gov.tw"` {
 			foundGovData = true
 		}
+	}
+	for _, kw := range BroadKeywordMatrix {
 		if kw == "Taiwan AI" {
 			foundAI = true
 		}
 	}
 	if !foundTaiwan {
-		t.Error("Missing 'mcp Taiwan' keyword")
+		t.Error("Missing 'mcp Taiwan' in MCPKeywordMatrix")
 	}
 	if !foundTWSE {
-		t.Error("Missing 'mcp TWSE' keyword")
+		t.Error("Missing 'mcp TWSE' in MCPKeywordMatrix")
 	}
 	if !foundGovData {
-		t.Error("Missing 'mcp \"data.gov.tw\"' keyword")
+		t.Error("Missing 'mcp \"data.gov.tw\"' in MCPKeywordMatrix")
 	}
 	if !foundAI {
-		t.Error("Missing 'Taiwan AI' keyword")
+		t.Error("Missing 'Taiwan AI' in BroadKeywordMatrix")
 	}
 }
 
 func TestDiscoverWithMockServer(t *testing.T) {
-	// Temporarily override KeywordMatrix to test with a single keyword
-	original := KeywordMatrix
-	KeywordMatrix = []string{"Taiwan AI"}
-	defer func() { KeywordMatrix = original }()
+	// Temporarily override BroadKeywordMatrix to test with a single keyword
+	// (T101: KeywordMatrix is now an alias for BroadKeywordMatrix; we
+	// override both to be safe in case future code goes through the alias.)
+	originalBroad := BroadKeywordMatrix
+	originalAlias := KeywordMatrix
+	BroadKeywordMatrix = []string{"Taiwan AI"}
+	KeywordMatrix = BroadKeywordMatrix
+	defer func() { BroadKeywordMatrix = originalBroad; KeywordMatrix = originalAlias }()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/search/repositories" {
 			resp := map[string]any{
@@ -342,4 +349,35 @@ func TestExtractTransportsFromReadme(t *testing.T) {
 
 func TestGitHubAdapterImplementsInterface(t *testing.T) {
 	var _ sources.SourceAdapter = (*GitHubAdapter)(nil)
+}
+
+func TestBroadKeywordMatrix_NoMCPStrings(t *testing.T) {
+	// T101: spec §3 #1 forbids assuming "MCP" in the keyword means
+	// MCP server. BroadKeywordMatrix should not contain MCP-anchored
+	// queries; those moved to MCPKeywordMatrix (opt-in).
+	for _, q := range BroadKeywordMatrix {
+		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(q)), "mcp ") {
+			t.Errorf("BroadKeywordMatrix contains MCP-anchored query %q (should be in MCPKeywordMatrix)", q)
+		}
+	}
+}
+
+func TestKeywordMatrix_AliasForBroad(t *testing.T) {
+	// T101: KeywordMatrix kept as alias for backward compatibility.
+	if len(KeywordMatrix) != len(BroadKeywordMatrix) {
+		t.Errorf("KeywordMatrix alias length %d, want %d", len(KeywordMatrix), len(BroadKeywordMatrix))
+	}
+	for i := range BroadKeywordMatrix {
+		if KeywordMatrix[i] != BroadKeywordMatrix[i] {
+			t.Errorf("KeywordMatrix[%d] = %q, want %q", i, KeywordMatrix[i], BroadKeywordMatrix[i])
+		}
+	}
+}
+
+func TestMCPKeywordMatrix_OnlyMCPAnchored(t *testing.T) {
+	for _, q := range MCPKeywordMatrix {
+		if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(q)), "mcp ") {
+			t.Errorf("MCPKeywordMatrix should only contain MCP-anchored queries, got %q", q)
+		}
+	}
 }

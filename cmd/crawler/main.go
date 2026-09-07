@@ -58,6 +58,7 @@ var (
 	batchSize       int
 	dryRun          bool
 	verbose         bool
+	includeMCPAnchored bool
 )
 
 func main() {
@@ -174,6 +175,7 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&sourceFlag, "source", "all", "source to crawl (github, registry, mcpserversorg, mcpmarket, all)")
 	rootCmd.PersistentFlags().BoolVar(&incremental, "incremental", false, "run incremental crawl")
 	rootCmd.PersistentFlags().StringVar(&pipelineFlag, "pipeline", "full", "pipeline mode: full|discovery-only|classify-only|verify-only")
+	rootCmd.PersistentFlags().BoolVar(&includeMCPAnchored, "include-mcp-anchored", false, "opt-in to MCP-anchored GitHub discovery queries (default off, spec §3 #1)")
 	rootCmd.PersistentFlags().IntVar(&workers, "workers", 4, "number of workers per source")
 	rootCmd.PersistentFlags().IntVar(&minScore, "min-score", 0, "minimum quality score filter")
 	rootCmd.PersistentFlags().StringVar(&capabilityFlag, "capability", "", "search by capability keywords")
@@ -211,7 +213,9 @@ func openStore() (*storage.Store, error) {
 func setupCrawler(store *storage.Store) (*crawler.CrawlCoordinator, *coordinator.PipelineCoordinator) {
 	logger := metrics.New(false)
 	var adapters []sources.SourceAdapter
-	adapters = append(adapters, github.New(os.Getenv("GITHUB_TOKEN")))
+	ghAdapter := github.New(os.Getenv("GITHUB_TOKEN"))
+	ghAdapter.IncludeMCPAnchored = includeMCPAnchored
+	adapters = append(adapters, ghAdapter)
 	adapters = append(adapters, githubrepo.New("modelcontextprotocol/servers", os.Getenv("GITHUB_TOKEN")))
 	adapters = append(adapters, githubrepo.New("modelcontextprotocol/servers-archived", os.Getenv("GITHUB_TOKEN")))
 	adapters = append(adapters, registry.New())

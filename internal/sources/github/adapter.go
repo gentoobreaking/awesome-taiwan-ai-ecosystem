@@ -21,18 +21,10 @@ import (
 // TrustScore for GitHub source — highest trust among all sources.
 const TrustScore = 0.95
 
-// KeywordMatrix defines the discovery query strategy (spec §6, §42).
-// Combines Taiwan signals + AI signals for broad discovery, not just MCP keywords.
-var KeywordMatrix = []string{
-	// Taiwan + MCP (high precision)
-	"mcp Taiwan",
-	"mcp Taiwanese",
-	"mcp 台灣",
-	`mcp "data.gov.tw"`,
-	"mcp TWSE",
-	"mcp TAIEX",
-	"mcp FinTech Taiwan",
-
+// BroadKeywordMatrix is the primary discovery query set (spec §6.1, §64 DoD #1).
+// Contains only Taiwan + AI signals. No MCP keywords — MCP is a classification
+// category, not a discovery boundary (spec §3 #1, §63).
+var BroadKeywordMatrix = []string{
 	// Taiwan + AI (broad discovery)
 	"Taiwan AI",
 	"Taiwan artificial intelligence",
@@ -42,23 +34,19 @@ var KeywordMatrix = []string{
 	"Taipei AI",
 	"TAIPEI AI Lab",
 	"Taiwan LLM",
-	"Taiwan LLM MCP",
 	"Taiwan LLMOps",
 	"Taiwan RAG",
 	"Taiwan embedding",
 	"Taiwan vector database",
-
 	// AI + Taiwan financial keywords
 	"AI stock Taiwan",
 	"AI trading TWSE",
 	"AI FinTech Taiwan",
 	"AI data.gov.tw",
-
 	// Taiwan government + AI
 	"AI 政府",
 	"AI 政务",
 	"AI 政务 台湾",
-
 	// AI frameworks/toolkits + Taiwan
 	"LangChain Taiwan",
 	"LlamaIndex Taiwan",
@@ -68,11 +56,30 @@ var KeywordMatrix = []string{
 	"Semantic Kernel Taiwan",
 }
 
+// MCPKeywordMatrix is an optional precision boost for MCP-anchored discovery.
+// NOT executed by default. Enable with --include-mcp-anchored on the crawler
+// CLI (spec §3 #1). Kept here for backward compatibility and explicit opt-in.
+var MCPKeywordMatrix = []string{
+	"mcp Taiwan",
+	"mcp Taiwanese",
+	"mcp 台灣",
+	`mcp "data.gov.tw"`,
+	"mcp TWSE",
+	"mcp TAIEX",
+	"mcp FinTech Taiwan",
+}
+
+// KeywordMatrix is kept as an alias for backward compatibility with
+// existing tests and external imports that reference the old name. New
+// code should use BroadKeywordMatrix. T101.
+var KeywordMatrix = BroadKeywordMatrix
+
 // GitHubAdapter implements SourceAdapter for GitHub.
 type GitHubAdapter struct {
-	Token      string
-	HTTPClient HTTPClient
-	BaseURL    string
+	Token              string
+	HTTPClient         HTTPClient
+	BaseURL            string
+	IncludeMCPAnchored bool // T101: opt-in MCP-anchored keywords (default false)
 }
 
 // HTTPClient is the interface for making HTTP requests.
@@ -140,7 +147,14 @@ func (a *GitHubAdapter) Discover(ctx context.Context) ([]models.RawCandidate, er
 
 	var allCandidates []models.RawCandidate
 
-	for _, keyword := range KeywordMatrix {
+	// T101: build the query set based on the IncludeMCPAnchored opt-in.
+	// Broad-only is the default (spec §3 #1, §64 DoD #1).
+	queries := BroadKeywordMatrix
+	if a.IncludeMCPAnchored {
+		queries = append(queries, MCPKeywordMatrix...)
+	}
+
+	for _, keyword := range queries {
 		select {
 		case <-ctx.Done():
 			return allCandidates, ctx.Err()
