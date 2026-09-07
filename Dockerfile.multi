@@ -95,9 +95,7 @@ FROM nginx:alpine AS web
 COPY --from=web-builder /web/dist /usr/share/nginx/html
 
 # Non-root nginx config
-RUN sed -i 's/user nginx;/#user nginx;/' /etc/nginx/nginx.conf && \
-    echo 'user nobody;' > /etc/nginx/conf.d/default.conf && \
-    echo 'worker_processes auto;' >> /etc/nginx/conf.d/default.conf
+RUN sed -i 's/user nginx;/#user nginx;/' /etc/nginx/nginx.conf
 
 EXPOSE 80
 
