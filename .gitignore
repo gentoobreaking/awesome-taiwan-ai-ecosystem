@@ -34,3 +34,8 @@ web/node_modules/
 web/dist/
 web/.vite/
 web/coverage/
+
+# Build artifacts
+/node_modules/
+/exporter/
+/migrator/
