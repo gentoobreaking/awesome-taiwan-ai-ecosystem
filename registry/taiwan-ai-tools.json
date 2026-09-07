@@ -27,6 +27,7 @@
         "confidence": 0
       },
       "mcp_identity": {
+        "related": false,
         "status": "NOT_MCP",
         "evidence": null,
         "confidence": 0,
@@ -114,6 +115,7 @@
         "confidence": 0
       },
       "mcp_identity": {
+        "related": false,
         "status": "NOT_MCP",
         "evidence": null,
         "confidence": 0,
@@ -201,6 +203,7 @@
         "confidence": 0
       },
       "mcp_identity": {
+        "related": false,
         "status": "NOT_MCP",
         "evidence": null,
         "confidence": 0,
@@ -288,6 +291,7 @@
         "confidence": 0
       },
       "mcp_identity": {
+        "related": false,
         "status": "NOT_MCP",
         "evidence": null,
         "confidence": 0,
@@ -375,6 +379,7 @@
         "confidence": 0
       },
       "mcp_identity": {
+        "related": false,
         "status": "NOT_MCP",
         "evidence": null,
         "confidence": 0,

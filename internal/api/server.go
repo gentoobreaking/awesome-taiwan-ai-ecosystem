@@ -418,19 +418,23 @@ func (s *Server) handleRegistryMarkdown(w http.ResponseWriter, r *http.Request) 
 	const dir = "/data/registry"
 	file := r.URL.Query().Get("file")
 	if file == "" {
-		// List mode: return the available view files as a JSON index
-		// (the frontend can pick one to render). Plain JSON is easier
-		// than parsing a directory listing.
-		entries, err := os.ReadDir(dir)
+		// List mode: walk the registry tree and return every .md file
+		// (T-INDEX). This includes INDEX.md plus files in
+		// malicious/ and security/injection/ subdirectories.
+		names := []string{}
+		err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return nil // skip unreadable entries
+			}
+			if !info.IsDir() && strings.HasSuffix(info.Name(), ".md") {
+				rel, _ := filepath.Rel(dir, path)
+				names = append(names, rel)
+			}
+			return nil
+		})
 		if err != nil {
 			s.writeAPIError(w, http.StatusInternalServerError, "directory_error", err.Error())
 			return
-		}
-		names := []string{}
-		for _, e := range entries {
-			if !e.IsDir() && strings.HasSuffix(e.Name(), ".md") {
-				names = append(names, e.Name())
-			}
 		}
 		sort.Strings(names)
 		s.writeJSON(w, http.StatusOK, map[string]any{
