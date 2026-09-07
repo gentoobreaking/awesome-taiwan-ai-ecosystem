@@ -418,8 +418,7 @@ func (s *Server) handleRegistryMarkdown(w http.ResponseWriter, r *http.Request) 
 		}
 		sort.Strings(names)
 		s.writeJSON(w, http.StatusOK, map[string]any{
-			"directory": dir,
-			"files":     names,
+			"files": names,
 		})
 		return
 	}

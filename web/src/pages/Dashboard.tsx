@@ -104,7 +104,7 @@ export default function Dashboard() {
         </>
       )}
 
-      {mdFiles.length > 0 && (
+      {selectedMd && (
         <div className="bg-white rounded-lg shadow">
           <div className="border-b border-gray-200 px-4 py-3 flex items-center gap-3 flex-wrap">
             <h2 className="text-lg font-semibold text-gray-900">Registry Views (spec §60)</h2>
@@ -112,10 +112,15 @@ export default function Dashboard() {
               className="px-3 py-1 border border-gray-300 rounded text-sm"
               value={selectedMd}
               onChange={(e) => setSelectedMd(e.target.value)}
+              disabled={mdFiles.length === 0}
             >
-              {mdFiles.map((f) => (
-                <option key={f} value={f}>{f}</option>
-              ))}
+              {mdFiles.length === 0 ? (
+                <option value={selectedMd}>{selectedMd}</option>
+              ) : (
+                mdFiles.map((f) => (
+                  <option key={f} value={f}>{f}</option>
+                ))
+              )}
             </select>
             {mdLoading && <span className="text-xs text-gray-500">loading…</span>}
           </div>

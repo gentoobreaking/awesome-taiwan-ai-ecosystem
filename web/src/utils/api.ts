@@ -128,7 +128,7 @@ export const api = {
   },
 
   // List available markdown view files (no file= param).
-  registryMarkdownIndex(): Promise<{ directory: string; files: string[] }> {
+  registryMarkdownIndex(): Promise<{ files: string[] }> {
     return apiFetch('/registry/markdown');
   },
 
