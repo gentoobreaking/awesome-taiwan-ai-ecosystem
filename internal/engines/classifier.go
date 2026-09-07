@@ -77,6 +77,20 @@ func (c *Classifier) classifyByRules(entity *models.Entity) models.Classificatio
 	var evidence []models.ClassificationEvidence
 	reasoning := []string{}
 
+	// Priority -0.5: Data Library / Data Infrastructure guard
+	// (spec §22, §23, §48, T111). A pure data SDK or database
+	// schema that happens to expose an MCP-style API must not be
+	// promoted to MCP_SERVER. Run before Priority 1 so the
+	// isMCPServer rule never gets a chance to fire on these.
+	if c.isDataLibraryOrInfrastructure(entity) {
+		if c.isDataLibraryDescription(entity) {
+			return c.buildResult(models.PrimaryClassificationAIDataset, evidence, reasoning, models.MCPRoleNone)
+		}
+		if c.isDataInfrastructureDescription(entity) {
+			return c.buildResult(models.PrimaryClassificationAIInfrastructure, evidence, reasoning, models.MCPRoleNone)
+		}
+	}
+
 	// Priority 1: MCP_SERVER - Source code contains MCP server implementation
 	if c.isMCPServer(entity, &evidence, &reasoning) {
 		return c.buildResult(models.PrimaryClassificationMCPServer, evidence, reasoning, models.MCPRoleServer)
@@ -819,4 +833,78 @@ func (c *Classifier) buildResult(primary models.PrimaryClassification, evidence 
 		MCPRole:      mcpRole,
 		Reasoning:    strings.Join(reasoning, "; "),
 	}
+}
+// T111: data library / data infrastructure description signals.
+// These short-circuit MCP_SERVER promotion per spec §22, §23, §48.
+
+var dataLibrarySignals = []string{
+	"data library", "data sdk", "market data", "stock data", "data pipeline",
+	"data feed", "data api", "stock api", "twse api", "tpex api",
+	"金融資料", "股市資料", "市場資料",
+}
+
+var dataInfrastructureSignals = []string{
+	"database schema", "migration system", "etl", "data warehouse",
+	"data pipeline", "data layer", "postgres schema", "postgresql schema",
+	"alembic", "flyway", "prisma schema", "knex migrations",
+}
+
+// isDataLibraryOrInfrastructure reports whether the entity's
+// description hints at a data-only project (which the spec forbids
+// from being upgraded to MCP_SERVER). (T111)
+func (c *Classifier) isDataLibraryOrInfrastructure(entity *models.Entity) bool {
+	return c.isDataLibraryDescription(entity) || c.isDataInfrastructureDescription(entity)
+}
+
+// isDataLibraryDescription checks description text for SDK/data-feed
+// signals. Returns false if the description also claims to be an
+// MCP server (then it should be classified as MCP_SERVER, not as a
+// data library — T111). (T111)
+func (c *Classifier) isDataLibraryDescription(entity *models.Entity) bool {
+	desc := strings.ToLower(entity.Description)
+	// Suppress: if the description claims MCP server, this is not a
+	// pure data library.
+	for _, mcp := range []string{"mcp server", "model context protocol server", "fastmcp", "stdio_server"} {
+		if strings.Contains(desc, mcp) {
+			return false
+		}
+	}
+	for _, s := range dataLibrarySignals {
+		if strings.Contains(desc, s) {
+			return true
+		}
+	}
+	// Also check name patterns like 'twmarketdata', 'twstock-api'.
+	name := strings.ToLower(entity.Name)
+	for _, s := range []string{"twmarket", "twstock", "twdata", "taiwandata", "fugle"} {
+		if strings.Contains(name, s) {
+			return true
+		}
+	}
+	return false
+}
+
+// isDataInfrastructureDescription checks description for db /
+// schema / migration / ETL / warehouse signals. Same MCP-server
+// suppression as the library rule. (T111)
+func (c *Classifier) isDataInfrastructureDescription(entity *models.Entity) bool {
+	desc := strings.ToLower(entity.Description)
+	for _, mcp := range []string{"mcp server", "model context protocol server", "fastmcp", "stdio_server"} {
+		if strings.Contains(desc, mcp) {
+			return false
+		}
+	}
+	for _, s := range dataInfrastructureSignals {
+		if strings.Contains(desc, s) {
+			return true
+		}
+	}
+	for _, t := range entity.Repository.Topics {
+		topic := strings.ToLower(t)
+		if topic == "database" || topic == "schema" || topic == "etl" ||
+			topic == "postgres" || topic == "postgresql" || topic == "sqlalchemy" {
+			return true
+		}
+	}
+	return false
 }
