@@ -283,8 +283,8 @@ func TestStatisticsEndpoint(t *testing.T) {
 		t.Fatalf("Failed to decode: %v", err)
 	}
 
-	if stats["total_servers"] != float64(3) {
-		t.Errorf("expected total_servers 3, got %v", stats["total_servers"])
+	if stats["total_servers"] != float64(2) {
+		t.Errorf("expected total_servers 2 (T1+ only after MinTaiwanLevel default), got %v", stats["total_servers"])
 	}
 	if stats["taiwan_relevant"] != float64(2) {
 		t.Errorf("expected taiwan_relevant 2, got %v", stats["taiwan_relevant"])

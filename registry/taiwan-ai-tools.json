@@ -1,9 +1,445 @@
 {
   "crawler_version": "1.0.0",
   "description": "Taiwan AI Tools, SDKs, Frameworks, Plugins (T1+)",
-  "entities": null,
+  "entities": [
+    {
+      "id": "f0cc17aeb8a402f12a88edb80295da75096c45d20903d90c8427e15b31282b24",
+      "name": "taiwan-property-price-cli",
+      "slug": "taiwan-property-price-cli",
+      "description": "[![npm version](https://img.shields.io/npm/v/tw-lvr-cli.svg)](https://www.npmjs.com/package/tw-lvr-cli) [![license](https://img.shields.io/npm/l/tw-lvr-cli.svg)](./LICENSE) [![node](https://img.shields.io/node/v/tw-lvr-cli.svg)](https://nodejs.org)",
+      "classification": {
+        "primary": "AI_TOOL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 45,
+        "level": "T3",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 72,
+        "grade": "C",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/felixfu824/taiwan-property-price-cli",
+        "host": "",
+        "owner": "",
+        "name": "taiwan-property-price-cli",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "300e450150cda05604e78f7722c4802a8907afe8282eca9b2cdb2243c98c9963",
+      "name": "tpex-cli",
+      "slug": "tpex-cli",
+      "description": "本平臺提供櫃檯買賣市場資料服務API，包含上櫃、興櫃、創櫃及債券等發行及交易資訊，歡迎各位介接使用。\u003cbr\u003e\u003cbr\u003e[使用條款](https://www.tpex.org.tw/web/inc/gtsm_disclaimer.php?l=zh-tw)\u003cbr\u003e[聯絡窗口](mailTo:apiteam@swagger.io)",
+      "classification": {
+        "primary": "AI_TOOL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 75,
+        "level": "T5",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 71,
+        "grade": "C",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/tyhsup/tpex-cli",
+        "host": "",
+        "owner": "",
+        "name": "tpex-cli",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "84add90694987e11f14ead6482abc6e78ca1ac20152592bdea550eafa9f2edc4",
+      "name": "mopsfin-mcp",
+      "slug": "mopsfin-mcp",
+      "description": "目前版本 `0.11.0`。這是一個公開、唯讀、無資料庫的台灣公司財務與市場資料 MCP Server，以 Next.js 16 App Router 與 MCP TypeScript SDK v2 實作，透過 Stateless Streamable HTTP `/api/mcp` 暴露 26 個工具；財務查詢直接存取[公開資訊觀測站－財務比較 E 點通](https://mopsfin.twse.com.tw/)，上市櫃公司母體、原始日線價量、可稽核的公司行動調整價格序列、歷史估值、月營收、大盤指數、公司行動實際結果、年度開休市日曆、重大訊息與法人說明會、current official catalyst snapshots 直接取自 MOPS、TWSE 與 TPEx 官方資料。另可將 caller 自行觀察的價格與官方最近完成交易日收盤價分開標示後比較；caller 值不會被冒充成官方或即時行情。",
+      "classification": {
+        "primary": "AI_SDK",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 100,
+        "level": "T5",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 69,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/victorfu/mopsfin-mcp",
+        "host": "",
+        "owner": "",
+        "name": "mopsfin-mcp",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "83e5f7c5c9879dd11332a83ec1748d104e0d58ac20fcfbbb2cc6f86153a1cbb8",
+      "name": "twse-cli",
+      "slug": "twse-cli",
+      "description": "本平臺提供臺灣證券交易所服務API，歡迎各位介接使用。\u003cbr\u003e\u003cbr\u003e[使用條款](https://www.twse.com.tw/zh/page/terms/use.html)",
+      "classification": {
+        "primary": "AI_TOOL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 55,
+        "level": "T4",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 63,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/tyhsup/twse-cli",
+        "host": "",
+        "owner": "",
+        "name": "twse-cli",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "efa50a0de003a2a75173381d79308123cc196b04bebece15b4a4a5cd0555e966",
+      "name": "mcp-vscode-cline",
+      "slug": "mcp-vscode-cline",
+      "description": "* [Youtube Tutorial - 用 Cline 在 VSCode 玩轉 Model Context Protocol (MCP)](https://youtu.be/t_n9xWmhEZw)",
+      "classification": {
+        "primary": "AI_TOOL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 20,
+        "level": "T2",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 58,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/twtrubiks/mcp-vscode-cline",
+        "host": "",
+        "owner": "",
+        "name": "mcp-vscode-cline",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    }
+  ],
   "generated_at": "0001-01-01T00:00:00Z",
   "schema_version": "2.0",
-  "total_entities": 0,
+  "total_entities": 5,
   "view_name": "taiwan-ai-tools"
 }

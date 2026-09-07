@@ -17,6 +17,7 @@ type EntityFilter struct {
 	PrimaryClassification string
 	MCPIdentityStatus     string
 	TaiwanLevel           models.TaiwanRelevanceLevel
+	MinTaiwanLevel        models.TaiwanRelevanceLevel // T-series minimum (T0..T5)
 	SecurityStatus        models.SecurityStatus
 	QualityMin            int
 	Limit                 int
@@ -339,6 +340,29 @@ func (s *EntityStore) List(ctx context.Context, filter EntityFilter) ([]*models.
 	}
 	if filter.TaiwanLevel != "" {
 		addClause("taiwan_level", string(filter.TaiwanLevel))
+	}
+	if filter.MinTaiwanLevel != "" {
+		// Spec §60 views filter to T1+ Taiwan relevant. We OR over
+		// the allowed T levels because the JSON column is a TEXT
+		// and we don't want to depend on schema-level CHECK
+		// constraints or per-level columns.
+		or := []string{}
+		for _, lvl := range []models.TaiwanRelevanceLevel{
+			models.TaiwanRelevanceLevelT1, models.TaiwanRelevanceLevelT2,
+			models.TaiwanRelevanceLevelT3, models.TaiwanRelevanceLevelT4,
+			models.TaiwanRelevanceLevelT5,
+		} {
+			if string(lvl) >= string(filter.MinTaiwanLevel) {
+				or = append(or, fmt.Sprintf("taiwan_level = $%d", idx))
+				args = append(args, string(lvl))
+				idx++
+			}
+		}
+		if len(or) > 0 {
+			query.WriteString(" AND (")
+			query.WriteString(strings.Join(or, " OR "))
+			query.WriteString(")")
+		}
 	}
 	if filter.SecurityStatus != "" {
 		addClause("security_status", string(filter.SecurityStatus))

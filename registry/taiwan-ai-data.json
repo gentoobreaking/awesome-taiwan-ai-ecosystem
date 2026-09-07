@@ -3,6 +3,180 @@
   "description": "Taiwan AI Datasets, Data Libraries, APIs (T1+)",
   "entities": [
     {
+      "id": "450e6b4fa98161b21e66c695fcb7af299639408ba0dc22e6cabed3732c227a09",
+      "name": "taiwan-data-hub",
+      "slug": "taiwan-data-hub",
+      "description": "\u003e An open-source, self-hostable MCP service hub for Taiwan public data.",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 40,
+        "level": "T3",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 68,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/hydai/taiwan-data-hub",
+        "host": "",
+        "owner": "",
+        "name": "taiwan-data-hub",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "a384790e1b020d8ac5e9a6f8efbec0f1589b659c072dda6bdcd5ead9b2d64922",
+      "name": "TW_RealEstate_ETL",
+      "slug": "tw-realestate-etl",
+      "description": "台灣內政部**實價登錄**開放資料自動化 ETL pipeline。",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 45,
+        "level": "T3",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 61,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/tonycheng-0118/TW_RealEstate_ETL",
+        "host": "",
+        "owner": "",
+        "name": "TW_RealEstate_ETL",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
       "id": "02f74d85a5fe13ef7c340f0a73ba5bdb4b707ed95cd884a322cf74420534ab72",
       "name": "health-data-dashboard",
       "slug": "health-data-dashboard",
@@ -31,7 +205,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:39:06Z"
+        "static_checked_at": "2026-09-07T14:41:24Z"
       },
       "security_status": {
         "status": "",
@@ -87,11 +261,794 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:39:06Z"
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "4791533df5fa1d59d46360a312e3ef1e936a2aba182d2aa6f0868986f107690c",
+      "name": "twstock-screener",
+      "slug": "twstock-screener",
+      "description": "---",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 40,
+        "level": "T3",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 61,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/leeeeeder/twstock-screener",
+        "host": "",
+        "owner": "",
+        "name": "twstock-screener",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "142a2dd68d0cf1db1275adc276d7aaf32dcc0e54b805f68dc67314b1accec6e7",
+      "name": "pipe-stock-analysis",
+      "slug": "pipe-stock-analysis",
+      "description": "Self-hostable, read-only financial-market **MCP (Model Context Protocol, a standard for AI clients to invoke external tools)** server for Taiwan-listed securities and global stocks. It retrieves market data and computes reproducible indicators; it does not make investment decisions or place trades.",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 35,
+        "level": "T2",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 60,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/Gratia2533/pipe-stock-analysis",
+        "host": "",
+        "owner": "",
+        "name": "pipe-stock-analysis",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "7ca7326a913f8648552d9fe5bf41dc09b8add4276d302bf91baf3beecec0edcb",
+      "name": "taiwan-data-mcp",
+      "slug": "taiwan-data-mcp",
+      "description": "讓 AI 助理（Claude、Cursor、任何支援 MCP 的工具）直接查 **台灣公開資料** 的 MCP server。",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 30,
+        "level": "T2",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 50,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/kewelin/taiwan-data-mcp",
+        "host": "",
+        "owner": "",
+        "name": "taiwan-data-mcp",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "5093c3507576364f35d08bb13a6f4bb78999f8aa4b296ec5b8ff74c851837149",
+      "name": "twmarketdata",
+      "slug": "twmarketdata",
+      "description": "**TWMD = TW Market Data = [twmarketdata.com](https://twmarketdata.com)** — the official Python SDK for Taiwan market data.",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 70,
+        "level": "T5",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 50,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/TW-Market-Data/twmarketdata",
+        "host": "",
+        "owner": "",
+        "name": "twmarketdata",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "7fd6f2f33b616c65567b0f814d786382ee381ffb1aadb789c98ef800b3a884cc",
+      "name": "tw-market-live-data-intelligence",
+      "slug": "tw-market-live-data-intelligence",
+      "description": "Historical context is preserved in [`docs/archive/readme/README_20260630_M5LRM_ARCHITECTURE_CONVERGENCE.md`](docs/archive/readme/README_20260630_M5LRM_ARCHITECTURE_CONVERGENCE.md).",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 90,
+        "level": "T5",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 48,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/SmartyJohnway/tw-market-live-data-intelligence",
+        "host": "",
+        "owner": "",
+        "name": "tw-market-live-data-intelligence",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "d864a11e4b8e156eeb3d048ee54f7d520eee321651aa343f81483761a4201bc2",
+      "name": "twmd-skill",
+      "slug": "twmd-skill",
+      "description": "Turn any AI (Claude / ChatGPT / Cursor / your agent) into a **TW Market Data onboarding + answer-desk**, and drop TWMD into whatever you already use — data vendors, backtesters, platforms, warehouses, BI, agents.",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 46,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/TW-Market-Data/twmd-skill",
+        "host": "",
+        "owner": "",
+        "name": "twmd-skill",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "e239d1ec66b2c6f09b02d7ce7711f855b228fc4303d51c76598998f7a6977a11",
+      "name": "TwStockEmulator",
+      "slug": "twstockemulator",
+      "description": "這是一個和 `台股研究團隊` 完全脫勾的獨立桌面程式。它不開本機 Web server，不使用 WebView，也不 import 舊專案任何模組。",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 35,
+        "level": "T2",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 41,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/love0835/TwStockEmulator",
+        "host": "",
+        "owner": "",
+        "name": "TwStockEmulator",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "7254eb870be420c58241ce95c763fd506058daeefcca7eb05d75d1f0fa333a73",
+      "name": "twstock-heatmap",
+      "slug": "twstock-heatmap",
+      "description": "\u003e 自動擷取台股熱力圖並使用 AI 分析跌幅排行,生成結構化 JSON API 與互動式熱力圖視覺化",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 35,
+        "level": "T2",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 41,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/JacobHsu/twstock-heatmap",
+        "host": "",
+        "owner": "",
+        "name": "twstock-heatmap",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "395f171d7a96db8c504b2bf081522a1c2bfe9897d82cc00cd2d5d64e96415f77",
+      "name": "fugle-marketdata-mcp-server",
+      "slug": "fugle-marketdata-mcp-server",
+      "description": "富果行情 MCP (Model Context Protocol) 服務器，用於與富果交易系統進行互動。此服務器支持股票行情查詢。",
+      "classification": {
+        "primary": "AI_DATASET",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 20,
+        "level": "T2",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 36,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/fugle-dev/fugle-marketdata-mcp-server",
+        "host": "",
+        "owner": "",
+        "name": "fugle-marketdata-mcp-server",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
     }
   ],
   "generated_at": "0001-01-01T00:00:00Z",
   "schema_version": "2.0",
-  "total_entities": 1,
+  "total_entities": 12,
   "view_name": "taiwan-ai-data"
 }

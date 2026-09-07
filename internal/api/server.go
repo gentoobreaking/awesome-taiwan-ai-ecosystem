@@ -158,7 +158,10 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 // handleEntities returns the full v2 entity list. This is the canonical
 // endpoint per spec §43 / §60 — the legacy /api/v1/servers filter
 // remains for backward compat but only returns MCP_SERVER views.
-// (T-frontend)
+//
+// By default this endpoint mirrors the spec §60 view generator and
+// filters to T1+ Taiwan relevant (i.e. excludes T0 noise). Pass
+// ?all=true to disable that filter and see every record.
 func (s *Server) handleEntities(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -175,6 +178,12 @@ func (s *Server) handleEntities(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filter := parseEntityFilter(r)
+	// Default to T1+ Taiwan relevant per spec §60. The all=true
+	// query disables the floor for callers that need the full set
+	// (e.g. the Statistics card on the dashboard).
+	if r.URL.Query().Get("all") != "true" && filter.MinTaiwanLevel == "" {
+		filter.MinTaiwanLevel = models.TaiwanRelevanceLevelT1
+	}
 	filter.Limit = limit
 	filter.Offset = (page - 1) * limit
 
@@ -374,7 +383,12 @@ func (s *Server) handleStatistics(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	es := storage.NewEntityStore(s.store.DB())
-	entities, err := es.List(ctx, storage.EntityFilter{})
+	filter := storage.EntityFilter{
+		// Match the §60 view filter so /statistics and the view
+		// markdown counts agree.
+		MinTaiwanLevel: models.TaiwanRelevanceLevelT1,
+	}
+	entities, err := es.List(ctx, filter)
 	if err != nil {
 		s.logger.Error("Failed to fetch for statistics", "error", err)
 		s.writeAPIError(w, http.StatusInternalServerError, "database_error", err.Error())

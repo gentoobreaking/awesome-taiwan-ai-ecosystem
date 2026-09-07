@@ -3,6 +3,528 @@
   "description": "AI Collections, Registries, MCP Collections",
   "entities": [
     {
+      "id": "83c5cfdd33d7b65d70c4b22c8acdc950128b9d0fd4a28621c2382188c31d80f6",
+      "name": "awesome-taiwan-environmental-data",
+      "slug": "awesome-taiwan-environmental-data",
+      "description": "**海洋 · 氣候 · 水文 · 能源 · 空品 · 地震 — Ocean · Climate · Hydrology · Energy · Air Quality · Seismic**",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 70,
+        "level": "T5",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 65,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/thc1006/awesome-taiwan-environmental-data",
+        "host": "",
+        "owner": "",
+        "name": "awesome-taiwan-environmental-data",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "cac795669a171e7ec2876ebf5babbe230845ba40cab62952048905c8a63c9972",
+      "name": "awesome-taiwan-ecommerce",
+      "slug": "awesome-taiwan-ecommerce",
+      "description": "精選台灣電商從業者實際用得到的平台、工具、API 與開放資料。歡迎 PR 補充（收錄標準：台灣可用、連結有效、非純廣告）。",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 70,
+        "level": "T5",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 62,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/kewelin/awesome-taiwan-ecommerce",
+        "host": "",
+        "owner": "",
+        "name": "awesome-taiwan-ecommerce",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "47744325e6a62181ac168dfbc8ea43b787e3bd00e3400de5c2cd01cb7ddb6563",
+      "name": "awesome-deepseek-harness-plugins",
+      "slug": "awesome-deepseek-harness-plugins",
+      "description": "\u003c!-- 本文件由 scripts/build-readme.mjs 从 deepseek1024.com 目录 API 自动生成，请勿手工编辑。 --\u003e",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 58,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/imsai-sh/awesome-deepseek-harness-plugins",
+        "host": "",
+        "owner": "",
+        "name": "awesome-deepseek-harness-plugins",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "b949ec21681a4cfd594b74b3d4d78f2f4e695d155dc4e11a3030aae6d2afdb03",
+      "name": "awesome-deepseek-harness",
+      "slug": "awesome-deepseek-harness",
+      "description": "\u003cp align=\"center\"\u003e",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 56,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/Dominic789654/awesome-deepseek-harness",
+        "host": "",
+        "owner": "",
+        "name": "awesome-deepseek-harness",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "514163d29ff719bf906a670847fd309943be1b4d67364f63d87951502320dae6",
+      "name": "awesome-dsh-plugin",
+      "slug": "awesome-dsh-plugin",
+      "description": "[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/banner-en.png)](https://awesome-dsh-plugin.com)",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 56,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/awesome-dsh-plugin/awesome-dsh-plugin",
+        "host": "",
+        "owner": "",
+        "name": "awesome-dsh-plugin",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "9d166c3c4030efaa334b2c4832a0b18b6cf407068bf37f0c9d41a411a8dac046",
+      "name": "awesome-multi-omics",
+      "slug": "awesome-multi-omics",
+      "description": "A [community-maintained](https://github.com/mikelove/awesome-multi-omics/graphs/contributors) list of software packages for multi-omics data analysis.",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 54,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/mikelove/awesome-multi-omics",
+        "host": "",
+        "owner": "",
+        "name": "awesome-multi-omics",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
       "id": "0981785bed52994a3396798d68bd4c807e7822d8686cbb5f3f355fd7f3b80437",
       "name": "awesome-openclaw-skills-CN",
       "slug": "awesome-openclaw-skills-cn",
@@ -31,7 +553,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:39:06Z"
+        "static_checked_at": "2026-09-07T14:41:24Z"
       },
       "security_status": {
         "status": "",
@@ -87,7 +609,790 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:39:06Z"
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "4f499f263f5063e74326266958b26547e3043d0961c201d24c1419e7fd9d1263",
+      "name": "awesome-taiwan-ai-ecosystem",
+      "slug": "awesome-taiwan-ai-ecosystem",
+      "description": "\u003cdiv align=\"center\"\u003e",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 52,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/gentoobreaking/awesome-taiwan-ai-ecosystem",
+        "host": "",
+        "owner": "",
+        "name": "awesome-taiwan-ai-ecosystem",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "6c328ccdd9d3313d68077ca51e32f142c8767756b0072873ceb5fd726cd2dafe",
+      "name": "awesome-agent-world-model",
+      "slug": "awesome-agent-world-model",
+      "description": "\u003e **智能体世界模型（Agent World Model）**——让 AI 在\"想象\"中试错、在虚拟中成长的前沿技术栈。",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 51,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/isLinXu/awesome-agent-world-model",
+        "host": "",
+        "owner": "",
+        "name": "awesome-agent-world-model",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "f316adbbffba9805a38b86982a4e53fcd1b8ccfbe6a8da95a1ba049d9b032148",
+      "name": "awesome-chatgpt-apps",
+      "slug": "awesome-chatgpt-apps",
+      "description": "\u003e Third-party integrations that run inside ChatGPT via OpenAI's Apps SDK.",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 51,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/rdmgator12/awesome-chatgpt-apps",
+        "host": "",
+        "owner": "",
+        "name": "awesome-chatgpt-apps",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "dffea37de24c2baf2e1ce867e68037b06d3f75aa2db24260470baab47ffebcd9",
+      "name": "awesome-claude-skills",
+      "slug": "awesome-claude-skills",
+      "description": "[![Awesome](https://awesome.re/badge.svg)](https://awesome.re)",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 50,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/Chat2AnyLLM/awesome-claude-skills",
+        "host": "",
+        "owner": "",
+        "name": "awesome-claude-skills",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "7ffd9e067480c31c735affc4bc80ad7b8448628023f4265ef1cb9257d1e878fb",
+      "name": "awesome-perl",
+      "slug": "awesome-perl",
+      "description": "A curated list of awesome Perl frameworks, libraries and software.",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 50,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/uhub/awesome-perl",
+        "host": "",
+        "owner": "",
+        "name": "awesome-perl",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "0d2fec83c9d9181f78b435df7612542af778a64b49537864a93a4b817aaeec24",
+      "name": "awesome-quant",
+      "slug": "awesome-quant",
+      "description": "A curated list of insanely awesome libraries, packages and resources for Quants (Quantitative Finance).",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 50,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/wilsonfreitas/awesome-quant",
+        "host": "",
+        "owner": "",
+        "name": "awesome-quant",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "91a517b4409df2798c99d6588e8d4c134e4c0fa49865ce9ac2509bd1829084bd",
+      "name": "awesome-stars",
+      "slug": "awesome-stars",
+      "description": "\u003c!--lint disable awesome-contributing awesome-license awesome-list-item match-punctuation no-repeat-punctuation no-undefined-references awesome-spell-check--\u003e",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 50,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/sardonyx001/awesome-stars",
+        "host": "",
+        "owner": "",
+        "name": "awesome-stars",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "91ea286e43f1d35fdfb924185fe2984354c1bf3592f697e915f821c21f4d6348",
+      "name": "awesome-pay",
+      "slug": "awesome-pay",
+      "description": "\u003ch1 align=\"center\"\u003eawesome-pay\u003c/h1\u003e",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 44,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/itgoyo/awesome-pay",
+        "host": "",
+        "owner": "",
+        "name": "awesome-pay",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "d95b3a0e460f2959622a156b81880eccf1b0586c454e4f74ca1c3fb8319cdaa9",
+      "name": "enhansome-quant",
+      "slug": "enhansome-quant",
+      "description": "A curated list of insanely awesome libraries, packages and resources for Quants (Quantitative Finance).",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 44,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/enhansome/enhansome-quant",
+        "host": "",
+        "owner": "",
+        "name": "enhansome-quant",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
     },
     {
       "id": "08eb7963731982be7fd5f108bc7c260ce45bfbd28e849a55ab7d0f633b3c8401",
@@ -118,7 +1423,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:39:06Z"
+        "static_checked_at": "2026-09-07T14:41:24Z"
       },
       "security_status": {
         "status": "",
@@ -174,7 +1479,94 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:39:06Z"
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "b458dc31e87f94687a9f63fb80d156962b48defda5db8dfc52bc73622c20cc4c",
+      "name": "wilsonfreitas-awesome-quant",
+      "slug": "wilsonfreitas-awesome-quant",
+      "description": "A curated list of insanely awesome libraries, packages and resources for Quants (Quantitative Finance).",
+      "classification": {
+        "primary": "MCP_COLLECTION",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 44,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/zbzq8ztx22-star/wilsonfreitas-awesome-quant",
+        "host": "",
+        "owner": "",
+        "name": "wilsonfreitas-awesome-quant",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
     },
     {
       "id": "04023ca0802f9f40c7c233c02fc9798614bf921678cf570f3f915dbcb0efcb7b",
@@ -205,7 +1597,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:39:06Z"
+        "static_checked_at": "2026-09-07T14:41:24Z"
       },
       "security_status": {
         "status": "",
@@ -261,11 +1653,11 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:39:06Z"
+      "last_seen": "2026-09-07T14:41:24Z"
     }
   ],
   "generated_at": "0001-01-01T00:00:00Z",
   "schema_version": "2.0",
-  "total_entities": 3,
+  "total_entities": 19,
   "view_name": "taiwan-ai-collections"
 }

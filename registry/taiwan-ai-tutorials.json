@@ -31,7 +31,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:39:06Z"
+        "static_checked_at": "2026-09-07T14:41:24Z"
       },
       "security_status": {
         "status": "",
@@ -87,11 +87,533 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:39:06Z"
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "eeb28c6d0469996f7c3cf48f66fdb618223d019ffe7b58fb02a2692ca18c9dcc",
+      "name": "FastMCP_Example",
+      "slug": "fastmcp-example",
+      "description": "本專案使用FastMCP框架建立氣象資料查詢服務，透過中央氣象署開放資料平台API取得即時天氣資訊。主要功能包含：",
+      "classification": {
+        "primary": "AI_TUTORIAL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 25,
+        "level": "T2",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 49,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/Jing-Fu/FastMCP_Example",
+        "host": "",
+        "owner": "",
+        "name": "FastMCP_Example",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "14a82881a52cd73ee7c72012ef376abf38ba9880c96e257f73f0a8b8341cc452",
+      "name": "ClaudeHub",
+      "slug": "claudehub",
+      "description": "A curated GitHub navigation hub for Claude Code ecosystem research, including analyses, reverse-engineering notes, architecture breakdowns, tutorials, book-style writeups, and derivative learning projects — organized by category with machine-maintained JSON metadata.",
+      "classification": {
+        "primary": "AI_TUTORIAL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 46,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/ShellMonster/ClaudeHub",
+        "host": "",
+        "owner": "",
+        "name": "ClaudeHub",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "82c91ed0dd6f8744478d6b2bd4c6a5f233ba6422001bca4276d9bd5ac7782df2",
+      "name": "licheng-AI-tutorials",
+      "slug": "licheng-ai-tutorials",
+      "description": "面向法律工作场景的 AI/Codex 本地环境与网络工具教程。",
+      "classification": {
+        "primary": "AI_TUTORIAL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 41,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/lennonli/licheng-AI-tutorials",
+        "host": "",
+        "owner": "",
+        "name": "licheng-AI-tutorials",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "69ae3fd828b1edd51f260fcf6158652671da0e6dec30e24cf96960a5817e6c05",
+      "name": "react-bits-mcp-demo",
+      "slug": "react-bits-mcp-demo",
+      "description": "Public demo for [thegreishow](https://github.com/thegreishow).",
+      "classification": {
+        "primary": "AI_TUTORIAL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 41,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/thegreishow/react-bits-mcp-demo",
+        "host": "",
+        "owner": "",
+        "name": "react-bits-mcp-demo",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "730fddb29915386cd12d13df7f6f488c0644d73815ac3862d4d67704498f1269",
+      "name": "coin-demo",
+      "slug": "coin-demo",
+      "description": "**COSMIC/COS \u003c-\u003e Luftvarsregistret (LVR)**",
+      "classification": {
+        "primary": "AI_TUTORIAL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 5,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 38,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/oskthu2/coin-demo",
+        "host": "",
+        "owner": "",
+        "name": "coin-demo",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "fbe965ac4bde122138e7489cede11c47a536542c4d2d86a66cf206ae1ec063cf",
+      "name": "wasenderapi-com-api-docs-getting-started-model-context-protocol-mcp-integration",
+      "slug": "wasenderapi-com-api-docs-getting-started-model-context-protocol-mcp-integration",
+      "description": "Connect WasenderAPI to AI agents and automation tools using the Model Context Protocol. This remote MCP server exposes WhatsApp session management,...",
+      "classification": {
+        "primary": "AI_TUTORIAL",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 0,
+        "level": "T0",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 15,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "",
+        "host": "",
+        "owner": "",
+        "name": "",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
     }
   ],
   "generated_at": "0001-01-01T00:00:00Z",
   "schema_version": "2.0",
-  "total_entities": 1,
+  "total_entities": 7,
   "view_name": "taiwan-ai-tutorials"
 }

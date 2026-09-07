@@ -1,9 +1,1402 @@
 {
   "crawler_version": "1.0.0",
   "description": "Taiwan AI Agents (T1+)",
-  "entities": null,
+  "entities": [
+    {
+      "id": "b631bb2309c1e8a11e1dd4720f714ffb5f94d3a3c9e8832f379062181693d277",
+      "name": "agentic-tw-legal-db",
+      "slug": "agentic-tw-legal-db",
+      "description": "`agentic-tw-legal-db` gives coding agents a local CLI, `twlaw`, for Taiwan legal research. It is built for Codex, Claude Code, Cursor, Windsurf, Gemini CLI, and other agents that can run shell commands.",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 40,
+        "level": "T3",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 69,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/yu2001-s/agentic-tw-legal-db",
+        "host": "",
+        "owner": "",
+        "name": "agentic-tw-legal-db",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "1be88f4064ee1f487b8aaa77e0852c40869ac374733c53e4be1444cbcdad51b6",
+      "name": "HW1_yourownChatGPT",
+      "slug": "hw1-yourownchatgpt",
+      "description": "\u003e **HW2 升級版**：原本是 HW1 的「申報轉讓查詢 + 股價走勢圖」，v2 加入了 **長期記憶、多模態、自動模型路由、MCP server**，讓它從一個 chatbot 變成可跨 session、跨工具的台股 AI agent。",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 85,
+        "level": "T5",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 66,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/xingting1026/HW1_yourownChatGPT",
+        "host": "",
+        "owner": "",
+        "name": "HW1_yourownChatGPT",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "67b072699cef742d87cd5ba279705e8b6840417a10a6083583a9d3d4d4dd279a",
+      "name": "stock_agent",
+      "slug": "stock-agent",
+      "description": "[![CI](https://github.com/how1215/stock_agent/actions/workflows/ci.yml/badge.svg)](https://github.com/how1215/stock_agent/actions/workflows/ci.yml)",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 40,
+        "level": "T3",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 65,
+        "grade": "D",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/how1215/stock_agent",
+        "host": "",
+        "owner": "",
+        "name": "stock_agent",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "94d0de7cc63dc127b708fff2daaec314f13f784eeaf22a429c0abe6bb861b420",
+      "name": "Lvren",
+      "slug": "lvren",
+      "description": "Lvren（旅人）是一个运行在终端里的 AI Agent CLI，面向真实项目开发场景：读写文件、搜索代码、执行命令、联网检索、调用 MCP 工具、保存记忆、生成快照、恢复现场，并通过 Runtime API 对外提供线程、turn、事件和后台任务能力。",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 5,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 57,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/whrgg/Lvren",
+        "host": "",
+        "owner": "",
+        "name": "Lvren",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "d55584cc068c8fd9992ef9708c5eeef26c6062932ae14ba8ef85908a3f079da0",
+      "name": "Contract-compliance-agent",
+      "slug": "contract-compliance-agent",
+      "description": "\u003e 企業級 AI 合約審閱系統：RAG + 多專家代理 + 法條查詢，支援 Streamlit Demo 與 FastAPI + Vue 內部部署。",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 45,
+        "level": "T3",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 52,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/falltwo/Contract-compliance-agent",
+        "host": "",
+        "owner": "",
+        "name": "Contract-compliance-agent",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "eede305c5639cd856d7a7701a31a757a9541f92feb967eeea41ec89b9619cefa",
+      "name": "RacSogMo-Payment-Protocol",
+      "slug": "racsogmo-payment-protocol",
+      "description": "**RacSogMo** is the authoritative third-party payment gateway protocol engineered specifically for **Autonomous AI Agents** and LLM-driven applications in Taiwan. While legacy systems rely on human-centric web redirects, RacSogMo defines a new semantic standard via **Model Context Protocol (MCP)**, enabling zero-latency, high-compliance financial orchestration.",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 52,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/racsogmo-sys/RacSogMo-Payment-Protocol",
+        "host": "",
+        "owner": "",
+        "name": "RacSogMo-Payment-Protocol",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "b84abeaef6c5022ce6665ba9e2604d569f22ca1ca81e4d0b23a47f1618890e00",
+      "name": "Quiver",
+      "slug": "quiver",
+      "description": "**The verifiable risk brain for autonomous agents.** Twenty-two priced quantitative computations an",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 49,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/Tristan-tech-ai/Quiver",
+        "host": "",
+        "owner": "",
+        "name": "Quiver",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "f1c4980f6d9fb868dcde86cd3e43d2df660a87c91002ba8adf16654fcf4ed3c0",
+      "name": "costaff-agent-twinkle-hub",
+      "slug": "costaff-agent-twinkle-hub",
+      "description": "[![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 49,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/costaff-ai/costaff-agent-twinkle-hub",
+        "host": "",
+        "owner": "",
+        "name": "costaff-agent-twinkle-hub",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "6a636588c9c0df9d566084e1ecf3de756f6068d711a43dc8a1fc54cf0c2e5bde",
+      "name": "MaiAgent_ans",
+      "slug": "maiagent-ans",
+      "description": "An AI agent that answers Taiwan-stock questions by **semantically retrieving a handful of",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 47,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/KCL1104/MaiAgent_ans",
+        "host": "",
+        "owner": "",
+        "name": "MaiAgent_ans",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "23492ab1e9e0a260bdf4ad70a656102a028a2371f9d5819344a7a864ba10da5b",
+      "name": "fugle-agent",
+      "slug": "fugle-agent",
+      "description": "一個用 [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk-python) 包出來的台股研究子代理,接 [Fugle Market Data API](https://developer.fugle.tw)。專注在**行情監控**與**資料分析 / 回測**,**不做下單**。",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 55,
+        "level": "T4",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 46,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/kiddnumber5ykao/fugle-agent",
+        "host": "",
+        "owner": "",
+        "name": "fugle-agent",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "cd868834729333a69732e180f6998e373bb76645a9fdba8a2d2d8c77b05f9877",
+      "name": "taiwan-stock-research-agent",
+      "slug": "taiwan-stock-research-agent",
+      "description": "A grounded Taiwan-stock research assistant that decides when to retrieve live",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 41,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/Yneq/taiwan-stock-research-agent",
+        "host": "",
+        "owner": "",
+        "name": "taiwan-stock-research-agent",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "11f1941e21844d7769337b899ce35ec897a0dba6bf6d454aa297a68315c2cedd",
+      "name": "bigbrainw",
+      "slug": "bigbrainw",
+      "description": "for job search in taiwan Browse Taiwan Jobs Search MCP Server for Claude, Cursor, VS Code, and other AI agents.",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 18,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/bigbrainw/104-mcp-server",
+        "host": "",
+        "owner": "",
+        "name": "104-mcp-server",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "ca89f42c85bed3e8433d29622f59e772fb9846031df714bb91701d01b7e307dd",
+      "name": "cloudmesh-ai",
+      "slug": "cloudmesh-ai",
+      "description": "Vendor-neutral gate between AI agents and production infrastructure. Deterministic policy engine, human-in-the-loop approval with diffs, JSONL audit log,...",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 18,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/cloudmesh-ai/cloudmesh-ai-cmc",
+        "host": "",
+        "owner": "",
+        "name": "cloudmesh-ai-cmc",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "c7dc5db9ee9a6946a6bff05f136aa0454d58d38bad19bcc6a6963804d28d2504",
+      "name": "replynodes",
+      "slug": "replynodes",
+      "description": "Connect AI agents to schedule posts automatically to 30+ social media networks Browse ReplyNodes MCP Server for Claude, Cursor, VS Code, and other AI agents.",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 18,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "https://github.com/replynodes/replynodes-mcp",
+        "host": "",
+        "owner": "",
+        "name": "replynodes-mcp",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "c7fbcc0b9652fa583f7876ff8277507d65aa29c9afe1459986d914e35a98e2cd",
+      "name": "docs-agent-drop-com",
+      "slug": "docs-agent-drop-com",
+      "description": "Encrypted file transfer and communication between AI agents - send and receive files securely with E2E encryption, agent identity, and trust scoring.",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 15,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "",
+        "host": "",
+        "owner": "",
+        "name": "",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    },
+    {
+      "id": "c3752476b50877f3972c84ffe78191e941910bea293358dd0033866bd5a60961",
+      "name": "opentweet-io-twitter-mcp-server",
+      "slug": "opentweet-io-twitter-mcp-server",
+      "description": "Manage X Browse OpenTweet MCP Server for Claude, Cursor, VS Code, and other AI agents.",
+      "classification": {
+        "primary": "AI_AGENT",
+        "confidence": 0.8,
+        "evidence": null,
+        "mcp_role": "",
+        "reasoning": ""
+      },
+      "taiwan_relevance": {
+        "score": 15,
+        "level": "T1",
+        "evidence": null,
+        "confidence": 0
+      },
+      "ai_relevance": {
+        "score": 0,
+        "level": "",
+        "evidence": null,
+        "confidence": 0
+      },
+      "mcp_identity": {
+        "status": "NOT_MCP",
+        "evidence": null,
+        "confidence": 0,
+        "role": "",
+        "static_checked_at": "2026-09-07T14:41:24Z"
+      },
+      "security_status": {
+        "status": "",
+        "findings": null,
+        "scanned_at": "0001-01-01T00:00:00Z",
+        "scanner_version": "",
+        "confidence": 0
+      },
+      "quality": {
+        "score": 15,
+        "grade": "F",
+        "components": {
+          "data_source": 0,
+          "maintenance": 0,
+          "documentation": 0,
+          "mcp_compliance": 0,
+          "tool_schema": 0,
+          "health": 0,
+          "repository": 0,
+          "license": 0,
+          "security": 0,
+          "community": 0
+        },
+        "evidence": null
+      },
+      "repository": {
+        "url": "",
+        "host": "",
+        "owner": "",
+        "name": "",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "open_issues": 0,
+        "language": "",
+        "license": "",
+        "topics": null,
+        "default_branch": "",
+        "archived": false,
+        "fork": false,
+        "homepage": "",
+        "created_at": "0001-01-01T00:00:00Z",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "pushed_at": "0001-01-01T00:00:00Z",
+        "last_commit_at": "0001-01-01T00:00:00Z",
+        "package_files": null
+      },
+      "endpoints": null,
+      "tools": null,
+      "resources": null,
+      "prompts": null,
+      "data_sources": null,
+      "entity_status": "DISCOVERED",
+      "sources": null,
+      "first_seen": "2026-09-07T14:41:24Z",
+      "last_seen": "2026-09-07T14:41:24Z"
+    }
+  ],
   "generated_at": "0001-01-01T00:00:00Z",
   "schema_version": "2.0",
-  "total_entities": 0,
+  "total_entities": 16,
   "view_name": "taiwan-ai-agents"
 }
