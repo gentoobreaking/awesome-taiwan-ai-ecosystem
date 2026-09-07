@@ -219,6 +219,36 @@ func toEntity(s legacyServer, now models.RFC3339Time) *models.Entity {
 		primary = heuristicPrimary(s.Name, s.Description)
 	}
 
+	// MCP-identity status. Genuine runtime verification needs a
+	// real MCP handshake (T100), which the seed can't provide. We
+	// set StaticVerified + a StaticCheckedAt timestamp so the
+	// view generator's MCP candidate / verified filters at least
+	// pick up the seeded MCP_SERVER records instead of dropping
+	// them all into the bit bucket.
+	mcpStatus := models.MCPIdentityStatusNotMCP
+	mcpRelated := false
+	nowTime := models.RFC3339Time(now)
+	if primary == models.PrimaryClassificationMCPServer {
+		mcpStatus = models.MCPIdentityStatusStaticVerified
+		mcpRelated = true
+	} else {
+		for _, r := range []models.PrimaryClassification{
+			models.PrimaryClassificationMCPClient,
+			models.PrimaryClassificationMCPHost,
+			models.PrimaryClassificationMCPSDK,
+			models.PrimaryClassificationMCPLibrary,
+			models.PrimaryClassificationMCPCollection,
+			models.PrimaryClassificationMCPExtension,
+			models.PrimaryClassificationMCPSkill,
+		} {
+			if primary == r {
+				mcpStatus = models.MCPIdentityStatusNotMCP
+				mcpRelated = true
+				break
+			}
+		}
+	}
+
 	return &models.Entity{
 		ID:              s.ID,
 		Name:            s.Name,
@@ -231,5 +261,10 @@ func toEntity(s legacyServer, now models.RFC3339Time) *models.Entity {
 		EntityStatus:    models.EntityStatusDiscovered,
 		FirstSeen:       now,
 		LastSeen:        now,
+		MCPIdentity: models.MCPIdentity{
+			Related:         mcpRelated,
+			Status:          mcpStatus,
+			StaticCheckedAt: &nowTime,
+		},
 	}
 }

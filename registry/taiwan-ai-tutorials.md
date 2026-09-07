@@ -8,7 +8,7 @@
 ## Tutorials (1)
 
 1. [pydantic-ai-tutorial](https://github.com/twtrubiks/pydantic-ai-tutorial) — [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-   - Quality: 67 (D) | Taiwan: T2 | MCP: 
+   - Quality: 67 (D) | Taiwan: T2 | MCP: NOT_MCP
 
 ## Summary
 

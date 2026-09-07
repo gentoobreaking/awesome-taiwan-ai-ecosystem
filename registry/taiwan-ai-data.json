@@ -27,10 +27,11 @@
         "confidence": 0
       },
       "mcp_identity": {
-        "status": "",
+        "status": "NOT_MCP",
         "evidence": null,
         "confidence": 0,
-        "role": ""
+        "role": "",
+        "static_checked_at": "2026-09-07T14:39:06Z"
       },
       "security_status": {
         "status": "",
@@ -86,7 +87,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:04:26Z"
+      "last_seen": "2026-09-07T14:39:06Z"
     }
   ],
   "generated_at": "0001-01-01T00:00:00Z",

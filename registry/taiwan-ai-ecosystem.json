@@ -27,10 +27,11 @@
         "confidence": 0
       },
       "mcp_identity": {
-        "status": "",
+        "status": "NOT_MCP",
         "evidence": null,
         "confidence": 0,
-        "role": ""
+        "role": "",
+        "static_checked_at": "2026-09-07T14:39:06Z"
       },
       "security_status": {
         "status": "",
@@ -86,7 +87,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:04:26Z"
+      "last_seen": "2026-09-07T14:39:06Z"
     },
     {
       "id": "02f74d85a5fe13ef7c340f0a73ba5bdb4b707ed95cd884a322cf74420534ab72",
@@ -113,10 +114,11 @@
         "confidence": 0
       },
       "mcp_identity": {
-        "status": "",
+        "status": "NOT_MCP",
         "evidence": null,
         "confidence": 0,
-        "role": ""
+        "role": "",
+        "static_checked_at": "2026-09-07T14:39:06Z"
       },
       "security_status": {
         "status": "",
@@ -172,7 +174,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:04:26Z"
+      "last_seen": "2026-09-07T14:39:06Z"
     },
     {
       "id": "09825f35b30d87b409de1ab03f7d36e07b188345ba9bf91efa8878a10d16759f",
@@ -199,10 +201,11 @@
         "confidence": 0
       },
       "mcp_identity": {
-        "status": "",
+        "status": "STATIC_VERIFIED",
         "evidence": null,
         "confidence": 0,
-        "role": ""
+        "role": "",
+        "static_checked_at": "2026-09-07T14:39:06Z"
       },
       "security_status": {
         "status": "",
@@ -258,7 +261,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:04:26Z"
+      "last_seen": "2026-09-07T14:39:06Z"
     },
     {
       "id": "0a4e957e756a1a2e1cf20c812ea1d1af034c20820fb3dc8697a27964780a18ba",
@@ -285,10 +288,11 @@
         "confidence": 0
       },
       "mcp_identity": {
-        "status": "",
+        "status": "STATIC_VERIFIED",
         "evidence": null,
         "confidence": 0,
-        "role": ""
+        "role": "",
+        "static_checked_at": "2026-09-07T14:39:06Z"
       },
       "security_status": {
         "status": "",
@@ -344,7 +348,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:04:26Z"
+      "last_seen": "2026-09-07T14:39:06Z"
     },
     {
       "id": "0836fca7876992c607f78f87aae350a2de8a64a3733802514ccffb8bc44e0dd6",
@@ -371,10 +375,11 @@
         "confidence": 0
       },
       "mcp_identity": {
-        "status": "",
+        "status": "STATIC_VERIFIED",
         "evidence": null,
         "confidence": 0,
-        "role": ""
+        "role": "",
+        "static_checked_at": "2026-09-07T14:39:06Z"
       },
       "security_status": {
         "status": "",
@@ -430,7 +435,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:04:26Z"
+      "last_seen": "2026-09-07T14:39:06Z"
     },
     {
       "id": "09b095e06e8601c093aa2ebd74ce6945129f886341c6e4fb834a89802e02225b",
@@ -457,10 +462,11 @@
         "confidence": 0
       },
       "mcp_identity": {
-        "status": "",
+        "status": "STATIC_VERIFIED",
         "evidence": null,
         "confidence": 0,
-        "role": ""
+        "role": "",
+        "static_checked_at": "2026-09-07T14:39:06Z"
       },
       "security_status": {
         "status": "",
@@ -516,7 +522,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:04:26Z"
+      "last_seen": "2026-09-07T14:39:06Z"
     },
     {
       "id": "08eb7963731982be7fd5f108bc7c260ce45bfbd28e849a55ab7d0f633b3c8401",
@@ -543,10 +549,11 @@
         "confidence": 0
       },
       "mcp_identity": {
-        "status": "",
+        "status": "NOT_MCP",
         "evidence": null,
         "confidence": 0,
-        "role": ""
+        "role": "",
+        "static_checked_at": "2026-09-07T14:39:06Z"
       },
       "security_status": {
         "status": "",
@@ -602,7 +609,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:04:26Z"
+      "last_seen": "2026-09-07T14:39:06Z"
     },
     {
       "id": "0bb7798fe481684f185936830998bcc4f6ba9391c30a30882d33f9cc9a0b7ae5",
@@ -629,10 +636,11 @@
         "confidence": 0
       },
       "mcp_identity": {
-        "status": "",
+        "status": "STATIC_VERIFIED",
         "evidence": null,
         "confidence": 0,
-        "role": ""
+        "role": "",
+        "static_checked_at": "2026-09-07T14:39:06Z"
       },
       "security_status": {
         "status": "",
@@ -688,7 +696,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:04:26Z"
+      "last_seen": "2026-09-07T14:39:06Z"
     }
   ],
   "generated_at": "0001-01-01T00:00:00Z",
