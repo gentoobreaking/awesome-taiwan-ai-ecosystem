@@ -264,14 +264,13 @@ func runCrawl(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	// Auto-generate malicious and injection reports if enabled
-	servers, err := store.GetServers(ctx)
+	// Auto-generate malicious and injection reports from the v2 entities
+	// table (T099). Previously read from legacy store.GetServers(); the
+	// EntityStore is the canonical source per spec §43.
+	entityStore := storage.NewEntityStore(store.DB())
+	entities, err := entityStore.List(ctx, storage.EntityFilter{})
 	if err != nil {
-		return fmt.Errorf("get servers for reports: %w", err)
-	}
-	entities := make([]*models.Entity, 0, len(servers))
-	for i := range servers {
-		entities = append(entities, serverToEntity(&servers[i]))
+		return fmt.Errorf("list entities for reports: %w", err)
 	}
 	if maliciousReport {
 		if err := generateMaliciousReport(entities, maliciousDir, maliciousThreshold); err != nil {
@@ -447,43 +446,46 @@ func runExport(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 	defer store.Close()
-	servers, err := store.GetServers(context.Background())
+
+	ctx := context.Background()
+	entityStore := storage.NewEntityStore(store.DB())
+	entities, err := entityStore.List(ctx, storage.EntityFilter{})
 	if err != nil {
-		return err
+		return fmt.Errorf("list entities: %w", err)
 	}
 
-	// Convert servers to entities for export
-	entities := make([]*models.Entity, 0, len(servers))
-	for i := range servers {
-		entities = append(entities, serverToEntity(&servers[i]))
-	}
-
-	expDir := filepath.Join("registry")
+	// Generate views into registry/ root (spec §60), not registry/views/.
+	expDir := "registry"
 	if err := os.MkdirAll(expDir, 0755); err != nil {
 		return fmt.Errorf("create export dir: %w", err)
 	}
+	vg := export.NewViewGenerator(export.ViewConfig{
+		SchemaVersion:  "2.0",
+		CrawlerVersion: "1.0.0",
+	})
+	if err := vg.GenerateViews(entities, expDir); err != nil {
+		return fmt.Errorf("generate views: %w", err)
+	}
 
-	// Generate malicious report
+	// Keep the legacy malicious/injection reports wired up too.
 	if maliciousReport {
 		if err := generateMaliciousReport(entities, maliciousDir, maliciousThreshold); err != nil {
-			return fmt.Errorf("malicious report: %w", err)
+			fmt.Fprintf(os.Stderr, "Warning: malicious report generation failed: %v\n", err)
 		}
 	}
-
-	// Generate injection report
 	if injectionReport {
 		if err := generateInjectionReport(entities, injectionDir); err != nil {
-			return fmt.Errorf("injection report: %w", err)
+			fmt.Fprintf(os.Stderr, "Warning: injection report generation failed: %v\n", err)
 		}
 	}
 
-	// Generate registry markdown if requested
-	if markdownExport {
-		// TODO: generate REGISTRY.md using ViewGenerator
-		fmt.Println("Registry markdown export: placeholder")
+	fmt.Printf("Exported %d entities to %s/\n", len(entities), expDir)
+	entries, _ := os.ReadDir(expDir)
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			fmt.Printf("  - %s\n", entry.Name())
+		}
 	}
-
-	fmt.Println("Export complete: " + expDir)
 	return nil
 }
 
