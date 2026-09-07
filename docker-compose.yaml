@@ -81,6 +81,11 @@ services:
       - api
     environment:
       - VITE_API_URL=http://api:8003/api/v1
+    # T-summary: bind-mount the host-built dist/ so we can rebuild
+    # the SPA without rebuilding the Docker image (BuildKit cache
+	# is unreliable in this environment).
+    volumes:
+      - ./web/dist:/usr/share/nginx/html:ro
     security_opt:
       - no-new-privileges:true
     tmpfs:
