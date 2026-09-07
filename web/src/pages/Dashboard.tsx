@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../utils/api';
-import type { Statistics, HealthResponse } from '../types/api';
+import type { Statistics, HealthResponse, TaiwanLevel, HealthStatus, QualityGrade } from '../types/api';
 import { LevelBadge } from '../components/LevelBadge';
 import { GradeBadge } from '../components/GradeBadge';
 import { HealthBadge } from '../components/HealthBadge';
@@ -8,7 +8,6 @@ import { HealthBadge } from '../components/HealthBadge';
 export default function Dashboard() {
   const [stats, setStats] = useState<Statistics | null>(null);
   const [health, setHealth] = useState<HealthResponse | null>(null);
-import type { TaiwanLevel, HealthStatus, QualityGrade } from '../types/api';
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
