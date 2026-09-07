@@ -82,7 +82,6 @@ services:
       - VITE_API_URL=http://api:8003/api/v1
     security_opt:
       - no-new-privileges:true
-    read_only: true
     tmpfs:
       - /tmp
     deploy:
