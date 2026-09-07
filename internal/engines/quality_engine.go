@@ -396,3 +396,36 @@ func (qe *QualityEngine) scoreCommunity(repo models.RepositoryInfo) int {
 	}
 	return score
 }
+
+// computeConfidence aggregates per-evidence confidence into a single
+// 0..1 score using a type-based weight (spec §4.4). Runtime and
+// source-code rows carry more weight than rule-only rows. (T109)
+func computeConfidence(evidences []models.ClassificationEvidence) float64 {
+	if len(evidences) == 0 {
+		return 0.0
+	}
+	var sum, weight float64
+	for _, e := range evidences {
+		w := 0.5
+		switch e.Type {
+		case "SOURCE_CODE":
+			w = 3.0
+		case "RUNTIME":
+			w = 5.0
+		case "PACKAGE_MANIFEST":
+			w = 2.0
+		case "README":
+			w = 1.0
+		}
+		sum += e.Confidence * w
+		weight += w
+	}
+	if weight == 0 {
+		return 0
+	}
+	c := sum / weight
+	if c > 1.0 {
+		c = 1.0
+	}
+	return c
+}

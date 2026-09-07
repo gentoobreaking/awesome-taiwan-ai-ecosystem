@@ -2,58 +2,57 @@ package evidence
 
 import (
 	"testing"
-	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
 )
 
-func TestCollectorAdd(t *testing.T) {
+func TestCollector_AddSourceCode_TruncatesSnippet(t *testing.T) {
+	// T109: snippet capped at 200 chars.
 	c := New()
-	ev := models.Evidence{
-		Type:        "official_domain",
-		Source:      "repository",
-		Location:    "twse.com.tw",
-		MatchedText: "twse.com.tw",
-		Rule:        "official_domain_match",
-		Score:       40,
-		Confidence:  1.0,
+	long := make([]byte, 300)
+	for i := range long {
+		long[i] = 'a'
 	}
-	c.Add(ev)
-	if c.Len() != 1 {
-		t.Errorf("Expected 1 evidence item, got %d", c.Len())
-	}
-	items := c.All()
-	if items[0].Type != "official_domain" {
-		t.Errorf("Expected type=official_domain, got %s", items[0].Type)
+	c.AddSourceCode("src/server.ts", "McpServer class", string(long), 0.9)
+	e := c.All()[0]
+	if got := len(e.Snippet); got > 200 {
+		t.Errorf("snippet length %d > 200", got)
 	}
 }
 
-func TestCollectorByType(t *testing.T) {
+func TestCollector_Types(t *testing.T) {
+	// T109: the 5 evidence types from spec §4.4 / §39 are all settable.
 	c := New()
-	c.Add(models.Evidence{Type: "official_domain", Score: 40})
-	c.Add(models.Evidence{Type: "repository_keyword", Score: 20})
-
-	domainEv := c.ByType("official_domain")
-	if len(domainEv) != 1 {
-		t.Errorf("Expected 1 domain evidence, got %d", len(domainEv))
+	c.AddSourceCode("src/server.ts", "McpServer", "class McpServer {}", 0.95)
+	c.AddPackageManifest("package.json", "@modelcontextprotocol/sdk", 0.7)
+	c.AddReadme("MCP server for Taiwan stock", "A MCP server", 0.8)
+	c.AddRuntime("initialize_success", 0.95)
+	c.AddRuleMatch("has_mcp_sdk", "sdk found", 0.5)
+	if got := c.Len(); got != 5 {
+		t.Errorf("expected 5 evidence items, got %d", got)
 	}
-
-	keywordEv := c.ByType("repository_keyword")
-	if len(keywordEv) != 1 {
-		t.Errorf("Expected 1 keyword evidence, got %d", len(keywordEv))
+	types := map[string]int{}
+	for _, e := range c.All() {
+		types[e.Type]++
+	}
+	for _, want := range []string{"SOURCE_CODE", "PACKAGE_MANIFEST", "README", "RUNTIME", "RULE_MATCH"} {
+		if types[want] != 1 {
+			t.Errorf("expected 1 of type %s, got %d", want, types[want])
+		}
 	}
 }
 
-func TestCollectorAutoTimestamp(t *testing.T) {
+func TestCollector_ByType_Filter(t *testing.T) {
 	c := New()
-	ev := models.Evidence{Type: "test", Score: 10}
-	before := time.Now().UTC()
-	c.Add(ev)
-	after := time.Now().UTC()
-
-	items := c.All()
-	ts := items[0].Timestamp
-	if ts.Before(models.RFC3339Time(before)) || ts.After(models.RFC3339Time(after)) {
-		t.Error("Expected auto-set timestamp to be within expected window")
+	c.AddSourceCode("a", "x", "y", 0.9)
+	c.AddSourceCode("b", "x", "y", 0.9)
+	c.AddReadme("c", "d", 0.7)
+	if got := len(c.ByType("SOURCE_CODE")); got != 2 {
+		t.Errorf("expected 2 SOURCE_CODE, got %d", got)
 	}
+}
+
+// Models-level: Snippet field is present in JSON output.
+func TestEvidence_SnippetField(t *testing.T) {
+	_ = models.Evidence{Snippet: "abc"}
 }

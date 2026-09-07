@@ -353,6 +353,7 @@ type Evidence struct {
 	Location     string      `json:"location"`      // file path or URL
 	ContentHash  string      `json:"content_hash"`  // sha256 of matched text
 	MatchedText  string      `json:"matched_text"`
+	Snippet      string      `json:"snippet,omitempty"` // T109: optional code excerpt, max 200 chars
 	Rule         string      `json:"rule"`          // scoring rule name that produced this evidence
 	Score        float64     `json:"score"`         // weight contributed
 	Confidence   float64     `json:"confidence"`    // confidence in this evidence
