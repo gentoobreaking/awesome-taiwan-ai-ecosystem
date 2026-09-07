@@ -126,4 +126,26 @@ export const api = {
   entity(id: string): Promise<{ entity: Entity }> {
     return apiFetch<{ entity: Entity }>(`/entities/${encodeURIComponent(id)}`);
   },
+
+  // List available markdown view files (no file= param).
+  registryMarkdownIndex(): Promise<{ directory: string; files: string[] }> {
+    return apiFetch('/registry/markdown');
+  },
+
+  // Fetch a single markdown view file as raw text.
+  registryMarkdown(file: string): Promise<string> {
+    return apiFetchText(`/registry/markdown?file=${encodeURIComponent(file)}`);
+  },
 };
+
+async function apiFetchText(path: string): Promise<string> {
+  const url = new URL(API_BASE + path, window.location.origin);
+  const resp = await fetch(url.toString(), {
+    method: 'GET',
+    headers: { 'Content-Type': 'text/markdown' },
+  });
+  if (!resp.ok) {
+    throw new Error(`HTTP ${resp.status}`);
+  }
+  return resp.text();
+}

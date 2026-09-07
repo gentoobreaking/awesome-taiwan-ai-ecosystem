@@ -95,6 +95,7 @@ export interface Statistics {
   by_health: Record<string, number>;
   quality_distribution: Record<string, number>;
   by_status: Record<string, number>;
+  by_classification?: Record<string, number>;
 }
 
 export interface RegistryResponse {

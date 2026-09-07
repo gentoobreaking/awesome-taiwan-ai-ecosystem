@@ -9,6 +9,9 @@ import (
 	"log/slog"
 	"math"
 	"net/http"
+	"os"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -79,18 +82,20 @@ func (s *Server) Start() error {
 	return srv.ListenAndServe()
 }
 
-// registerRoutes registers all API routes.
+// registerRoutes registers all API routes. Uses Go 1.22+ method-
+// aware patterns so /api/v1/registry/markdown and /api/v1/registry
+// don't fall through to the /api/v1/ prefix handler.
 func (s *Server) registerRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/health", s.handleHealth)
-	mux.HandleFunc("/api/v1", s.handleAPIRoot)
-	mux.HandleFunc("/api/v1/", s.handleAPIRoot)
-	mux.HandleFunc("/api/v1/servers", s.handleServers)
-	mux.HandleFunc("/api/v1/servers/", s.handleServerByID)
-	mux.HandleFunc("/api/v1/search", s.handleSearch)
-	mux.HandleFunc("/api/v1/registry", s.handleRegistry)
-	mux.HandleFunc("/api/v1/statistics", s.handleStatistics)
-	mux.HandleFunc("/api/v1/health", s.handleHealth)
-	mux.HandleFunc("/api/v1/entities", s.handleEntities)
+	mux.HandleFunc("GET /health", s.handleHealth)
+	mux.HandleFunc("GET /api/v1", s.handleAPIRoot)
+	mux.HandleFunc("GET /api/v1/servers", s.handleServers)
+	mux.HandleFunc("GET /api/v1/servers/{id}", s.handleServerByID)
+	mux.HandleFunc("GET /api/v1/search", s.handleSearch)
+	mux.HandleFunc("GET /api/v1/registry", s.handleRegistry)
+	mux.HandleFunc("GET /api/v1/statistics", s.handleStatistics)
+	mux.HandleFunc("GET /api/v1/health", s.handleHealth)
+	mux.HandleFunc("GET /api/v1/entities", s.handleEntities)
+	mux.HandleFunc("GET /api/v1/registry/markdown", s.handleRegistryMarkdown)
 }
 
 // handleAPIRoot returns the API index listing available endpoints.
@@ -379,6 +384,68 @@ func (s *Server) handleStatistics(w http.ResponseWriter, r *http.Request) {
 	s.writeJSON(w, http.StatusOK, entitiesToStats(entities))
 }
 
+// handleRegistryMarkdown returns the markdown view files produced
+// by the export pipeline. The crawler writes them to /data/registry
+// inside the container, which is bind-mounted to ./registry on the
+// host (see docker-compose.yaml). The handler maps the requested
+// file name to a safe path and returns the contents as plain text.
+//
+// GET /api/v1/registry/markdown?file=taiwan-ai-ecosystem.md
+// GET /api/v1/registry/markdown?file=taiwan-mcp.md
+// GET /api/v1/registry/markdown            -> index (list of view files)
+func (s *Server) handleRegistryMarkdown(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	const dir = "/data/registry"
+	file := r.URL.Query().Get("file")
+	if file == "" {
+		// List mode: return the available view files as a JSON index
+		// (the frontend can pick one to render). Plain JSON is easier
+		// than parsing a directory listing.
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			s.writeAPIError(w, http.StatusInternalServerError, "directory_error", err.Error())
+			return
+		}
+		names := []string{}
+		for _, e := range entries {
+			if !e.IsDir() && strings.HasSuffix(e.Name(), ".md") {
+				names = append(names, e.Name())
+			}
+		}
+		sort.Strings(names)
+		s.writeJSON(w, http.StatusOK, map[string]any{
+			"directory": dir,
+			"files":     names,
+		})
+		return
+	}
+
+	// Sanitise: only allow simple .md filenames, no path traversal.
+	if strings.Contains(file, "/") || strings.Contains(file, "\\") ||
+		!strings.HasSuffix(file, ".md") {
+		s.writeAPIError(w, http.StatusBadRequest, "invalid_filename", "file must be a flat .md name")
+		return
+	}
+
+	path := filepath.Join(dir, file)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			s.writeAPIError(w, http.StatusNotFound, "not_found", file)
+			return
+		}
+		s.writeAPIError(w, http.StatusInternalServerError, "read_error", err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
+	w.Write(data)
+}
+
 // --- Response types ---
 
 // HealthResponse is the /health response.
@@ -482,6 +549,7 @@ func entitiesToStats(entities []*models.Entity) map[string]interface{} {
 	byHealth := make(map[string]int)
 	byQuality := make(map[string]int)
 	byStatus := make(map[string]int)
+	byClassification := make(map[string]int)
 	taiwanCount := 0
 	total := len(entities)
 
@@ -512,9 +580,14 @@ func entitiesToStats(entities []*models.Entity) map[string]interface{} {
 		byQuality[string(e.Quality.Grade)]++
 		byStatus[string(e.EntityStatus)]++
 
-		for _, c := range e.Classification.Evidence {
-			_ = c
+		// Primary classification per spec §60 — MCP_SERVER, AI_AGENT,
+		// AI_TOOL, DATA_LIBRARY, etc. Used by the Dashboard "Categories"
+		// chart. (T-dashboard)
+		primary := string(e.Classification.Primary)
+		if primary == "" {
+			primary = "UNKNOWN"
 		}
+		byClassification[primary]++
 	}
 
 	return map[string]interface{}{
@@ -524,6 +597,7 @@ func entitiesToStats(entities []*models.Entity) map[string]interface{} {
 		"by_health":           byHealth,
 		"quality_distribution": byQuality,
 		"by_status":           byStatus,
+		"by_classification":   byClassification,
 	}
 }
 
