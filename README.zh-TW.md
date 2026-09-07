@@ -6,711 +6,406 @@
 
 # Taiwan AI Ecosystem Registry
 
-自動化爬蟲與註冊表建立工具，用於發現、分析和驗證與台灣相關的 AI 工具、MCP 伺服器、資料集和基礎架構。
+自動化爬蟲與註冊表建立工具，用於發現、分類與驗證與台灣相關的 AI 工具、MCP 伺服器、資料集和基礎架構。
 
 ## 概述
 
-**Taiwan AI Ecosystem Registry** 從多個來源（GitHub、官方註冊表、社群平台）爬取 AI 相關實體，包括 MCP 伺服器、AI 工具、資料集、SDK 和基礎架構等，篩選出與台灣相關的項目。爬蟲會進行標準化、去重、分類、驗證、安全掃描、品質評分，並匯出標準化的註冊表。
+**Taiwan AI Ecosystem Registry** 從多個來源（GitHub、mcpservers.org、官方 MCP registry）爬取 AI 相關實體，包括 MCP 伺服器、AI agents、資料集、SDK 和基礎架構，篩選出台灣相關的項目。每個實體會走完 10 階段 pipeline（Discovery → Normalize → Taiwan/AI 相關性 → Classify → MCP Identity → Runtime Verify → Security Scan → Quality Score → Persist → Export），最終結果透過 REST API 與 React 網頁 UI 提供查詢。
 
-透過關鍵字匹配、官方網域（如 `.gov.tw`、`.org.tw`）、政府 API、金融 API（TWSE、TPEx）、不動產資料，以及繁體中文語言偵測來識別台灣相關的實體。
-
-**Pipeline:** Discovery → Normalize → Taiwan Relevance → AI Relevance → Classify → MCP Identity → Runtime Verify → Security Scan → Quality Score → Persist → Export
-
-### 核心原則
-
-- **Discovery Broadly**：從多個來源廣泛發現候選實體
-- **Classify Explicitly**：應用確定性與 LLM 分類規則對實體進行分類
-- **Verify Objectively**：執行階段驗證與安全掃描，提供客觀品質信號
-- **Publish Conservatively**：只有品質良好且驗證通過的實體才會放入已發布註冊表
-
-### 架構原則
+系統範圍刻意不僅限於 MCP：MCP 是約 20 種 `PrimaryClassification` 中的一個（其他包括 `AI_AGENT`、`AI_TOOL`、`AI_DATASET`、`AI_TUTORIAL`、`MCP_COLLECTION`、`DATA_LIBRARY` 等）。Spec §60 / §63 核心原則：
 
 ```text
-DISCOVER BROADLY
-      ↓
-CLASSIFY EXPLICITLY
-      ↓
-VERIFY OBJECTIVELY
-      ↓
-PUBLISH CONSERVATIVELY
+DISCOVER BROADLY → CLASSIFY EXPLICITLY → VERIFY OBJECTIVELY → PUBLISH CONSERVATIVELY
 ```
 
-MCP 是**分類類別**，而不是發現的邊界。系統從 AI 生態系統廣泛發現，並對每個實體進行明確分類。「提及 MCP」 ≠「使用 MCP」 ≠「MCP 客戶端」 ≠「MCP 伺服器」 ≠「驗證通過的 MCP 伺服器」。這些是獨立的狀態，在資料模型中保持分離（規格 §63）。
+`"MCP mentioned"` ≠ `"MCP used"` ≠ `"MCP client"` ≠ `"MCP server"` ≠ `"Verified MCP server"`。這些是資料模型中各自獨立的狀態。
 
-## 支援的實體類型
+## 功能
 
-分類器支援以下主要分類（規格 §11）：
-
-| 分類 | 主要分類 |
-|---|---|
-| **MCP** | `MCP_SERVER`, `MCP_CLIENT`, `MCP_HOST`, `MCP_SDK`, `MCP_LIBRARY`, `MCP_EXTENSION`, `MCP_SKILL`, `MCP_COLLECTION` |
-| **AI** | `AI_AGENT`, `AI_APPLICATION`, `AI_TOOL`, `AI_SDK`, `AI_FRAMEWORK`, `AI_SKILL`, `AI_KNOWLEDGE_BASE`, `AI_DATASET`, `AI_API`, `AI_INFRASTRUCTURE`, `AI_PLUGIN`, `AI_TUTORIAL`, `AI_EXAMPLE`, `AI_COLLECTION`, `AI_REGISTRY` |
-| **其他** | `DATA_LIBRARY`, `DATASET`, `API`, `CLI`, `WEB_APPLICATION`, `DATABASE`, `RESEARCH`, `TUTORIAL`, `COLLECTION`, `OTHER`, `NOT_AI_PROJECT`, `UNKNOWN` |
-
-## 註冊表視圖
-
-Pipeline 會產生多個註冊表視圖供不同消費者使用（規格 §44, §53）：
-
-| 視圖 | 說明 |
-|---|---|
-| `taiwan-ai-ecosystem.md` / `.json` | 所有台灣 AI 生態系統實體 (T1+) |
-| `taiwan-mcp.md` / `.json` | 驗證通過的 MCP 伺服器 (Runtime Verified, T1+, 未被安全封鎖) |
-| `taiwan-mcp-candidates.md` / `.json` | MCP 伺服器候選 (Candidate, Static Verified) |
-| `taiwan-ai-agents.md` / `.json` | 台灣 AI 代理 |
-| `taiwan-ai-tools.md` / `.json` | 台灣 AI 工具、SDK、框架、插件 |
-| `taiwan-ai-data.md` / `.json` | 台灣 AI 資料集、資料庫、API |
-| `taiwan-ai-skills.md` / `.json` | AI/MCP 技能 |
-| `taiwan-ai-infrastructure.md` / `.json` | AI 基礎架構 |
-| `taiwan-ai-tutorials.md` / `.md` | 教學與範例 |
-| `taiwan-ai-collections.md` / `.json` | 收集與註冊表 |
-| `awesome-taiwan-mcp.md` | 傳統 MCP 專用視圖 (向後兼容，見規格 §53) |
+- **多來源探索** — 4 個主動來源（`github`、`github-repo:modelcontextprotocol/servers*`、`registry` [opt-in]、`mcpserversorg`）；`mcpmarket` 因上游 Vercel WAF 改為 opt-in（T105）
+- **GitHub 兩階段關鍵字策略** — 預設 25 個 Taiwan+AI 廣泛查詢；`--include-mcp-anchored` 加 7 個 MCP-anchored 查詢（T101）
+- **HTTP retry 處理** — 所有來源把 HTTP client 包進 `internal/retry.RetryableClient`，指數退避（mcpserversorg：3s 起始、2 並行）
+- **5 個 MCP identity 狀態** — `CANDIDATE → STATIC_VERIFIED → RUNTIME_VERIFIED → VERIFIED` 加獨立的 `NOT_MCP` 終態（T102）
+- **SSE 與 streamable-http runtime handshake** — T100 實作真實 MCP initialize + tools/list；stdio 走 subprocess
+- **Data Library 防誤判** — Priority -0.5 規則，防止 `twmarketdata`/`tw-quant-db` 類型專案被誤升為 `MCP_SERVER`（T111，spec §22/§23/§48）
+- **每筆分類決策附 evidence** — 包含 `Source`/`File`/`Snippet` 欄位（T109）
+- **Spec §27 evidence 加權** + 三條 hard rule helper（T110）
+- **LLM fallback** — `--enable-llm-classifier`（預設開啟）會在設定 `OPENAI_API_KEY` 時掛上 LLM 分類器；rule + LLM 信心度都流過同一條路徑（T108）
+- **REST API** — 10 個端點（見 [API](#api-參考)）
+- **網頁 UI** — Dashboard 含統計 + markdown view 渲染；Server list 含分類徽章
+- **Seed 工具** — `cmd/seed` 把 `registry/registry.json` 倒進 v2 entities table，本地開發不用跑完整 crawler
 
 ## 架構
 
 ```mermaid
-graph TD
-    A[Discovery Sources] --> B[PipelineCoordinator]
-    B --> C["1. DISCOVERY"]
-    C --> D["2. NORMALIZER + Dedup"]
-    D --> E["3. TAIWAN RELEVANCE"]
-    E --> F["4. AI RELEVANCE"]
-    F --> G["5. CLASSIFIER"]
-    G --> H["6. MCP IDENTITY"]
-    H --> I["7. ENDPOINT CLASSIFIER"]
-    I --> J["8. RUNTIME VERIFICATION"]
-    J --> K["9. SECURITY SCANNER"]
-    K --> L["10. QUALITY SCORING"]
-    L --> M["11. PERSIST"]
-    M --> N["12. REGISTRY VIEWS"]
+flowchart TB
+  subgraph Source["探索來源（4 主動 + 1 opt-in）"]
+    GH[GitHub 關鍵字搜尋]
+    GGR[github.com/modelcontextprotocol/servers*]
+    MCP[mcpservers.org sitemap]
+    REG[官方 MCP Registry<br/>opt-in MCP_REGISTRY_URL]
+    MKT[mcpmarket<br/>opt-in --enable-mcpmarket]
+  end
 
-    A1[GitHub] --> A
-    A2[Official Registry] --> A
-    A3[mcpservers.org] --> A
-    A4[modelcontextprotocol/servers] --> A
+  subgraph Pipeline["Crawler Pipeline（10 階段）"]
+    P1[1. DISCOVERY<br/>adapter.Discover/Fetch]
+    P2[2. NORMALIZER + DEDUP]
+    P3[3. TAIWAN_RELEVANCE]
+    P4[4. AI_RELEVANCE]
+    P5[5. CLASSIFY<br/>rule + LLM fallback]
+    P6[6. MCP_IDENTITY<br/>+ 8.5 自動 promote]
+    P7[7. RUNTIME_VERIFICATION<br/>stdio / SSE / streamable-http]
+    P8[8. SECURITY_SCANNER]
+    P9[9. QUALITY_SCORING]
+    P10[9.5 PERSIST<br/>entityStore.Save]
+    P11[10. REGISTRY_VIEWS<br/>寫到 /data/registry]
+  end
 
-    B --- B1[(SQLite Store)]
-    B --- B2[Engines]
-    B2 --> B3[Classifier]
-    B2 --> B4[TaiwanRelevanceEngine]
-    B2 --> B5[AIRelevanceEngine]
-    B2 --> B6[MCPIdentityEngine]
-    B2 --> B7[EndpointClassifier]
-    B2 --> B8[RuntimeVerifier]
-    B2 --> B9[SecurityScanner]
-    B2 --> B10[QualityEngine]
-    B2 --> Export1[ViewGenerator]
+  subgraph Storage["SQLite（data/registry.db）"]
+    DB[(entities table<br/>v2 canonical model)]
+  end
 
-    P[cmd/migrate] --> Q[Migration Pipeline]
-    Q --> R[Load → Normalize → Classify → Score → Verify → Scan → Save]
+  subgraph Read["讀取路徑"]
+    EXP[cmd/export<br/>也寫 view 檔]
+    API[/api/*<br/>10 個端點/]
+    WEB[web/<br/>React UI<br/>nginx proxy]
+  end
 
-    P2[cmd/export] --> Export1
+  GH --> P1
+  GGR --> P1
+  MCP --> P1
+  REG -.opt-in.-> P1
+  MKT -.opt-in.-> P1
+
+  P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7 --> P8 --> P9
+  P9 --> P10
+  P10 --> DB
+  P9 --> P11
+  P11 --> ViewFiles[/data/registry/taiwan-*.md/]
+
+  DB --> API
+  DB --> EXP --> ViewFiles
+  ViewFiles --> API
+  API --> WEB
 ```
 
-`PipelineCoordinator` (`internal/coordinator/coordinator.go`) 協調 10 個有序階段。每個階段都是獨立的（規格 §45）：台灣相關性、AI 相關性、MCP 身分、執行階段驗證、安全狀態和品質分數都是獨立計算的，永遠不會合併為單一分數。
+### 重要模組
 
-獨立的 **Migration CLI** (`cmd/migrate/main.go`) 重新處理現有資料庫記錄，執行完整的分類 Pipeline。獨立的 **Export CLI** (`cmd/export/main.go`) 從資料庫讀取並呼叫 ViewGenerator。
+| 路徑 | 用途 |
+|---|---|
+| `cmd/crawler` | CLI：discover, classify, verify, scan, score, migrate, export, run |
+| `cmd/api` | REST 伺服器（port 8003） |
+| `cmd/export` | 從 DB 獨立產生 view 的工具 |
+| `cmd/migrate` | V1 → V2 schema 遷移（dev 環境 DB 沒 v1 table 沒實跑過） |
+| `cmd/seed` | 一次性 seed：`registry/registry.json` → v2 entities |
+| `internal/coordinator` | 10 階段 pipeline 編排 |
+| `internal/engines` | rule + LLM 分類器、MCP identity、runtime verifier、quality engine、security scanner、endpoint classifier |
+| `internal/sources/{github,githubrepo,registry,mcpserversorg,mcpmarket}` | 每個外部來源一個 adapter |
+| `internal/storage` | SQLite v2 store（`entities` table） |
+| `internal/export` | view 產生器（10 個 `taiwan-*.md` + `.json` 檔） |
+| `internal/api` | REST handlers |
+| `web/` | React 19 + Vite + nginx |
 
-## 專案結構
+## 系統需求
 
-```
-├── cmd/
-│   ├── crawler/              # 主要 CLI 進入點 (cobra)
-│   │   └── main.go           # 指令: run, crawl, discover, classify, verify, scan,
-│   │                         #   score, migrate, export, search, stats, version
-│   ├── migrate/              # 獨立遷移 CLI
-│   │   └── main.go           # 完整 Pipeline: load→normalize→classify→score→verify→scan→save
-│   └── export/               # 獨立匯出工具
-│       └── main.go           # 從資料庫讀取，呼叫 ViewGenerator
-├── internal/
-│   ├── classify/             # 台灣相關性分類 (關鍵字、LLM、規則)
-│   ├── config/               # 信號配置 (taiwan_signals.yaml, ai_signals.yaml)
-│   ├── coordinator/          # 新版 Pipeline 協調
-│   │   ├── coordinator.go    # PipelineCoordinator (10-stage pipeline)
-│   │   └── stages.go         # Stage interface + Pipeline struct
-│   ├── crawler/              # 傳統爬蟲 Pipeline
-│   │   ├── coordinator.go    # CrawlCoordinator
-│   │   ├── incremental.go    # IncrementalCrawler
-│   │   └── run/              # 爬蟲運行管理
-│   ├── dedupe/               # 去重引擎 (正規化身份)
-│   ├── engines/              # 分類與驗證引擎
-│   │   ├── classifier.go     # 實體分類 (25 個主要類型)
-│   │   ├── taiwan_relevance.go # 台灣相關性引擎 (規格 §17)
-│   │   ├── ai_relevance.go   # AI 相關性引擎 (規格 §10)
-│   │   ├── mcp_identity.go    # MCP 身分偵測引擎
-│   │   ├── endpoint_classifier.go # 端點 URL 類型分類
-│   │   ├── runtime_verifier.go # MCP 協定握手驗證
-│   │   ├── security_scanner.go # 安全掃描 (6 個檢測類別)
-│   │   ├── quality_engine.go  # 品質評分 (10 組件, 0-100)
-│   │   ├── acceptance_test.go  # 接受測試 (規格 §56, 12 個測試)
-│   │   └── fp_rate_test.go    # 假陽性率測試 (規格 §58)
-│   ├── evidence/             # 證據收集
-│   ├── export/               # 視圖生成與匯出
-│   │   ├── view_generator.go # RegistryView 生成 (9 個視圖 + 傳統)
-│   │   └── exporter.go       # 傳統 Markdown 匯出
-│   ├── health/               # 端點健康檢查
-│   ├── manifest/             # MCP manifest 解析
-│   ├── metrics/              # 結構化 JSON 日誌
-│   ├── models/               # 資料模型
-│   │   ├── entity.go         # Entity struct、枚舉、生命周期方法
-│   │   ├── classification.go # PrimaryClassification 枚舉 (25 類型)、MCPRole
-│   │   └── models.go         # 傳統 MCPServer、Status、HealthStatus 等
-│   ├── normalize/            # 正規化 (RawRecord → MCPServer)
-│   ├── sources/              # 資料源 adapters
-│   │   ├── github/           # GitHub 倉庫搜尋/發現
-│   │   ├── githubrepo/       # GitHub 目錄型 (modelcontextprotocol/servers)
-│   │   ├── registry/         # 官方 MCP 註冊表
-│   │   ├── mcpserversorg/    # mcpservers.org (Sitemap + goquery)
-│   │   └── mcpmarket/        # mcpmarket.com
-│   ├── storage/              # SQLite 持久化
-│   │   ├── store.go          # 傳統 MCPServer 存儲
-│   │   ├── entity_store.go   # 新 Entity 存儲 (schema_v2)
-│   │   ├── schema_v2.sql     # 新 entities schema
-│   │   └── migrations.go     # V1→V2 遷移邏輯
-│   └── verify/               # 倉庫 + MCP 協定驗證
-├── config/
-│   ├── pipeline.yaml         # Pipeline 階段配置
-│   ├── taiwan_signals.yaml   # 台灣信號關鍵字
-│   ├── ai_signals.yaml       # AI 信號關鍵字
-│   ├── keywords.yaml         # 發現查詢關鍵字
-│   └── domains.yaml          # 官方台灣網域
-├── tests/
-│   ├── fixtures/
-│   │   ├── acceptance/       # 接受測試固件 (含 MCP 測試伺服器)
-│   │   ├── golden/           # Golden regression 測試資料
-│   │   └── ground_truth/     # FP rate 測試真值 (50 正例, 100 反例)
-│   ├── integration/          # E2E Pipeline 測試
-│   ├── unit/                 # 單元 + golden regression 測試
-│   └── benchmarks/           # 效能基準測試
-├── migrations/               # 資料庫遷移文件
-├── Dockerfile                # 多階段建構: golang:1.26-alpine → alpine:latest
-├── docker-compose.yaml       # crawler 服務
-└── .golangci.yml             # linter 配置
-```
-
-## 需求
-
-- **Go** 1.25+
-- **GITHUB_TOKEN** — 用於 GitHub API 搜尋與抓取
-- **OPENAI_API_KEY** — (選填) 用於模糊候選的 LLM 分類
-- **OPENAI_BASE_URL** — (選填) OpenAI-compatible API 端點
-- **Docker** — 用於容器建構
+- **Go 1.25+**（`go.mod` 宣告 `go 1.25.0`；用 1.27 測試）
+- **Node 20+** 與 **pnpm 9+**（網頁 UI 用）
+- **Docker** with BuildKit（web build 是 multi-stage）
+- **`GITHUB_TOKEN`** 建議設（匿名 60/h，有 token 5000/h）
+- **`OPENAI_API_KEY`** optional；會啟用 LLM fallback 給 ambiguous entity
+- **磁碟空間**：Docker image 約 2 GB，`data/registry.db` + `registry/` view 約 50 MB
 
 ## 安裝
 
-### 從原始碼建構
-
 ```bash
-# 建構所有 CLI
-go build -o crawler ./cmd/crawler
-go build -o migrator ./cmd/migrate
-go build -o exporter ./cmd/export
+# Clone
+git clone <repository-url> awesome-taiwan-ai-ecosystem
+cd awesome-taiwan-ai-ecosystem
+
+# 編 Go binary 到 bin/
+make build
+# 產出 bin/crawler bin/api bin/exporter bin/migrator
+
+# 裝 web 依賴
+cd web && pnpm install && pnpm build && cd ..
 ```
 
-### Docker
+或用 Docker 全部編譯：
 
 ```bash
-docker build -t awesome-taiwan-ai-ecosystem .
+docker compose build
 ```
 
-## 配置
+## 設定
 
-| 環境變數 | 必填 | 預設 | 說明 |
+所有變數從環境讀取。`docker-compose.yaml` 把 crawler 容器的變數預設為空，這樣 `docker compose up` 直接跑就是 anonymous GitHub + 停用 registry/mcpmarket。
+
+| 變數 | 預設 | 使用者 | 說明 |
 |---|---|---|---|
-| `GITHUB_TOKEN` | 是 | — | GitHub API Token，用於倉庫搜尋與抓取 |
-| `OPENAI_API_KEY` | 否 | — | OpenAI-compatible API Key，用於 LLM 分類 |
-| `OPENAI_BASE_URL` | 否 | `https://opencreate.ai/zen/v1` | OpenAI-compatible API 基礎 URL |
-| `OPENAI_MODEL` | 否 | — | 僅覆寫 **當前爬蟲實例** 的模型 |
+| `GITHUB_TOKEN` | 空 | `crawler`, `api` | 設定後提高 rate limit |
+| `OPENAI_API_KEY` | 空 | `crawler` | 啟用 LLM 分類 fallback |
+| `OPENAI_BASE_URL` | `https://opencode.ai/zen/v1` | `crawler` | OpenAI 相容 chat completions URL |
+| `OPENAI_MODEL` | 空 | `crawler` | 單一模型名稱；預設 fallback chain 為 `gpt-4o-mini → gpt-4o` |
+| `MCP_REGISTRY_URL` | 空（source 停用） | `crawler` | 真正的官方 MCP registry URL；opt-in 才啟用，避免打 placeholder `api.mcp-servers.dev` |
+| `VITE_API_URL` | `http://api:8003/api/v1` | `web` build | build time 注入 |
 
-CLI 標誌：
+crawler 比較常用的 CLI flag（完整列表 `crawler --help`）：
 
-| 標誌 | 預設 | 說明 |
+| Flag | 預設 | 效果 |
 |---|---|---|
-| `--source` | `all` | 要爬取的資料源: `github`, `registry`, `mcpserversorg`, `mcpmarket`, 或 `all` |
-| `--workers` | `4` | 每個資料源的 worker 數量 |
-| `--max-per-source` | `10` | 每個資料源的最大候選數量 (0 = 無限制) |
-| `--incremental` | `false` | 執行增量爬取 (僅重新爬取有變更的候選) |
-| `--full` | `false` | 強制完整爬取 |
-| `--db` | `./data/registry.db` | SQLite 資料庫路徑 |
-| `--config` | `config/sources.yaml` | 配置文件路徑 |
-| `--markdown` | `false` | 生成人類可讀 Markdown (export 子指令) |
-| `--capability` | — | 以 capability 關鍵字搜尋 (search 子指令) |
-| `--min-score` | `0` | 最小品質分數過濾 |
-| `--level` | — | 依台灣相關性等級過濾 (T0-T5) |
-| `--category` | — | 依分類過濾 |
-| `--json` | `false` | JSON 輸出格式 |
-| `--dry-run` | `false` | 驗證但不寫入變更 |
-| `--verbose` | `false` | 啟用詳細日誌 |
+| `--db` | `./data/registry.db` | SQLite 路徑 |
+| `--source` | `all` | `github` / `registry` / `mcpserversorg` / `mcpmarket` / `all` |
+| `--pipeline` | `full` | `full` / `discovery-only` / `classify-only` / `verify-only` |
+| `--include-mcp-anchored` | `false` | 加 7 個 MCP-anchored 查詢到 GitHub 搜尋 |
+| `--enable-mcpmarket` | `false` | 啟用 mcpmarket（Vercel WAF 上游） |
+| `--enable-llm-classifier` | `true` | 關掉 = 純 rule-based |
+| `--workers` | `4` | 每個來源的並行度 |
+| `--malicious-threshold` | `MEDIUM` | `LOW` / `MEDIUM` / `HIGH` / `CRITICAL` |
 
 ## 快速開始
 
-```bash
-# 1. 建構 CLI
-go build -o crawler ./cmd/crawler
-go build -o migrator ./cmd/migrate
-go build -o exporter ./cmd/export
-
-# 2. 執行完整 Pipeline
-export GITHUB_TOKEN=your_github_token_here
-./crawler run --source github --workers 4 --max-per-source 10
-
-# 同時爬取 mcpservers.org (10k+ 候選透過 Sitemap)
-./crawler run --source mcpserversorg --workers 2 --max-per-source 100
-
-# 3. 執行遷移 Pipeline (重新分類現有實體)
-./migrator --db ./data/registry.db --dry-run
-
-# 4. 匯出註冊表視圖
-./exporter --db ./data/registry.db --markdown
-
-# 5. 搜尋實體
-./crawler search "taiwan"
-./crawler search --capability "filesystem"
-
-# 6. 查看統計
-./crawler stats
-```
-
-### CLI 指令
+剛 clone 完想最快看到資料庫有東西：
 
 ```bash
-# 主要 CLI (cmd/crawler)
-crawler run        # 完整 Pipeline: discover → normalize → classify → verify → scan → score → export
-crawler crawl      # 別名: `run`
-crawler discover   # 僅發現階段 (從資料源抓取)
-crawler classify   # 分類 + 台灣/AI 評分 + MCP 身分
-crawler verify     # 執行階段驗證 (MCP 協定握手)
-crawler scan       # 安全掃描
-crawler score      # 品質評分
-crawler migrate    # 資料庫遷移 (V1→V2)
-crawler export     # 匯出註冊表視圖 (JSON + Markdown)
-crawler search     # 搜尋註冊表
-crawler stats      # 查看聚合統計
-crawler version    # 列印版本資訊
+# 1. 把 561 筆 legacy 倒進 v2 entities table
+#    跳過長 crawler run，可以直接測 API + view 產生器
+go run ./cmd/seed --db data/registry.db --limit 561
 
-# 遷移 CLI (cmd/migrate) — 獨立完整 Pipeline
-migrator --db ./data/registry.db --dry-run    # 乾跑 (不寫入)
-migrator --db ./data/registry.db --resume     # 從檢查點恢復
+# 2. 產生 view 檔到 ./registry/
+docker compose run --rm crawler export --db /data/db/registry.db
 
-# 匯出 CLI (cmd/export) — 獨立匯出工具
-exporter --db ./data/registry.db --markdown   # 生成所有視圖 + Markdown
+# 3. 編譯並啟動 API + web
+docker compose build
+docker compose up -d api web
+
+# 4. 打開
+open http://localhost:3000      # 網頁 UI
+curl http://localhost:3000/api/v1/health   # 200, db_count: 561
 ```
 
-## 使用方法
-
-### Run (完整 Pipeline)
+要跑完整 crawler（用真實網路，較慢）：
 
 ```bash
-# 完整 Pipeline 執行
-./crawler run --source all --workers 4
-
-# 增量執行 (僅重新爬取有變更的候選)
-./crawler run --incremental --source github
-
-# 限制每個資料源的候選數量
-./crawler run --source github --max-per-source 20
+docker compose up -d crawler   # 跑 10 階段 pipeline；log 看 docker logs
 ```
 
-### 個別 Pipeline 階段
+完整跑一輪要 30-60+ 分鐘，因為每個 source 的退避（mcpserversorg 經 slug 預過濾後剩 1455 個 candidate，每個走 retry client 序列取）。
 
-```bash
-# 僅發現
-./crawler discover --source github --max-per-source 50
+## API 參考
 
-# 僅分類 (處理已在資料庫的候選)
-./crawler classify --dry-run
+全部端點都是 GET。web UI 透過 nginx 將 `/api/*` 代理到 api 容器。
 
-# 執行階段驗證 (對 STATIC_VERIFIED 的伺服器)
-./crawler verify
+| 端點 | 說明 | 回傳 |
+|---|---|---|
+| `GET /health` | 存活 | `{status, timestamp, version, db_count}` |
+| `GET /api/v1` | API 索引 | 端點列表 |
+| `GET /api/v1/health` | 同 `/health` | （v1 namespace 重複路徑） |
+| `GET /api/v1/entities` | Entity 列表（v2 canonical） | `{entities: [...], pagination: {...}}` — 預設 `MinTaiwanLevel=T1`，加 `?all=true` 看全部 561 |
+| `GET /api/v1/entities?level=T3` | 依 Taiwan level 過濾 | 同形 |
+| `GET /api/v1/entities?category=AI_AGENT` | 依 primary 分類過濾 | 同形 |
+| `GET /api/v1/servers` | Legacy MCP_SERVER view（向後相容） | `{servers: [...], pagination: {...}}` — 只有 `MCP_SERVER` + `RuntimeVerified`（dev 環境目前空） |
+| `GET /api/v1/servers/{id}` | 單筆 server by ID | `{server: ...}` |
+| `GET /api/v1/search` | 全文搜尋 | `{query, results: [...], pagination: {...}}` |
+| `GET /api/v1/registry` | 完整 registry v0.1 形狀（向後相容） | `{schema_version, statistics, servers: [...]}` |
+| `GET /api/v1/registry/markdown` | 列出可用 view 檔 | `{files: ["taiwan-ai-ecosystem.md", ...]}` |
+| `GET /api/v1/registry/markdown?file=taiwan-ai-ecosystem.md` | 單一 view 檔 | 原始 `text/markdown` |
+| `GET /api/v1/statistics` | 依 level / health / quality / status / classification 計數 | `{total_servers, taiwan_relevant, by_level, by_health, quality_distribution, by_status, by_classification}` — T1+ 過濾 |
 
-# 安全掃描
-./crawler scan
+### 分頁
 
-# 品質評分
-./crawler score
-```
-
-### 遷移
-
-```bash
-# 將現有 V1 資料庫記錄重新處理透過完整分類 Pipeline
-./migrator --db ./data/registry.db --dry-run
-
-# 恢復中斷的遷移
-./migrator --db ./data/registry.db --resume
-
-# 完整遷移 (帶資料庫寫入)
-./migrator --db ./data/registry.db
-```
-
-### 匯出
-
-```bash
-# 透過獨立匯出 CLI 生成所有註冻視圖
-./exporter --db ./data/registry.db --markdown
-
-# 或使用主要 CLI
-./crawler export --markdown
-```
-
-輸出檔案在 `registry/views/`：
-
-| 檔案 | 說明 |
-|---|---|
-| `taiwan-ai-ecosystem.json` / `.md` | 所有台灣 AI 實體 (T1+) |
-| `taiwan-mcp.json` / `.md` | 驗證通過的 MCP 伺服器 |
-| `taiwan-mcp-candidates.json` / `.md` | MCP 伺服器候選 |
-| `taiwan-ai-agents.json` / `.md` | 台灣 AI 代理 |
-| `taiwan-ai-tools.json` / `.md` | 台灣 AI 工具、SDK、框架 |
-| `taiwan-ai-data.json` / `.md` | 台灣 AI 資料集、資料庫 |
-| `taiwan-ai-skills.json` / `.md` | AI/MCP 技能 |
-| `taiwan-ai-infrastructure.json` / `.md` | AI 基礎架構 |
-| `taiwan-ai-tutorials.json` / `.md` | 教學與範例 |
-| `taiwan-ai-collections.json` / `.md` | 收集與註冊表 |
-| `awesome-taiwan-mcp.md` | 傳統 MCP 專用視圖 (向後兼容) |
-
-### 搜尋
-
-```bash
-# 文字搜尋
-./crawler search "financial"
-./crawler search --level T3
-
-# Capability 搜尋
-./crawler search --capability "filesystem"
-./crawler search --capability "database"
-
-# 品質過濾
-./crawler search --min-score 70
-
-# JSON 輸出
-./crawler search "taiwan" --json
-```
-
-### 統計
-
-```bash
-./crawler stats
-```
+list 端點的 `page`（預設 `1`）與 `limit`（預設 `50`，max `1000`）。
 
 ## 資料模型
 
-### Entity (正規化模型 — 規格 §37, §61 Phase 1)
+v2 entity（`internal/models/entity.go` 的 `Entity` struct）對應 spec §37 canonical schema：
 
-`Entity` 結構 (`internal/models/entity.go`) 是所有 AI 生態系統實體的正規化模型。它取代了傳統的 `MCPServer` 類型，同時透過 `ToMCPServerView()` 保持向後兼容。
-
-| 欄位 | 類型 | 說明 |
-|---|---|---|
-| `id` | `string` | 正規化 repo URL 的 SHA256 |
-| `name` | `string` | 顯示名稱 |
-| `slug` | `string` | URL-safe slug |
-| `description` | `string` | 簡短描述 |
-| `entity_status` | `EntityStatus` | `DISCOVERED`, `CANDIDATE`, `VERIFIED`, `QUARANTINED`, `REJECTED` |
-| `classification` | `ClassificationResult` | 主要分類 + 信心度 + 證據 + MCP 角色 |
-| `taiwan_relevance` | `TaiwanRelevance` | 分數 (0-100)、等級 (T0-T5)、證據、信心度 |
-| `ai_relevance` | `AIRelevance` | 分數 (0-100)、等級 (A0-A5)、證據、信心度 |
-| `mcp_identity` | `MCPIdentity` | 狀態 (CANDIDATE/STATIC_VERIFIED/RUNTIME_VERIFIED/NOT_MCP)、證據、信心度、角色 |
-| `endpoints` | `[]EndpointWithType` | 分類過的端點 (含類型與證據) |
-| `tools` | `[]Tool` | 擷取的 MCP Tools |
-| `resources` | `[]Resource` | 擷取的 MCP Resources |
-| `prompts` | `[]Prompt` | 擷取的 MCP Prompts |
-| `data_sources` | `[]DataSource` | 實體使用的資料來源 |
-| `quality` | `QualityScore` | 分數 (0-100)、等級 (A-F)、10 組件 |
-| `security_status` | `SecurityStatusDetail` | 安全掃描結果 (CLEAR/QUARANTINED/BLOCKED) |
-| `runtime_verification` | `*RuntimeVerification` | MCP 協定握手結果 |
-| `first_seen` / `last_seen` | `RFC3339Time` | 發現時間戳 |
-| `sources` | `[]SourceReference` | 發現資料源引用 (含信任分數) |
-
-### 實體狀態生命周期
-
-```text
-DISCOVERED → CANDIDATE → VERIFIED
-                       → QUARANTINED → REJECTED
-                                     → VERIFIED (誤判)
-                       → REJECTED (非 AI)
-VERIFIED → REJECTED (日後發現問題)
+```yaml
+id: string                       # sha256 hex of canonical identity
+name, slug, description: string
+classification:
+  primary: PrimaryClassification # MCP_SERVER / AI_AGENT / AI_TOOL / AI_DATASET / ...
+  secondary: []string
+  confidence: 0-100
+taiwan_relevance: { score, level (T0..T5), evidence, confidence }
+ai_relevance: { score, level, evidence, confidence }
+mcp_identity:
+  related: bool
+  status: CANDIDATE | STATIC_VERIFIED | RUNTIME_VERIFIED | VERIFIED | NOT_MCP
+  role: SERVER | CLIENT | HOST | SDK | LIBRARY | ...
+  confidence: 0-100
+  static_checked_at, runtime_verified_at: timestamp
+endpoints: [{ url, transport, type, verified }]  # type per spec §24
+repository: { url, owner, name, stars, language, topics, ... }
+quality: { score, grade (A-F), components (10), evidence }
+security: { status (CLEAN/SUSPICIOUS/QUARANTINED/BLOCKED), findings }
+sources: [{ primary, source, url, trust_score }]   # primary flag 在 T104 加
+entity_status: DISCOVERED | CLASSIFIED | VERIFIED | REJECTED | QUARANTINED
 ```
 
-### 獨立維度
+JSON schema 對應 `schema/entity.json` 與 `schema/registry.json`（T106，v2.0）。
 
-根據規格 §45，以下屬性是獨立計算的，永遠不會合併為單一分數：
+## 探索來源
 
-- `taiwan_relevance`
-- `ai_relevance`
-- `mcp_identity`
-- `runtime_verification`
-- `security_status`
-- `quality`
+| 來源 | 信任分 | 狀態 | 備註 |
+|---|---|---|---|
+| `github` | 0.95 | active | 兩階段關鍵字（T101）：25 廣泛 + 7 MCP-anchored（opt-in） |
+| `github-repo:modelcontextprotocol/servers` | 0.95 | active | 抓官方 MCP servers 列表 |
+| `github-repo:modelcontextprotocol/servers-archived` | 0.95 | active | 抓 archived 條目 |
+| `mcpserversorg` | 0.7 | active | Slug 預過濾（T107）從 10182 砍到 1455 candidate |
+| `registry` | 0.9 | **opt-in**（T103） | 原寫死 `https://api.mcp-servers.dev`（DNS 失敗）。設 `MCP_REGISTRY_URL` 才啟用 |
+| `mcpmarket` | 0.7 | **opt-in**（T105） | 背後 Vercel WAF；預設停用，`--enable-mcpmarket` 啟用 |
 
-### 註冊表視圖 (規格 §44)
+## 設定檔
 
-視圖透過過濾實體的分類 + MCP 身分生成：
-
-- **MCP 伺服器**: `primary == MCP_SERVER` AND `identity.status == RUNTIME_VERIFIED`
-- **MCP 候選**: `primary == MCP_SERVER` AND `identity.status IN (CANDIDATE, STATIC_VERIFIED)`
-- **AI 代理**: `primary == AI_AGENT`
-- **AI 資料**: `primary IN (DATA_LIBRARY, DATASET, AI_KNOWLEDGE_BASE)`
-
-## 評分
-
-### 台灣相關性 (規格 §17)
-
-確定性評分，無需 LLM：
-
-| 規則 | 分數 | 證據類型 |
-|---|---|---|
-| 官方台灣網域 (.gov.tw, .org.tw, .com.tw) | +40 | `official_domain` |
-| 台灣政府 API 檢測 | +40 | `official_gov_api` |
-| 台灣金融 API (TWSE, TPEx, TAIFEX, TDCC, FinMind, Fugle) | +35 | `taiwan_financial_api` |
-| 台灣特定資料集檢測 | +30 | `taiwan_dataset` |
-| 台灣關鍵字出現在 repo 名稱/描述 | +20 | `repository_keyword` |
-| 台灣語言 (zh-TW, 繁體中文) | +15 | `taiwan_language` |
-| 台灣公司/服務提及 | +15 | `taiwan_company` |
-| README 提及台灣 | +5 | `readme_mention` |
-
-等級門檻：T5 (≥70), T4 (≥55), T3 (≥40), T2 (≥20), T1 (≥5), T0 (<5)
-
-### AI 相關性 (規格 §10)
-
-基於以下確定性信號進行評分：倉庫 topics、描述關鍵字、套件模式、資料來源類型、工具功能。信號配置於 `config/ai_signals.yaml`。
-
-等級門檻：A5 (≥80), A4 (≥65), A3 (≥50), A2 (≥25), A1 (≥1), A0 (<1)
-
-### 品質評分 (規格 §31)
-
-10 組件，總分 100 分，A-F 等級：
-
-| 組件 | 最高分 | 依據 |
-|---|---|---|
-| 資料來源 | 20 | 官方台灣 API (20)、政府開放資料 (18)、公司 API (15) 等 |
-| 維護 | 15 | 最後提交日期 (<90天: 15, 90-180天: 12 等) |
-| 文檔 | 10 | README 存在性、長度、設置說明、範例 |
-| MCP 符合度 | 15 | Manifest/config、stdio + HTTP + SSE + streamable-http 支援 |
-| Tool Schema | 10 | 擁有 name + description + input schema 的 tools |
-| 健康度 | 10 | 端點健康狀態 (HEALTHY: 10, DEGRADED: 5) |
-| 倉庫 | 5 | 倉庫可存取 + stars |
-| 授權 | 5 | 授權存在 (3)、寬鬆授權 (2) |
-| 安全 | 5 | 無嚴重發現 (-5 至 +5) |
-| 社群 | 5 | Stars、forks、topics |
-
-等級: A (≥90), B (≥80), C (≥70), D (≥60), F (<60)
-
-品質評分是**確定性的** — 相同的輸入永遠會產生相同的分數。LLM 永遠不會用於品質評分。
-
-## 安全掃描
-
-`SecurityScanner` (`internal/engines/security_scanner.go`) 僅執行靜態分析 —**永遠不會執行發現的程式碼** (規格 §60, algs/verification.md)。檢測類別：
-
-| 類別 | 偵測內容 |
+| 檔案 | 用途 |
 |---|---|
-| 混淆碼 | Base64/hex 編碼載荷、`eval`、`exec`、`Function(...)` |
-| credential extraction | 硬編碼 API keys、密碼、tokens (AWS、GitHub、OpenAI 模式) |
-| 遠端二進位下載 | `curl\|bash`、`wget\|sh`、下載並執行模式 |
-| 命令注入 | `child_process`、`os.system`、`subprocess`、未經消毒的命令執行 |
-| 持續性 | Cron、systemd、啟動腳本、註冊表修改 |
-| 網路信標 | 可疑 C2 域名模式、周期性網路呼叫 |
-| 檔案系統濫用 | 寫入 `/etc`、`/root`、系統目錄 |
-| Localhost 端點 | 指向 localhost 的 HTTP 端點 (生產環境安全風險) |
+| `config/pipeline.yaml` | pipeline 設定（mode、timeouts、filters）— 目前是資訊性；Go code 讀 CLI flag |
+| `config/sources.yaml` | 來源清單（placeholder；Go code 用 `cmd/crawler/main.go` 寫死的來源清單） |
+| `config/taiwan_signals.yaml` | Taiwan 相關性關鍵字字典 |
+| `config/ai_signals.yaml` | AI 相關性關鍵字字典 |
+| `config/categories.yaml` | 分類 enum |
+| `config/domains.yaml` | Taiwan 官方 domain 列表 |
 
-含有可疑程式碼的實體會被**隔離** (規格 §35, §56 Test 12)，並從已發布的視圖中排除。
+## 輸出：Registry Views
 
-## 執行階段驗證
+view 產生器（`internal/export/view_generator.go`）寫 10 個 markdown + 10 個 JSON 檔到 `/data/registry/`。每個是 entity 集合的不同過濾（見 spec §44 / §60）。
 
-`RuntimeVerifier` (`internal/engines/runtime_verifier.go`) 執行 MCP 協定握手驗證：
+| 檔案 | 過濾 | seed 數量（561 筆） |
+|---|---|---|
+| `taiwan-ai-ecosystem.md` | T1+ Taiwan relevant、全部 primary 分類 | 200 |
+| `taiwan-mcp.md` | `MCP_SERVER` + `MCP_VERIFIED` + T1+ + not blocked | 0（seed 路徑沒有 entity 到 VERIFIED） |
+| `taiwan-mcp-candidates.md` | `MCP_SERVER` + `STATIC_VERIFIED` 或 `CANDIDATE` | 415 |
+| `taiwan-ai-agents.md` | `AI_AGENT` | 16 |
+| `taiwan-ai-tools.md` | `AI_TOOL` / `AI_SDK` / `AI_FRAMEWORK` / `AI_PLUGIN` | 5 |
+| `taiwan-ai-data.md` | `AI_DATASET` / `DATA_LIBRARY` / `AI_KNOWLEDGE_BASE` | 12 |
+| `taiwan-ai-skills.md` | `MCP_SKILL` / `AI_SKILL` | 0 |
+| `taiwan-ai-infrastructure.md` | `AI_INFRASTRUCTURE` | 0 |
+| `taiwan-ai-tutorials.md` | `AI_TUTORIAL` / `AI_EXAMPLE` / `TUTORIAL` | 7 |
+| `taiwan-ai-collections.md` | `MCP_COLLECTION` / `AI_COLLECTION` / `COLLECTION` | 19 |
+| `awesome-taiwan-mcp.md` | Legacy 向後相容 view（MCP only） | 視情況 |
+| `malicious/MALICIOUS_REPORT.md` + `blocklist.txt` | 安全掃描輸出 | 每次 export 都產 |
+| `security/injection/INJECTION_REPORT.md` + `patterns.json` | Prompt-injection 掃描輸出 | 每次 export 都產 |
 
-1. **連線** 到端點 (HTTP SSE/Streamable HTTP 或 stdio 子進程)
-2. **初始化** — 發送 `initialize` 請求，期望收到有效回應 (含 `protocolVersion` 和 `capabilities`)
-3. **工具列表** — 請求 `tools/list`，期望收到擁有有效名稱的 tools 陣列
-4. **資源列表** — 請求 `resources/list` (若支援)
-5. **提示列表** — 請求 `prompts/list` (若支援)
-
-只有在驗證成功後，實體的 `MCPIdentity.Status` 才會進階到 `RUNTIME_VERIFIED`。
-
-**安全限制**: MCP 協定驗證僅發送 `initialize` 和 `tools/list` 請求 — **永遠不會執行工具或發送任意負載** (規格 §26, algs/verification.md)。
+上表數字來自一次 seed（561 筆 legacy）。換不同 dataset 會變。
 
 ## 錯誤處理
 
-- **速率限制**: 指數退避 (1s → 2s → 4s → 8s，上限 30s，最多 3 次重試)
-- **資料源降級**: 失敗的資料源會被記錄並跳過，Pipeline 繼續執行
-- **LLM 失敗**: 回退到確定性分類
-- **網路逾時**: 整個 Pipeline 均支援 context 取消
-- **單實體隔離**: 單一實體的失敗不會阻塞其他實體
+- **Crawler** 階段記錄每筆 entity 失敗（`fetch_error`、`save_failed` 等）並繼續。pipeline 只在第一個 fatal 階段（DB 無法連線等）回錯；個別壞 record 不會中止整個 batch。
+- **API** 用結構化 JSON 錯誤回應：`{error, message}`。驗證錯誤 400、找不到資源 404、DB 錯誤 500。Go 1.22+ method-aware `mux.HandleFunc("GET ...")` pattern 表示 `/api/v1` 只 match 精確路徑；像 `/api/v1/entities` 走自己的 handler（修掉建 markdown viewer 時發現的 prefix-collision bug）。
+- **Runtime verifier** 區分 `PASSED` / `FAILED` / `ERROR`。SSE 與 streamable-http 用真實 `http.Client.Do`；stdio spawn subprocess 透過 pipe 送 JSON-RPC。`mcpserversorg` adapter 內 8xx retry 退避上限 30s。
+
+## 日誌與監控
+
+`internal/metrics/logger.go` 對每個階段轉換輸出結構化 `time=... level=INFO|WARN|ERROR msg=... crawl_id=... stage=... event=...`。crawler 容器直接 pipe 到 `docker logs ai-ecosystem-crawler`。典型 run 會看到：
+
+```
+level=INFO msg=source_started crawl_id=20260907T120924Z stage=DISCOVERY source=mcpserversorg
+level=INFO msg=source_complete crawl_id=20260907T120924Z stage=DISCOVERY source=mcpserversorg candidates_found=1455
+level=INFO msg=PERSIST save_complete saved=200 failed=0 total=200
+level=INFO msg=REGISTRY_VIEWS complete entities=200
+```
+
+**沒有 metrics 端點**（Prometheus、OpenTelemetry），**沒有 log aggregation**。
 
 ## 測試
 
 ```bash
-# 所有測試
-go test ./... -count=1 -timeout=120s
+# 全部 Go 測試（~2 分鐘）
+make test
 
-# 接受測試 (規格 §56: 12 個測試案例)
-go test ./internal/engines/... -run TestAcceptance -v -count=1
+# Acceptance 測試（spec §56，14 case）
+make test-acceptance
 
-# 假陽性率測試 (規格 §58: MCP 假陽性率 < 5%)
-go test ./internal/engines/... -run TestFPRate -v -count=1
+# FP rate（spec §58 — 必須 < 5% PASS，< 2% EXCELLENT）
+go test ./internal/engines -run TestFPRate -v -count=1
 
-# 啟用 race 檢測
-go test -race ./internal/... -count=1 -timeout=120s
-
-# 按套件覆蓋率
-go test ./... -count=1 -cover
-
-# 整合測試
-go test ./tests/integration/ -v
-
-# CI Pipeline (等價)
-go build ./... && go vet ./... && go test ./... -cover -timeout 120s
+# Web 單元測試
+cd web && pnpm test
 ```
 
-### 接受測試 (規格 §56)
+**沒測量 coverage**，沒設目標。`tests/fixtures/ground_truth/` 150 個 ground truth fixture（50 positive + 100 negatives）驅動 FP rate 測試。
 
-接受測試套件 (`internal/engines/acceptance_test.go`) 覆蓋所有 12 個規格測試案例及邊界情況：
-
-| 測試 | 場景 | 預期結果 |
-|---|---|---|
-| 1 | README 提及 MCP，無實現 | 非 MCP_SERVER，NOT_MCP |
-| 2 | SDK 依賴但僅實現 client | MCP_CLIENT |
-| 3 | 伺服器實現 (McpServer, StdioServerTransport, entry point) | MCP_SERVER |
-| 4 | 執行階段驗證 (MCP 協定握手) | RUNTIME_VERIFIED |
-| 5 | GitHub URL | REPOSITORY_URL (絕不為 MCP_RUNTIME_ENDPOINT) |
-| 6 | 文檔 URL | DOCUMENTATION_URL |
-| 7 | 安裝程式 URL | INSTALLER_URL |
-| 8 | 收集庫存倉庫 | MCP_COLLECTION |
-| 9 | 教學 | MCP_TUTORIAL |
-| 10 | 資料 SDK | DATA_LIBRARY |
-| 11 | 使用 MCP 的 AI 代理 | AI_AGENT (MCP 角色 = CLIENT) |
-| 12 | 可疑程式碼 | QUARANTINED |
-
-### 假陽性率測試 (規格 §58)
-
-| 指標 | 數值 |
-|---|---|
-| 真值樣本 | 150 (50 正例, 100 反例) |
-| 假陽性率 | 0.0000 |
-| 精確率 | 1.0000 |
-| 召回率 | 1.0000 |
-| F1 分數 | 1.0000 |
-| 狀態 | EXCELLENT (目標: <5%，長期: <2%) |
-
-測試固件: `tests/fixtures/ground_truth/{positive,negative}/`
-
-## 建構
+## 編譯
 
 ```bash
-# 標準建構
-go build ./...
-
-# Vet
-go vet ./...
-
-# 模組驗證
-go mod verify
-
-# Docker
-docker build -t awesome-taiwan-ai-ecosystem .
-docker compose up
+make build              # 4 個 binary 全部到 bin/
+make build-crawler     # 單個 binary
+make docker-build      # 編所有 Docker image
+make docker-compose-up # 啟動整個 stack
 ```
 
-### Makefile
+Multi-stage Dockerfile（`Dockerfile.multi`）：
 
-提供 `Makefile` 供常用開發任務使用：
+- `runtime-crawler` — 單 binary + ca-certificates
+- `runtime-api` — 同上但跑 `api` 不是 `crawler`
+- `web` — node:22-alpine 編 → nginx:alpine 跑
 
-```bash
-make build         # Build all binaries (crawler, migrator, exporter)
-make test          # Run all tests
-make test-acceptance  # Run acceptance tests (spec §56)
-make test-fp       # Run false positive rate test (spec §58)
-make vet           # Run go vet
-make fmt           # Format source code
-make lint          # Run linter
-make clean         # Clean build artifacts and data
+## 部署
+
+`docker-compose.yaml` 是部署形狀。三個 service：`crawler`、`api`、`web`。crawler 資源限制：1.0 CPU、512 MB。`api` 與 `web` 是 read-only root fs + `tmpfs: /tmp`。這些都還沒到 production 標準 — 把 compose 當 dev 部署。
+
+[NEEDS VERIFICATION] Production 部署形狀（Kubernetes manifest、Terraform、secret 管理、TLS、log shipping）— repo 沒提供。
+
+## 安全性
+
+- Container 跑 `no-new-privileges` + `read_only: true` root fs
+- `GITHUB_TOKEN` / `OPENAI_API_KEY` 從環境讀，**永不寫進 DB**
+- 階段 8 安全掃描（T080）產出 `malicious/MALICIOUS_REPORT.md` + `security/injection/INJECTION_REPORT.md`，預設 `MEDIUM` threshold
+- Prompt-injection 模式掃 entity metadata（OWASP MCP top-10 patterns，T097 P1-2）
+- Web SPA 不持有 secret；auth 委由未實作的 [NEEDS VERIFICATION] auth provider
+
+## 限制
+
+- **`taiwan-mcp.md` 在 seed 路徑永遠 0**：legacy `registry/registry.json` 沒有任何 entity 有 `MCPIdentity.Status == RUNTIME_VERIFIED`。Runtime verifier（T100）有 unit test 對 mock server 驗過，但 CI 還沒對真實 MCP server 跑過。要讓這個 view 有 entity，需真實 crawler 走 GitHub source → SSE/streamable-http handshake。
+- **`migrate` CLI 沒用** — DB 已經沒 v1 `mcp_servers` table 給它遷移。V1→V2 code 還在，但 crawler pipeline 串上時資料已經是 v2。
+- **API 沒認證** — 全部端點都是匿名。Web UI 透過 nginx proxy 跟 api 講話，沒 auth。要公開部署，請放自己的 reverse proxy 認證。
+- **沒有背景排程** — crawler container 跑一次 `crawler run` 就結束。cron / Kubernetes CronJob / systemd timer 是 operator 的責任。
+- **單進程 crawler** — 每個 source 4 workers 是唯一的並行模式。沒實作可橫向擴展的分散爬取。
+- **沒有持久化 job 狀態** — `migrate` CLI 有 checkpoint table 支援 resume，但主 crawler 沒有。中斷的話下次從頭跑。
+- **Spec §44 列 5 個 view；實作產 10 個**。實作比 spec §60 Expected Result 樹狀圖更完整。如果只要 spec §44 子集，過濾 `cmd/export/main.go` 與 `internal/export/view_generator.go` 的 view list。
+- **啟發式 seed 分類** — `cmd/seed` 用關鍵字啟發式（T-e33156e）給 legacy record 分配 `MCP_SERVER` / `AI_AGENT` / `AI_DATASET` 等。保守但不完美；~5-15% record 可能誤分。要 override，跑完整 classifier pipeline。
+- **`registry/REGISTRY.md` 是 legacy v0.1 輸出** 從 2026-09-05。新 view 檔（`taiwan-ai-*.md`）在同目錄並存。
+
+## 開發指南
+
+```
+.
+├── cmd/              # 五個 binary：crawler, api, export, migrate, seed
+├── internal/
+│   ├── api/          # REST handlers
+│   ├── classify/     # legacy rule-based 分類器（向後相容）
+│   ├── coordinator/  # 10 階段 pipeline
+│   ├── engines/      # classifier, mcp_identity, runtime_verifier, security_scanner, quality_engine, llm_classifier
+│   ├── sources/      # 每個外部來源一個 adapter
+│   ├── storage/      # SQLite v2 store
+│   ├── export/       # view 產生器
+│   ├── models/       # canonical Entity struct（spec §37）
+│   ├── config/       # YAML loader
+│   ├── retry/        # HTTP retry client with backoff
+│   └── ...           # dedupe, evidence, manifest, metrics, normalize, observability, scoring, search, security, verify
+├── config/           # YAML 字典（taiwan, ai, categories, domains）
+├── schema/           # entity.json（v2.0）+ registry.json（v2.0 wrapper）
+├── migrations/       # V1 SQL migrations（保留供參考；v2 store 內嵌在 binary）
+├── tests/            # unit + integration tests；FP rate 的 ground truth fixture
+├── web/              # React 19 + Vite；nginx.conf 將 /api/ 代理到 api 容器
+├── registry/         # 產生的 view 輸出（dev seed 已 commit）
+├── docs/             # (placeholder)
+├── docker-compose.yaml
+├── Dockerfile
+└── Dockerfile.multi  # multi-stage：runtime-crawler, runtime-api, web
 ```
 
+## 貢獻
 
-
-### Docker
-
-Dockerfile 使用多階段建構：
-1. **Builder**: `golang:1.26-alpine3.24` — 編譯二進位檔
-2. **Runtime**: `alpine:latest` — 以非 root 使用者執行
-
-安全: 非 root 使用者 (uid 1000)、無特權、資源限制、唯讀檔案系統搭配 tmpfs。
-
-```bash
-docker build -t awesome-taiwan-ai-ecosystem .
-docker run --rm \
-  -e GITHUB_TOKEN=your_token \
-  -v $(pwd)/data:/data \
-  awesome-taiwan-ai-ecosystem run --db /data/registry.db
-```
-
-### Docker Compose: Search
-
-Search runs against the persisted SQLite database. When the crawler container has completed a run, the database is stored in `./data/registry.db`. Use the following commands to search inside Docker Compose:
-
-```bash
-# Ensure the database and views are mounted locally (docker-compose.yaml maps ./data:/data/db)
-
-# Search by text
-docker compose run --rm crawler search "taiwan" --db /data/db/registry.db
-
-# Search with level filter
-docker compose run --rm crawler search "mcp" --db /data/db/registry.db --level T3
-
-# Search by capability
-docker compose run --rm crawler search --db /data/db/registry.db --capability "filesystem"
-
-# Search with minimum quality score
-docker compose run --rm crawler search "ai" --db /data/db/registry.db --min-score 70
-
-# JSON output
-docker compose run --rm crawler search "taiwan" --db /data/db/registry.db --json
-```
-
-The `--rm` flag removes the container after the command exits, and `--db /data/db/registry.db` points to the mounted volume. For other CLI operations (stats, export), use the same pattern:
-
-```bash
-# View stats
-docker compose run --rm crawler stats --db /data/db/registry.db --json
-
-# Export all views
-docker compose run --rm crawler export --db /data/db/registry.db --markdown
-```
-
-
-## 開發
-
-```bash
-# 安裝依賴
-go mod download
-
-# 執行 linter
-golangci-lint run
-
-# 格式化
-gofmt -s -w .
-
-# 執行所有測試
-go test ./... -count=1 -timeout=120s
-
-# 執行接受測試
-go test ./internal/engines/... -run TestAcceptance -v -count=1
-
-# 執行假陽性率測試
-go test ./internal/engines/... -run TestFPRate -v -count=1
-
-# 執行特定套件測試
-go test ./internal/engines/ -v
-```
-
-## 已知限制
-
-- **mcpmarket 資料源**: `mcpmarket.com` 在沙箱環境中被 Vercel WAF 擋住
-- **官方註冊表**: `api.mcp-servers.dev` 在沙箱環境中可能無法解析 DNS
-- **GitHub 速率限制**: 每個 token 每小時 5000 請求
-- **LLM 分類器**: 需要 `OPENAI_API_KEY` 環境變數；優雅降級到確定性分類
-- **增量爬取**: 使用 SQLite 中的上次爬取時間戳；需要先前的爬取資料
-- **MCP 協定驗證**: 需要公開可存取的 HTTP 端點 (SSE/Streamable HTTP)；stdio 伺服器會作為子進程啟動
-- **Docker compose**: 預設執行 `--help`；需要覆寫命令進行實際爬取
+[NEEDS VERIFICATION] 貢獻指南、code review、CI 設定 — repo 沒提供。請先開 issue。
 
 ## 授權
 
-本專案採用 **Apache License 2.0** 授權。詳見 [`LICENSE`](LICENSE) 檔案。
+本專案採 **Apache License 2.0** 授權。詳見 [`LICENSE`](LICENSE)。
+
+## 文件
+
+- 規格書：`~/tasks/awesome-taiwan-ai-ecosystem/TAIWAN_AI_ECOSYSTEM_REGISTRY_SPEC.md`（v1.0，65 個區段，12 個 phase）
+- 演算法細節：`~/tasks/awesome-taiwan-ai-ecosystem/algs/*.md`（10 個演算法檔）
+- 每個任務的計畫與執行紀錄：`~/tasks/awesome-taiwan-ai-ecosystem/tasks/T097–T111.md`
+- 稽核紀錄：`audit-markdown.md`
