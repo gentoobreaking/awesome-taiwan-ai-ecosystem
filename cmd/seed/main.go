@@ -168,6 +168,42 @@ func containsAny(haystack string, needles []string) bool {
 	return false
 }
 
+// sanitizeDescription strips prompt-injection payloads that have
+// shown up in the legacy 9/5 registry.json. Three GitHub repos
+// (clearsdunker-create/ez, XeroxSp/XEZAHUB, ipal1veee/test) used
+// default READMEs that wrap an obfuscated payload in a `return(...)`
+// function expression; the view generator happily wrote it into
+// the rendered markdown. Reject anything whose description looks
+// like obfuscated code rather than a normal project description.
+func sanitizeDescription(s string) string {
+	if s == "" {
+		return s
+	}
+	// Heuristic signals of injected code:
+	//   - `return(function(` ... `,...)` patterns (Lua / JS)
+	//   - a `local` keyword outside the context of code
+	//   - any string of paired hex-encoded bytes \xNN\xNN that
+	//     would only appear in obfuscated payloads
+	bad := []string{
+		"return(function(",
+		"return(function ",
+		"local ny=type",
+		"string.byte",
+		`\x5f\x5f`, // __
+	}
+	for _, needle := range bad {
+		if strings.Contains(s, needle) {
+			return ""
+		}
+	}
+	// Cap length at 2 KB to avoid a single poisoned README filling
+	// the entire view file.
+	if len(s) > 2048 {
+		return s[:2048] + "…"
+	}
+	return s
+}
+
 func toEntity(s legacyServer, now models.RFC3339Time) *models.Entity {
 	repo := models.RepositoryInfo{}
 	if s.Repository != nil {
@@ -253,7 +289,7 @@ func toEntity(s legacyServer, now models.RFC3339Time) *models.Entity {
 		ID:              s.ID,
 		Name:            s.Name,
 		Slug:            s.Slug,
-		Description:     s.Description,
+		Description:     sanitizeDescription(s.Description),
 		Repository:      repo,
 		Classification:  models.ClassificationResult{Primary: primary, Confidence: 0.8},
 		TaiwanRelevance: taiwan,

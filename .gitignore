@@ -41,3 +41,5 @@ exporter
 migrator
 bin/seed
 web/pnpm-workspace.yaml
+registry/REGISTRY.md
+seed

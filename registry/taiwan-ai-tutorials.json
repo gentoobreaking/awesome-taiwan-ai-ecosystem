@@ -31,7 +31,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:54:56Z"
+        "static_checked_at": "2026-09-07T15:28:40Z"
       },
       "security_status": {
         "status": "",
@@ -87,7 +87,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T13:10:19Z",
-      "last_seen": "2026-09-07T14:54:56Z"
+      "last_seen": "2026-09-07T15:28:40Z"
     },
     {
       "id": "eeb28c6d0469996f7c3cf48f66fdb618223d019ffe7b58fb02a2692ca18c9dcc",
@@ -118,7 +118,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:54:56Z"
+        "static_checked_at": "2026-09-07T15:28:40Z"
       },
       "security_status": {
         "status": "",
@@ -174,7 +174,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T14:41:24Z",
-      "last_seen": "2026-09-07T14:54:56Z"
+      "last_seen": "2026-09-07T15:28:40Z"
     },
     {
       "id": "14a82881a52cd73ee7c72012ef376abf38ba9880c96e257f73f0a8b8341cc452",
@@ -205,7 +205,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:54:56Z"
+        "static_checked_at": "2026-09-07T15:28:40Z"
       },
       "security_status": {
         "status": "",
@@ -261,7 +261,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T14:41:24Z",
-      "last_seen": "2026-09-07T14:54:56Z"
+      "last_seen": "2026-09-07T15:28:40Z"
     },
     {
       "id": "82c91ed0dd6f8744478d6b2bd4c6a5f233ba6422001bca4276d9bd5ac7782df2",
@@ -292,7 +292,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:54:56Z"
+        "static_checked_at": "2026-09-07T15:28:40Z"
       },
       "security_status": {
         "status": "",
@@ -348,7 +348,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T14:41:24Z",
-      "last_seen": "2026-09-07T14:54:56Z"
+      "last_seen": "2026-09-07T15:28:40Z"
     },
     {
       "id": "69ae3fd828b1edd51f260fcf6158652671da0e6dec30e24cf96960a5817e6c05",
@@ -379,7 +379,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:54:56Z"
+        "static_checked_at": "2026-09-07T15:28:40Z"
       },
       "security_status": {
         "status": "",
@@ -435,7 +435,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T14:41:24Z",
-      "last_seen": "2026-09-07T14:54:56Z"
+      "last_seen": "2026-09-07T15:28:40Z"
     },
     {
       "id": "730fddb29915386cd12d13df7f6f488c0644d73815ac3862d4d67704498f1269",
@@ -466,7 +466,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:54:56Z"
+        "static_checked_at": "2026-09-07T15:28:40Z"
       },
       "security_status": {
         "status": "",
@@ -522,7 +522,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T14:41:24Z",
-      "last_seen": "2026-09-07T14:54:56Z"
+      "last_seen": "2026-09-07T15:28:40Z"
     },
     {
       "id": "fbe965ac4bde122138e7489cede11c47a536542c4d2d86a66cf206ae1ec063cf",
@@ -553,7 +553,7 @@
         "evidence": null,
         "confidence": 0,
         "role": "",
-        "static_checked_at": "2026-09-07T14:54:56Z"
+        "static_checked_at": "2026-09-07T15:28:40Z"
       },
       "security_status": {
         "status": "",
@@ -609,7 +609,7 @@
       "entity_status": "DISCOVERED",
       "sources": null,
       "first_seen": "2026-09-07T14:41:24Z",
-      "last_seen": "2026-09-07T14:54:56Z"
+      "last_seen": "2026-09-07T15:28:40Z"
     }
   ],
   "generated_at": "0001-01-01T00:00:00Z",
