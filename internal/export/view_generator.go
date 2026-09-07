@@ -27,6 +27,8 @@ type viewFilter func(e *models.Entity) bool
 type RegistryView struct {
 	Name        string
 	Description string
+	Slug        string // base filename without extension, e.g. "taiwan-ai-ecosystem"
+	Group       string // spec §60 tree group: "MCP" / "AI" / "Data" / "Other"
 	Filter      viewFilter
 	Categories  []viewCategory // for markdown grouping
 }
@@ -122,6 +124,50 @@ func isTaiwanAIEntity(e *models.Entity) bool {
 	return isTaiwanRelevantT1Plus(e.TaiwanRelevance.Level)
 }
 
+// AllViews returns a copy of the static view catalogue (used by
+// the /api/v1/registry/index endpoint so the API can describe
+// every available view without running the export first).
+func AllViews() []RegistryView {
+	out := make([]RegistryView, len(allViews))
+	copy(out, allViews)
+	return out
+}
+
+// ViewSummary is the per-view row returned by the registry index
+// endpoint. Mirrors the columns in the README "Output: Registry
+// Views" table.
+type ViewSummary struct {
+	Slug        string `json:"slug"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Group       string `json:"group"`
+	Count       int    `json:"count"`
+	Filename    string `json:"filename"`
+}
+
+// ViewSummaryFromEntities computes, for every registered view, how
+// many entities in the slice match its filter.
+func ViewSummaryFromEntities(entities []*models.Entity) []ViewSummary {
+	out := make([]ViewSummary, 0, len(allViews))
+	for _, v := range allViews {
+		n := 0
+		for _, e := range entities {
+			if v.Filter == nil || v.Filter(e) {
+				n++
+			}
+		}
+		out = append(out, ViewSummary{
+			Slug:        v.Slug,
+			Name:        v.Name,
+			Description: v.Description,
+			Group:       v.Group,
+			Count:       n,
+			Filename:    v.Slug + ".md",
+		})
+	}
+	return out
+}
+
 // isMCPRelated checks if the entity is MCP-related.
 func isMCPRelated(e *models.Entity) bool {
 	return models.IsMCPRelated(e.Classification.Primary)
@@ -132,10 +178,13 @@ func isAIRelated(e *models.Entity) bool {
 	return models.IsAIRelated(e.Classification.Primary)
 }
 
-// Define all views per T083 spec.
+// Define all views per T083 spec. Slug and Group are used by
+// the /api/v1/registry/index summary endpoint (T-summary).
 var allViews = []RegistryView{
 	{
 		Name:        "taiwan-ai-ecosystem",
+		Slug:        "taiwan-ai-ecosystem",
+		Group:       "Other",
 		Description: "All Taiwan AI ecosystem entities (T1+)",
 		Filter:      isTaiwanAIEntity,
 		Categories: []viewCategory{
@@ -147,6 +196,8 @@ var allViews = []RegistryView{
 	},
 	{
 		Name:        "taiwan-mcp",
+		Slug:        "taiwan-mcp",
+		Group:       "MCP",
 		Description: "Verified MCP Servers (Runtime Verified, T1+, not blocked)",
 		Filter:      isVerifiedMCPServer,
 		Categories: []viewCategory{
@@ -155,6 +206,8 @@ var allViews = []RegistryView{
 	},
 	{
 		Name:        "taiwan-mcp-candidates",
+		Slug:        "taiwan-mcp-candidates",
+		Group:       "MCP",
 		Description: "MCP Server Candidates (Candidate, Static Verified)",
 		Filter:      isMCPCandidate,
 		Categories: []viewCategory{
@@ -163,6 +216,8 @@ var allViews = []RegistryView{
 	},
 	{
 		Name:        "taiwan-ai-agents",
+		Slug:        "taiwan-ai-agents",
+		Group:       "AI",
 		Description: "Taiwan AI Agents (T1+)",
 		Filter:      isAIAgent,
 		Categories: []viewCategory{
@@ -171,6 +226,8 @@ var allViews = []RegistryView{
 	},
 	{
 		Name:        "taiwan-ai-tools",
+		Slug:        "taiwan-ai-tools",
+		Group:       "AI",
 		Description: "Taiwan AI Tools, SDKs, Frameworks, Plugins (T1+)",
 		Filter:      isAITool,
 		Categories: []viewCategory{
@@ -179,6 +236,8 @@ var allViews = []RegistryView{
 	},
 	{
 		Name:        "taiwan-ai-data",
+		Slug:        "taiwan-ai-data",
+		Group:       "Data",
 		Description: "Taiwan AI Datasets, Data Libraries, APIs (T1+)",
 		Filter:      isAIData,
 		Categories: []viewCategory{
@@ -187,6 +246,8 @@ var allViews = []RegistryView{
 	},
 	{
 		Name:        "taiwan-ai-skills",
+		Slug:        "taiwan-ai-skills",
+		Group:       "AI",
 		Description: "AI Skills and MCP Skills",
 		Filter:      isAISkill,
 		Categories: []viewCategory{
@@ -195,6 +256,8 @@ var allViews = []RegistryView{
 	},
 	{
 		Name:        "taiwan-ai-infrastructure",
+		Slug:        "taiwan-ai-infrastructure",
+		Group:       "AI",
 		Description: "AI Infrastructure entities",
 		Filter:      isAIInfrastructure,
 		Categories: []viewCategory{
@@ -203,6 +266,8 @@ var allViews = []RegistryView{
 	},
 	{
 		Name:        "taiwan-ai-tutorials",
+		Slug:        "taiwan-ai-tutorials",
+		Group:       "Other",
 		Description: "AI Tutorials and Examples",
 		Filter:      isAITutorial,
 		Categories: []viewCategory{
@@ -211,6 +276,8 @@ var allViews = []RegistryView{
 	},
 	{
 		Name:        "taiwan-ai-collections",
+		Slug:        "taiwan-ai-collections",
+		Group:       "Other",
 		Description: "AI Collections, Registries, MCP Collections",
 		Filter:      isAICollection,
 		Categories: []viewCategory{

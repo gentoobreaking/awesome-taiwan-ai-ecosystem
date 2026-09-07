@@ -132,11 +132,33 @@ export const api = {
     return apiFetch('/registry/markdown');
   },
 
+  // Cross-file summary table for the Dashboard header.
+  // Returns: { total_entities, view_count, views: [{slug, name,
+  //   description, group, count, filename}] }.
+  registrySummary(): Promise<RegistrySummary> {
+    return apiFetch('/registry/index');
+  },
+
   // Fetch a single markdown view file as raw text.
   registryMarkdown(file: string): Promise<string> {
     return apiFetchText(`/registry/markdown?file=${encodeURIComponent(file)}`);
   },
 };
+
+export interface RegistrySummaryView {
+  slug: string;
+  name: string;
+  description: string;
+  group: string;
+  count: number;
+  filename: string;
+}
+
+export interface RegistrySummary {
+  total_entities: number;
+  view_count: number;
+  views: RegistrySummaryView[];
+}
 
 async function apiFetchText(path: string): Promise<string> {
   const url = new URL(API_BASE + path, window.location.origin);

@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/david/awesome-taiwan-mcp/internal/models"
+	"github.com/david/awesome-taiwan-mcp/internal/export"
 	"github.com/david/awesome-taiwan-mcp/internal/storage"
 )
 
@@ -96,6 +97,7 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/health", s.handleHealth)
 	mux.HandleFunc("GET /api/v1/entities", s.handleEntities)
 	mux.HandleFunc("GET /api/v1/registry/markdown", s.handleRegistryMarkdown)
+	mux.HandleFunc("GET /api/v1/registry/index", s.handleRegistryIndex)
 }
 
 // handleAPIRoot returns the API index listing available endpoints.
@@ -457,6 +459,48 @@ func (s *Server) handleRegistryMarkdown(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
 	w.Write(data)
+}
+
+// handleRegistryIndex returns the cross-file summary table that
+// powers the Dashboard's "Registry Views" header. The endpoint
+// applies each view's filter against the live entities table so
+// the counts match the actual registry output.
+//
+// GET /api/v1/registry/index
+// GET /api/v1/registry/index?all=true  — T0+T1+ (matches the
+//   view generator when it is later asked to write
+//   "everything" rather than the T1+ default)
+func (s *Server) handleRegistryIndex(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+
+	filter := storage.EntityFilter{
+		// Match the §60 view filter (T1+ Taiwan relevant). Pass
+		// ?all=true to compute counts against the whole DB.
+		MinTaiwanLevel: models.TaiwanRelevanceLevelT1,
+	}
+	if r.URL.Query().Get("all") == "true" {
+		filter.MinTaiwanLevel = ""
+	}
+	es := storage.NewEntityStore(s.store.DB())
+	entities, err := es.List(ctx, filter)
+	if err != nil {
+		s.logger.Error("Failed to list for registry index", "error", err)
+		s.writeAPIError(w, http.StatusInternalServerError, "database_error", err.Error())
+		return
+	}
+
+	summary := export.ViewSummaryFromEntities(entities)
+	s.writeJSON(w, http.StatusOK, map[string]any{
+		"total_entities": len(entities),
+		"view_count":     len(summary),
+		"views":          summary,
+	})
 }
 
 // --- Response types ---

@@ -210,6 +210,7 @@ All endpoints are GET unless noted. The web UI proxies `/api/*` to the api conta
 | `GET /api/v1/registry` | Full registry v0.1 shape (back-compat) | `{schema_version, statistics, servers: [...]}` |
 | `GET /api/v1/registry/markdown` | List available view files | `{files: ["taiwan-ai-ecosystem.md", ...]}` |
 | `GET /api/v1/registry/markdown?file=taiwan-ai-ecosystem.md` | One view file | Raw `text/markdown` body |
+| `GET /api/v1/registry/index` | Cross-file summary (the dashboard's index table) | `{total_entities, view_count, views: [{slug, name, description, group, count, filename}]}` |
 | `GET /api/v1/statistics` | Counts by level / health / quality / status / classification | `{total_servers, taiwan_relevant, by_level, by_health, quality_distribution, by_status, by_classification}` — T1+ filtered |
 
 ### Pagination
@@ -287,7 +288,7 @@ The view generator (`internal/export/view_generator.go`) writes 10 markdown + 10
 | `malicious/MALICIOUS_REPORT.md` + `blocklist.txt` | Security scan output | generated on every export |
 | `security/injection/INJECTION_REPORT.md` + `patterns.json` | Prompt-injection scan output | generated on every export |
 
-The counts above are from one seed run (561 legacy records); re-running the seed with `--limit 0` and re-running the full crawler will produce different numbers.
+The counts above are from one seed run (561 legacy records); re-running the seed with `--limit 0` and re-running the full crawler will produce different numbers. Live counts are available at any time via `GET /api/v1/registry/index` (the Dashboard renders this as a navigable index table).
 
 ## Error Handling
 

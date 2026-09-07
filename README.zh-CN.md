@@ -209,6 +209,7 @@ docker compose up -d crawler   # 跑 10 阶段 pipeline；log 看 docker logs
 | `GET /api/v1/registry` | 完整 registry v0.1 形状（向后兼容） | `{schema_version, statistics, servers: [...]}` |
 | `GET /api/v1/registry/markdown` | 列出可用 view 文件 | `{files: ["taiwan-ai-ecosystem.md", ...]}` |
 | `GET /api/v1/registry/markdown?file=taiwan-ai-ecosystem.md` | 单一 view 文件 | 原始 `text/markdown` |
+| `GET /api/v1/registry/index` | 跨文件总表（Dashboard 索引表） | `{total_entities, view_count, views: [{slug, name, description, group, count, filename}]}` |
 | `GET /api/v1/statistics` | 按 level / health / quality / status / classification 计数 | `{total_servers, taiwan_relevant, by_level, by_health, quality_distribution, by_status, by_classification}` — T1+ 过滤 |
 
 ### 分页
@@ -286,7 +287,7 @@ view 产生器（`internal/export/view_generator.go`）写 10 个 markdown + 10 
 | `malicious/MALICIOUS_REPORT.md` + `blocklist.txt` | 安全扫描输出 | 每次 export 都产 |
 | `security/injection/INJECTION_REPORT.md` + `patterns.json` | Prompt-injection 扫描输出 | 每次 export 都产 |
 
-上表数字来自一次 seed（561 笔 legacy）。换不同 dataset 会变。
+上表数字来自一次 seed（561 笔 legacy）。换不同 dataset 会变。随时可用 `GET /api/v1/registry/index` 拿 live count（Dashboard 把它渲染成可点击的索引表）。
 
 ## 错误处理
 

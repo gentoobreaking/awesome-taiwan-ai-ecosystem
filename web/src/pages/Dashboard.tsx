@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api } from '../utils/api';
+import { api, type RegistrySummary } from '../utils/api';
 import type { Statistics, HealthResponse, TaiwanLevel, HealthStatus, QualityGrade } from '../types/api';
 import { LevelBadge } from '../components/LevelBadge';
 import { GradeBadge } from '../components/GradeBadge';
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Statistics | null>(null);
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [mdFiles, setMdFiles] = useState<string[]>([]);
+  const [summary, setSummary] = useState<RegistrySummary | null>(null);
   const [selectedMd, setSelectedMd] = useState<string>('taiwan-ai-ecosystem.md');
   const [mdHtml, setMdHtml] = useState<string>('');
   const [mdLoading, setMdLoading] = useState(false);
@@ -26,6 +27,7 @@ export default function Dashboard() {
           setSelectedMd(d.files[0]);
         }
       }).catch(() => setMdFiles([])),
+      api.registrySummary().then(setSummary).catch(() => setSummary(null)),
     ]).finally(() => setLoading(false));
   }, []);
 
@@ -102,6 +104,59 @@ export default function Dashboard() {
             />
           )}
         </>
+      )}
+
+      {summary && summary.views.length > 0 && (
+        <div className="bg-white rounded-lg shadow">
+          <div className="border-b border-gray-200 px-4 py-3 flex items-baseline gap-3">
+            <h2 className="text-lg font-semibold text-gray-900">Registry Views Index</h2>
+            <span className="text-xs text-gray-500">
+              {summary.view_count} views · {summary.total_entities} matching entities (T1+ Taiwan relevant)
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50 text-gray-600">
+                <tr>
+                  <th className="px-4 py-2 text-left">File</th>
+                  <th className="px-4 py-2 text-left">Group</th>
+                  <th className="px-4 py-2 text-left">Filter</th>
+                  <th className="px-4 py-2 text-right">Count</th>
+                  <th className="px-4 py-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.views.map((v) => (
+                  <tr
+                    key={v.slug}
+                    className={
+                      v.filename === selectedMd
+                        ? 'bg-blue-50 border-l-4 border-blue-500'
+                        : 'hover:bg-gray-50'
+                    }
+                  >
+                    <td className="px-4 py-2 font-mono text-xs">{v.filename}</td>
+                    <td className="px-4 py-2">
+                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
+                        {v.group}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-gray-700">{v.description}</td>
+                    <td className="px-4 py-2 text-right font-mono">{v.count}</td>
+                    <td className="px-4 py-2 text-right">
+                      <button
+                        className="text-xs text-blue-600 hover:underline"
+                        onClick={() => setSelectedMd(v.filename)}
+                      >
+                        view →
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {selectedMd && (
