@@ -59,6 +59,7 @@ var (
 	dryRun          bool
 	verbose         bool
 	includeMCPAnchored bool
+	enableMcpMarket   bool
 )
 
 func main() {
@@ -176,6 +177,7 @@ func main() {
 	rootCmd.PersistentFlags().BoolVar(&incremental, "incremental", false, "run incremental crawl")
 	rootCmd.PersistentFlags().StringVar(&pipelineFlag, "pipeline", "full", "pipeline mode: full|discovery-only|classify-only|verify-only")
 	rootCmd.PersistentFlags().BoolVar(&includeMCPAnchored, "include-mcp-anchored", false, "opt-in to MCP-anchored GitHub discovery queries (default off, spec §3 #1)")
+	rootCmd.PersistentFlags().BoolVar(&enableMcpMarket, "enable-mcpmarket", false, "opt-in to mcpmarket source (currently behind Vercel WAF, disabled by default, T105)")
 	rootCmd.PersistentFlags().IntVar(&workers, "workers", 4, "number of workers per source")
 	rootCmd.PersistentFlags().IntVar(&minScore, "min-score", 0, "minimum quality score filter")
 	rootCmd.PersistentFlags().StringVar(&capabilityFlag, "capability", "", "search by capability keywords")
@@ -220,7 +222,9 @@ func setupCrawler(store *storage.Store) (*crawler.CrawlCoordinator, *coordinator
 	adapters = append(adapters, githubrepo.New("modelcontextprotocol/servers-archived", os.Getenv("GITHUB_TOKEN")))
 	adapters = append(adapters, registry.New(os.Getenv("MCP_REGISTRY_URL")))
 	adapters = append(adapters, mcpserversorg.New())
-	adapters = append(adapters, mcpmarket.New())
+	mm := mcpmarket.New()
+	mm.Enabled = enableMcpMarket
+	adapters = append(adapters, mm)
 	norm := normalize.New()
 	legacy := crawler.NewCrawlCoordinator(store, norm, adapters, logger)
 	pipeline := coordinator.New(store, norm, adapters, logger)

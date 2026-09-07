@@ -21,6 +21,7 @@ import (
 	"github.com/david/awesome-taiwan-mcp/internal/normalize"
 	"github.com/david/awesome-taiwan-mcp/internal/security"
 	"github.com/david/awesome-taiwan-mcp/internal/sources"
+	"github.com/david/awesome-taiwan-mcp/internal/sources/mcpmarket"
 	"github.com/david/awesome-taiwan-mcp/internal/storage"
 )
 
@@ -241,8 +242,16 @@ func (pc *PipelineCoordinator) runDiscovery(ctx context.Context, crawlID string,
 			pc.logger.Info(ctx, crawlID, "DISCOVERY", "source_started", "source", a.Name())
 			candidates, err := a.Discover(ctx)
 			if err != nil {
-				pc.logger.Warn(ctx, crawlID, "DISCOVERY", "source_error",
-					"source", a.Name(), "error", err.Error())
+				// T105: when a source is disabled (e.g. mcpmarket
+				// behind a WAF) log INFO 'source_skipped' instead of
+				// WARN 'source_error' to avoid polluting the log.
+				if mcpmarket.IsSourceDisabled(err) {
+					pc.logger.Info(ctx, crawlID, "DISCOVERY", "source_skipped",
+						"source", a.Name(), "reason", "disabled")
+				} else {
+					pc.logger.Warn(ctx, crawlID, "DISCOVERY", "source_error",
+						"source", a.Name(), "error", err.Error())
+				}
 				return
 			}
 			pc.logger.Info(ctx, crawlID, "DISCOVERY", "source_complete",
