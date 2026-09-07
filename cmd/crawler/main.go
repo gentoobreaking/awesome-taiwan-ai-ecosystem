@@ -179,9 +179,9 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&capabilityFlag, "capability", "", "search by capability keywords")
 	rootCmd.PersistentFlags().StringVar(&catFilter, "category", "", "filter by category")
 	rootCmd.PersistentFlags().BoolVar(&maliciousReport, "malicious-report", true, "generate MALICIOUS_REPORT.md and blocklist.txt")
-	rootCmd.PersistentFlags().StringVar(&maliciousDir, "malicious-dir", "registry/malicious", "directory for malicious report output")
+	rootCmd.PersistentFlags().StringVar(&maliciousDir, "malicious-dir", "/data/registry/malicious", "directory for malicious report output")
 	rootCmd.PersistentFlags().StringVar(&maliciousThreshold, "malicious-threshold", "MEDIUM", "minimum risk level for malicious report (LOW, MEDIUM, HIGH, CRITICAL)")
-	rootCmd.PersistentFlags().StringVar(&injectionDir, "injection-dir", "registry/security/injection", "directory for injection report output")
+	rootCmd.PersistentFlags().StringVar(&injectionDir, "injection-dir", "/data/registry/security/injection", "directory for injection report output")
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "output JSON format")
 	rootCmd.PersistentFlags().IntVar(&batchSize, "batch-size", 100, "number of records to process per batch")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "validate without writing changes")
@@ -258,7 +258,7 @@ func runCrawl(cmd *cobra.Command, _ []string) error {
 		Mode:         mode,
 		MaxPerSource: maxPerSource,
 		Workers:      workers,
-		OutputDir:    "registry",
+		OutputDir:    "/data/registry",
 	}
 	if err := pipeline.Run(ctx, cfg); err != nil {
 		return err
@@ -301,7 +301,7 @@ func runDiscover(cmd *cobra.Command, _ []string) error {
 		Mode:         coordinator.ModeDiscoveryOnly,
 		MaxPerSource: maxPerSource,
 		Workers:      workers,
-		OutputDir:    "registry",
+		OutputDir:    "/data/registry",
 	}
 
 	if dryRun {
@@ -328,7 +328,7 @@ func runClassify(cmd *cobra.Command, _ []string) error {
 		Mode:         coordinator.ModeClassifyOnly,
 		MaxPerSource: maxPerSource,
 		Workers:      workers,
-		OutputDir:    "registry",
+		OutputDir:    "/data/registry",
 	}
 
 	if dryRun {
@@ -355,7 +355,7 @@ func runVerify(cmd *cobra.Command, _ []string) error {
 		Mode:         coordinator.ModeVerifyOnly,
 		MaxPerSource: maxPerSource,
 		Workers:      workers,
-		OutputDir:    "registry",
+		OutputDir:    "/data/registry",
 	}
 
 	if dryRun {
@@ -382,7 +382,7 @@ func runScan(cmd *cobra.Command, _ []string) error {
 		Mode:         coordinator.ModeFull,
 		MaxPerSource: maxPerSource,
 		Workers:      workers,
-		OutputDir:    "registry",
+		OutputDir:    "/data/registry",
 	}
 
 	if dryRun {
@@ -410,7 +410,7 @@ func runScore(cmd *cobra.Command, _ []string) error {
 		Mode:         coordinator.ModeFull,
 		MaxPerSource: maxPerSource,
 		Workers:      workers,
-		OutputDir:    "registry",
+		OutputDir:    "/data/registry",
 	}
 
 	if dryRun {
@@ -454,8 +454,10 @@ func runExport(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("list entities: %w", err)
 	}
 
-	// Generate views into registry/ root (spec §60), not registry/views/.
-	expDir := "registry"
+	// Generate views into /data/registry (bind-mounted to host ./registry,
+	// spec §60). The previous "registry" path was relative to the
+	// container's WORKDIR (/app) and wasn't visible on the host.
+	expDir := "/data/registry"
 	if err := os.MkdirAll(expDir, 0755); err != nil {
 		return fmt.Errorf("create export dir: %w", err)
 	}

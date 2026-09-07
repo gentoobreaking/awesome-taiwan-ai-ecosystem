@@ -534,8 +534,12 @@ func (pc *PipelineCoordinator) persistEntities(ctx context.Context, entities []*
 
 // runRegistryViews generates registry views (T083).
 func (pc *PipelineCoordinator) runRegistryViews(ctx context.Context, crawlID string, entities []*models.Entity, outputDir string) {
-	if outputDir == "" {
-		outputDir = "registry"
+	if outputDir == "" || outputDir == "registry" {
+		// Default to /data/registry so the views land on the bind-mounted
+		// volume visible to the host (docker-compose mounts ./registry
+		// there). When running outside Docker, the caller can pass any
+		// writable path; this default keeps the compose path simple.
+		outputDir = "/data/registry"
 	}
 	vg := export.NewViewGenerator(export.ViewConfig{
 		SchemaVersion:  "2.0",
