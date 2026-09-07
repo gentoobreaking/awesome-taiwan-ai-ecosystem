@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Taiwan MCP Registry",
-  "description": "Taiwan MCP Registry Schema v0.1 - Registry wrapper",
+  "title": "Taiwan AI Ecosystem Registry",
+  "description": "Taiwan AI Ecosystem Registry Schema v2.0 - Canonical entity wrapper (spec §37, §44, T106). Entities array references entity.json.",
   "type": "object",
-  "required": ["schema_version", "servers"],
+  "required": ["schema_version", "entities"],
   "properties": {
     "schema_version": {
       "type": "string",
-      "const": "0.1"
+      "const": "2.0"
     },
     "generated_at": {
       "type": "string",
@@ -16,9 +16,9 @@
     "crawler_version": {
       "type": "string"
     },
-    "servers": {
+    "entities": {
       "type": "array",
-      "items": {"$ref": "mcp-server.json#"}
+      "items": {"$ref": "entity.json#"}
     }
   }
 }

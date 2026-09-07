@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MCP Server",
-  "description": "Taiwan MCP Registry Schema v0.1 - Single MCP Server",
+  "description": "Taiwan MCP Registry Schema v0.1 - Single MCP Server. LEGACY: superseded by entity.json (v2.0, T106). Kept for backward-compatibility views of registry/REGISTRY.md.
   "type": "object",
   "required": ["id", "name", "slug", "description"],
   "properties": {
