@@ -273,20 +273,21 @@ JSON schema for the entity and the registry wrapper lives in `schema/entity.json
 The view generator (`internal/export/view_generator.go`) writes 10 markdown + 10 JSON files to `/data/registry/`. Each is a different filter over the entity set (see spec §44 / §60).
 
 | File | Filter | Seed dataset count (561 records) |
-|---|---|---|
-| `taiwan-ai-ecosystem.md` | T1+ Taiwan relevant, all primary classifications | 200 |
-| `taiwan-mcp.md` | `MCP_SERVER` + `MCP_VERIFIED` + T1+ + not blocked | 0 (no entity reaches VERIFIED in the seed path) |
-| `taiwan-mcp-candidates.md` | `MCP_SERVER` + `STATIC_VERIFIED` or `CANDIDATE` | 415 |
-| `taiwan-ai-agents.md` | `AI_AGENT` | 16 |
-| `taiwan-ai-tools.md` | `AI_TOOL` / `AI_SDK` / `AI_FRAMEWORK` / `AI_PLUGIN` | 5 |
-| `taiwan-ai-data.md` | `AI_DATASET` / `DATA_LIBRARY` / `AI_KNOWLEDGE_BASE` | 12 |
-| `taiwan-ai-skills.md` | `MCP_SKILL` / `AI_SKILL` | 0 |
-| `taiwan-ai-infrastructure.md` | `AI_INFRASTRUCTURE` | 0 |
-| `taiwan-ai-tutorials.md` | `AI_TUTORIAL` / `AI_EXAMPLE` / `TUTORIAL` | 7 |
-| `taiwan-ai-collections.md` | `MCP_COLLECTION` / `AI_COLLECTION` / `COLLECTION` | 19 |
-| `awesome-taiwan-mcp.md` | Legacy back-compat view (MCP only) | varies |
-| `malicious/MALICIOUS_REPORT.md` + `blocklist.txt` | Security scan output | generated on every export |
-| `security/injection/INJECTION_REPORT.md` + `patterns.json` | Prompt-injection scan output | generated on every export |
+|---|---|---:|
+| [INDEX.md](registry/INDEX.md) | Navigable table of every view + security report (regenerated each export) | — |
+| [taiwan-ai-ecosystem.md](registry/taiwan-ai-ecosystem.md) | T1+ Taiwan relevant, all primary classifications | 200 |
+| [taiwan-mcp.md](registry/taiwan-mcp.md) | `MCP_SERVER` + `MCP_VERIFIED` + T1+ + not blocked | 0 (no entity reaches VERIFIED in the seed path) |
+| [taiwan-mcp-candidates.md](registry/taiwan-mcp-candidates.md) | `MCP_SERVER` + `STATIC_VERIFIED` or `CANDIDATE` | 415 |
+| [taiwan-ai-agents.md](registry/taiwan-ai-agents.md) | `AI_AGENT` | 16 |
+| [taiwan-ai-tools.md](registry/taiwan-ai-tools.md) | `AI_TOOL` / `AI_SDK` / `AI_FRAMEWORK` / `AI_PLUGIN` | 5 |
+| [taiwan-ai-data.md](registry/taiwan-ai-data.md) | `AI_DATASET` / `DATA_LIBRARY` / `AI_KNOWLEDGE_BASE` | 12 |
+| [taiwan-ai-skills.md](registry/taiwan-ai-skills.md) | `MCP_SKILL` / `AI_SKILL` | 0 |
+| [taiwan-ai-infrastructure.md](registry/taiwan-ai-infrastructure.md) | `AI_INFRASTRUCTURE` | 0 |
+| [taiwan-ai-tutorials.md](registry/taiwan-ai-tutorials.md) | `AI_TUTORIAL` / `AI_EXAMPLE` / `TUTORIAL` | 7 |
+| [taiwan-ai-collections.md](registry/taiwan-ai-collections.md) | `MCP_COLLECTION` / `AI_COLLECTION` / `COLLECTION` | 19 |
+| [awesome-taiwan-mcp.md](registry/awesome-taiwan-mcp.md) | Legacy back-compat view (MCP only) | varies |
+| [malicious/MALICIOUS_REPORT.md](registry/malicious/MALICIOUS_REPORT.md) + [blocklist.txt](registry/malicious/blocklist.txt) | Security scan output | generated on every export |
+| [security/injection/INJECTION_REPORT.md](registry/security/injection/INJECTION_REPORT.md) + [patterns.json](registry/security/injection/patterns.json) | Prompt-injection scan output | generated on every export |
 
 The counts above are from one seed run (561 legacy records); re-running the seed with `--limit 0` and re-running the full crawler will produce different numbers. Live counts are available at any time via `GET /api/v1/registry/index` (the Dashboard renders this as a navigable index table).
 

@@ -272,20 +272,21 @@ JSON schema 对应 `schema/entity.json` 与 `schema/registry.json`（T106，v2.0
 view 产生器（`internal/export/view_generator.go`）写 10 个 markdown + 10 个 JSON 文件到 `/data/registry/`。每个是 entity 集合的不同过滤（见 spec §44 / §60）。
 
 | 文件 | 过滤 | seed 数量（561 笔） |
-|---|---|---|
-| `taiwan-ai-ecosystem.md` | T1+ Taiwan relevant、全部 primary 分类 | 200 |
-| `taiwan-mcp.md` | `MCP_SERVER` + `MCP_VERIFIED` + T1+ + not blocked | 0（seed 路径没有 entity 到 VERIFIED） |
-| `taiwan-mcp-candidates.md` | `MCP_SERVER` + `STATIC_VERIFIED` 或 `CANDIDATE` | 415 |
-| `taiwan-ai-agents.md` | `AI_AGENT` | 16 |
-| `taiwan-ai-tools.md` | `AI_TOOL` / `AI_SDK` / `AI_FRAMEWORK` / `AI_PLUGIN` | 5 |
-| `taiwan-ai-data.md` | `AI_DATASET` / `DATA_LIBRARY` / `AI_KNOWLEDGE_BASE` | 12 |
-| `taiwan-ai-skills.md` | `MCP_SKILL` / `AI_SKILL` | 0 |
-| `taiwan-ai-infrastructure.md` | `AI_INFRASTRUCTURE` | 0 |
-| `taiwan-ai-tutorials.md` | `AI_TUTORIAL` / `AI_EXAMPLE` / `TUTORIAL` | 7 |
-| `taiwan-ai-collections.md` | `MCP_COLLECTION` / `AI_COLLECTION` / `COLLECTION` | 19 |
-| `awesome-taiwan-mcp.md` | Legacy 向后兼容 view（MCP only） | 视情况 |
-| `malicious/MALICIOUS_REPORT.md` + `blocklist.txt` | 安全扫描输出 | 每次 export 都产 |
-| `security/injection/INJECTION_REPORT.md` + `patterns.json` | Prompt-injection 扫描输出 | 每次 export 都产 |
+|---|---|---:|
+| [INDEX.md](registry/INDEX.md) | 所有 view + 安全报告的可点击总表（每次 export 重产） | — |
+| [taiwan-ai-ecosystem.md](registry/taiwan-ai-ecosystem.md) | T1+ Taiwan relevant、全部 primary 分类 | 200 |
+| [taiwan-mcp.md](registry/taiwan-mcp.md) | `MCP_SERVER` + `MCP_VERIFIED` + T1+ + not blocked | 0（seed 路径没有 entity 到 VERIFIED） |
+| [taiwan-mcp-candidates.md](registry/taiwan-mcp-candidates.md) | `MCP_SERVER` + `STATIC_VERIFIED` 或 `CANDIDATE` | 415 |
+| [taiwan-ai-agents.md](registry/taiwan-ai-agents.md) | `AI_AGENT` | 16 |
+| [taiwan-ai-tools.md](registry/taiwan-ai-tools.md) | `AI_TOOL` / `AI_SDK` / `AI_FRAMEWORK` / `AI_PLUGIN` | 5 |
+| [taiwan-ai-data.md](registry/taiwan-ai-data.md) | `AI_DATASET` / `DATA_LIBRARY` / `AI_KNOWLEDGE_BASE` | 12 |
+| [taiwan-ai-skills.md](registry/taiwan-ai-skills.md) | `MCP_SKILL` / `AI_SKILL` | 0 |
+| [taiwan-ai-infrastructure.md](registry/taiwan-ai-infrastructure.md) | `AI_INFRASTRUCTURE` | 0 |
+| [taiwan-ai-tutorials.md](registry/taiwan-ai-tutorials.md) | `AI_TUTORIAL` / `AI_EXAMPLE` / `TUTORIAL` | 7 |
+| [taiwan-ai-collections.md](registry/taiwan-ai-collections.md) | `MCP_COLLECTION` / `AI_COLLECTION` / `COLLECTION` | 19 |
+| [awesome-taiwan-mcp.md](registry/awesome-taiwan-mcp.md) | Legacy 向后兼容 view（MCP only） | 视情况 |
+| [malicious/MALICIOUS_REPORT.md](registry/malicious/MALICIOUS_REPORT.md) + [blocklist.txt](registry/malicious/blocklist.txt) | 安全扫描输出 | 每次 export 都产 |
+| [security/injection/INJECTION_REPORT.md](registry/security/injection/INJECTION_REPORT.md) + [patterns.json](registry/security/injection/patterns.json) | Prompt-injection 扫描输出 | 每次 export 都产 |
 
 上表数字来自一次 seed（561 笔 legacy）。换不同 dataset 会变。随时可用 `GET /api/v1/registry/index` 拿 live count（Dashboard 把它渲染成可点击的索引表）。
 
