@@ -2,10 +2,12 @@ package engines
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os/exec"
 	"strings"
 	"time"
@@ -509,32 +511,243 @@ func (rv *RuntimeVerifier) sendStdioRequest(ctx context.Context, stdin io.Writer
 	}
 }
 
-func (rv *RuntimeVerifier) verifySSE(ctx context.Context, entity *models.Entity, ep *models.EndpointWithType, result *RuntimeVerificationResult) *RuntimeVerificationResult {
-	result.Evidence = append(result.Evidence, models.Evidence{
-		Type:         "transport_not_implemented",
-		Source:       "runtime_verifier",
-		Location:     "sse_transport",
-		Rule:         "sse_not_implemented",
-		MatchedText:  "SSE transport verification not yet implemented",
-		Confidence:   1.0,
-		Timestamp:    models.RFC3339Time(time.Now().UTC()),
-	})
-	result.Status = RuntimeVerificationStatusError
+// verifyHTTP runs the MCP initialize + tools/list handshake over HTTP
+// (SSE or streamable-http). Implemented in T100; the previous versions
+// just returned transport_not_implemented evidence.
+func (rv *RuntimeVerifier) verifyHTTP(ctx context.Context, ep *models.EndpointWithType, result *RuntimeVerificationResult, transport MCPTransport) *RuntimeVerificationResult {
+	url := ep.Endpoint.URL
+	if url == "" {
+		result.Status = RuntimeVerificationStatusFailed
+		result.Evidence = append(result.Evidence, models.Evidence{
+			Type:        "missing_endpoint",
+			Source:      "runtime_verifier",
+			Location:    "http_transport",
+			Rule:        "missing_url",
+			MatchedText: "No endpoint URL for HTTP transport",
+			Confidence:  1.0,
+			Timestamp:   models.RFC3339Time(time.Now().UTC()),
+		})
+		return result
+	}
+
+	// Stage 1: initialize
+	initRaw, err := rv.sendHTTPRequest(ctx, url, 1, "initialize", initializeParams{
+		ProtocolVersion: "2024-11-05",
+		Capabilities:    map[string]bool{},
+		ClientInfo:      clientInfo{Name: "taiwan-mcp-crawler", Version: "1.0.0"},
+	}, transport, rv.InitializeTimeout)
+	if err != nil {
+		result.Status = RuntimeVerificationStatusError
+		result.Evidence = append(result.Evidence, models.Evidence{
+			Type:        "initialize_error",
+			Source:      "runtime_verifier",
+			Location:    "http_initialize",
+			Rule:        "request_failed",
+			MatchedText: err.Error(),
+			Confidence:  1.0,
+			Timestamp:   models.RFC3339Time(time.Now().UTC()),
+		})
+		return result
+	}
+	if jsonResp, ok := initRaw.(*jsonRPCResponse); ok {
+		var initParsed initializeResult
+		if uerr := json.Unmarshal(jsonResp.Result, &initParsed); uerr != nil {
+			result.Status = RuntimeVerificationStatusFailed
+			result.Evidence = append(result.Evidence, models.Evidence{
+				Type:        "initialize_error",
+				Source:      "runtime_verifier",
+				Location:    "http_initialize",
+				Rule:        "unmarshal_failed",
+				MatchedText: uerr.Error(),
+				Confidence:  1.0,
+				Timestamp:   models.RFC3339Time(time.Now().UTC()),
+			})
+			return result
+		}
+		result.InitializeResult = &InitializeResult{
+			Success:     true,
+			ServerInfo:  initParsed.ServerInfo.Name + "@" + initParsed.ServerInfo.Version,
+			ProtocolVer: initParsed.ProtocolVersion,
+		}
+	} else {
+		ir := initRaw.(*InitializeResult)
+		result.InitializeResult = ir
+		if !ir.Success {
+			result.Status = RuntimeVerificationStatusFailed
+			return result
+		}
+	}
+
+	// Stage 2: tools/list
+	toolsRaw, err := rv.sendHTTPRequest(ctx, url, 2, "tools/list", nil, transport, rv.ToolsListTimeout)
+	if err != nil {
+		result.Status = RuntimeVerificationStatusError
+		result.Evidence = append(result.Evidence, models.Evidence{
+			Type:        "tools_list_error",
+			Source:      "runtime_verifier",
+			Location:    "http_tools_list",
+			Rule:        "request_failed",
+			MatchedText: err.Error(),
+			Confidence:  1.0,
+			Timestamp:   models.RFC3339Time(time.Now().UTC()),
+		})
+		return result
+	}
+	if toolsResp, ok := toolsRaw.(*jsonRPCResponse); ok {
+		var toolsParsed toolsListResult
+		if uerr := json.Unmarshal(toolsResp.Result, &toolsParsed); uerr != nil {
+			result.Status = RuntimeVerificationStatusFailed
+			result.Evidence = append(result.Evidence, models.Evidence{
+				Type:        "tools_list_error",
+				Source:      "runtime_verifier",
+				Location:    "http_tools_list",
+				Rule:        "unmarshal_failed",
+				MatchedText: uerr.Error(),
+				Confidence:  1.0,
+				Timestamp:   models.RFC3339Time(time.Now().UTC()),
+			})
+			return result
+		}
+		result.ToolsListResult = &ToolsListResult{
+			Success:      true,
+			ToolCount:    len(toolsParsed.Tools),
+			ToolsSummary: rv.summarizeTools(toolsParsed.Tools),
+		}
+	} else {
+		tlr := toolsRaw.(*ToolsListResult)
+		result.ToolsListResult = tlr
+		if !tlr.Success {
+			result.Status = RuntimeVerificationStatusFailed
+			return result
+		}
+	}
+
+	result.Status = RuntimeVerificationStatusPassed
 	return result
 }
 
+func (rv *RuntimeVerifier) verifySSE(ctx context.Context, entity *models.Entity, ep *models.EndpointWithType, result *RuntimeVerificationResult) *RuntimeVerificationResult {
+	return rv.verifyHTTP(ctx, ep, result, TransportSSE)
+}
+
 func (rv *RuntimeVerifier) verifyStreamableHTTP(ctx context.Context, entity *models.Entity, ep *models.EndpointWithType, result *RuntimeVerificationResult) *RuntimeVerificationResult {
-	result.Evidence = append(result.Evidence, models.Evidence{
-		Type:         "transport_not_implemented",
-		Source:       "runtime_verifier",
-		Location:     "streamable_http_transport",
-		Rule:         "streamable_http_not_implemented",
-		MatchedText:  "Streamable HTTP transport verification not yet implemented",
-		Confidence:   1.0,
-		Timestamp:    models.RFC3339Time(time.Now().UTC()),
-	})
-	result.Status = RuntimeVerificationStatusError
-	return result
+	return rv.verifyHTTP(ctx, ep, result, TransportStreamableHTTP)
+}
+
+// sendHTTPRequest POSTs a JSON-RPC payload to the given URL and returns
+// either a *jsonRPCResponse (success) or a *InitializeResult with the
+// error reason (status / unmarshal / MCP error). For SSE endpoints the
+// function reads the event stream and waits for the matching id.
+func (rv *RuntimeVerifier) sendHTTPRequest(
+	ctx context.Context,
+	url string,
+	id int,
+	method string,
+	params interface{},
+	transport MCPTransport,
+	timeout time.Duration,
+) (interface{}, error) {
+	startTime := time.Now()
+
+	req := jsonRPCRequest{
+		JSONRPC: "2.0",
+		ID:      id,
+		Method:  method,
+		Params:  params,
+	}
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("marshal request: %v", err)
+	}
+
+	httpClient := &http.Client{Timeout: timeout}
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("new request: %v", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Accept", "application/json, text/event-stream")
+
+	resp, err := httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("http do: %v", err)
+	}
+	defer resp.Body.Close()
+
+	latency := int(time.Since(startTime).Milliseconds())
+
+	if resp.StatusCode != http.StatusOK {
+		return &InitializeResult{
+			Success:   false,
+			Error:     fmt.Sprintf("HTTP %d", resp.StatusCode),
+			LatencyMs: latency,
+		}, nil
+	}
+
+	var rawResp []byte
+	if transport == TransportSSE {
+		rawResp, err = readSSEResponse(ctx, resp.Body, id)
+	} else {
+		rawResp, err = io.ReadAll(resp.Body)
+	}
+	if err != nil {
+		return &InitializeResult{
+			Success:   false,
+			Error:     err.Error(),
+			LatencyMs: latency,
+		}, nil
+	}
+
+	var jsonResp jsonRPCResponse
+	if err := json.Unmarshal(rawResp, &jsonResp); err != nil {
+		return &InitializeResult{
+			Success:   false,
+			Error:     fmt.Sprintf("unmarshal response: %v", err),
+			LatencyMs: latency,
+		}, nil
+	}
+
+	if jsonResp.Error != nil {
+		return &InitializeResult{
+			Success:   false,
+			Error:     fmt.Sprintf("MCP error: %s", jsonResp.Error.Message),
+			LatencyMs: latency,
+		}, nil
+	}
+
+	return &jsonResp, nil
+}
+
+// readSSEResponse reads an SSE event stream and returns the JSON-RPC
+// response body for the given request id. Bails out on context done.
+func readSSEResponse(ctx context.Context, body io.Reader, id int) ([]byte, error) {
+	scanner := bufio.NewScanner(body)
+	for scanner.Scan() {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+		line := scanner.Text()
+		if !strings.HasPrefix(line, "data:") {
+			continue
+		}
+		payload := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+		if payload == "" || payload == "[DONE]" {
+			continue
+		}
+		var probe jsonRPCResponse
+		if err := json.Unmarshal([]byte(payload), &probe); err != nil {
+			continue
+		}
+		if probe.ID == id {
+			return []byte(payload), nil
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("sse scanner: %w", err)
+	}
+	return nil, fmt.Errorf("sse: no response with id %d", id)
 }
 
 type jsonRPCRequest struct {

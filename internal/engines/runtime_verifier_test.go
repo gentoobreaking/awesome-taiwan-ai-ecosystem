@@ -391,19 +391,22 @@ func TestRuntimeVerifier_Verify_SSE_NotImplemented(t *testing.T) {
 
 	result := rv.Verify(ctx, entity)
 
-	if result.Status != RuntimeVerificationStatusError {
-		t.Errorf("Expected ERROR, got %s", result.Status)
+	// After T100 the SSE transport actually performs the handshake. The
+	// example.com URL is not resolvable, so the result lands on FAILED
+	// (network error) rather than the previous ERROR + not_implemented.
+	if result.Status != RuntimeVerificationStatusFailed && result.Status != RuntimeVerificationStatusError {
+		t.Errorf("Expected FAILED or ERROR, got %s", result.Status)
 	}
 
-	found := false
+	notImplemented := false
 	for _, e := range result.Evidence {
-		if e.Rule == "sse_not_implemented" {
-			found = true
+		if e.Rule == "sse_not_implemented" || e.Rule == "streamable_http_not_implemented" {
+			notImplemented = true
 			break
 		}
 	}
-	if !found {
-		t.Error("Expected sse_not_implemented evidence")
+	if notImplemented {
+		t.Error("transport_not_implemented evidence should no longer be produced (T100)")
 	}
 }
 
@@ -426,19 +429,19 @@ func TestRuntimeVerifier_Verify_StreamableHTTP_NotImplemented(t *testing.T) {
 
 	result := rv.Verify(ctx, entity)
 
-	if result.Status != RuntimeVerificationStatusError {
-		t.Errorf("Expected ERROR, got %s", result.Status)
+	if result.Status != RuntimeVerificationStatusFailed && result.Status != RuntimeVerificationStatusError {
+		t.Errorf("Expected FAILED or ERROR, got %s", result.Status)
 	}
 
-	found := false
+	notImplemented := false
 	for _, e := range result.Evidence {
-		if e.Rule == "streamable_http_not_implemented" {
-			found = true
+		if e.Rule == "sse_not_implemented" || e.Rule == "streamable_http_not_implemented" {
+			notImplemented = true
 			break
 		}
 	}
-	if !found {
-		t.Error("Expected streamable_http_not_implemented evidence")
+	if notImplemented {
+		t.Error("transport_not_implemented evidence should no longer be produced (T100)")
 	}
 }
 
