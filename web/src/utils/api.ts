@@ -35,7 +35,7 @@ export interface ServerListParams {
 
 const API_BASE = import.meta.env.DEV
   ? '/api/v1'
-  : (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1');
+  : '/api/v1';
 
 async function apiFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(API_BASE + path, window.location.origin);

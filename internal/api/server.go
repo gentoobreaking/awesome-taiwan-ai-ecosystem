@@ -82,12 +82,40 @@ func (s *Server) Start() error {
 // registerRoutes registers all API routes.
 func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/health", s.handleHealth)
+	mux.HandleFunc("/api/v1", s.handleAPIRoot)
+	mux.HandleFunc("/api/v1/", s.handleAPIRoot)
 	mux.HandleFunc("/api/v1/servers", s.handleServers)
 	mux.HandleFunc("/api/v1/servers/", s.handleServerByID)
 	mux.HandleFunc("/api/v1/search", s.handleSearch)
 	mux.HandleFunc("/api/v1/registry", s.handleRegistry)
 	mux.HandleFunc("/api/v1/statistics", s.handleStatistics)
 	mux.HandleFunc("/api/v1/health", s.handleHealth)
+}
+
+// handleAPIRoot returns the API index listing available endpoints.
+// GET /api/v1, GET /api/v1/
+func (s *Server) handleAPIRoot(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/api/v1" && r.URL.Path != "/api/v1/" {
+		http.NotFound(w, r)
+		return
+	}
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"name":    "ai-ecosystem-api",
+		"version": "v1",
+		"endpoints": []string{
+			"/api/v1/health",
+			"/api/v1/servers",
+			"/api/v1/servers/{id}",
+			"/api/v1/search",
+			"/api/v1/registry",
+			"/api/v1/statistics",
+		},
+	})
 }
 
 // --- Handlers ---
