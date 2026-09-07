@@ -3,6 +3,7 @@ package registry
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +16,16 @@ import (
 
 // TrustScore for official registry source — discovery source, not authoritative proof (spec §5, §207-211).
 const TrustScore = 0.9
+
+// DefaultBaseURL is the placeholder URL. The actual registry has
+// migrated; pass an empty string (or set MCP_REGISTRY_URL) to disable
+// the source instead of hitting a dead host. (T103)
+const DefaultBaseURL = ""
+
+// ErrSourceDisabled is returned from Discover/Fetch when the adapter was
+// constructed with an empty BaseURL. The coordinator logs this as
+// source_skipped (info) rather than source_error. (T103)
+var ErrSourceDisabled = errors.New("registry source disabled (no MCP_REGISTRY_URL configured)")
 
 // HTTPClient is the interface for making HTTP requests.
 type HTTPClient interface {
@@ -54,9 +65,14 @@ type Adapter struct {
 	HTTPClient HTTPClient
 }
 
-// New creates a new official registry adapter.
-func New() *Adapter {
-	return &Adapter{BaseURL: "https://api.mcp-servers.dev"}
+// New creates a new official registry adapter. Pass the registry URL
+// explicitly (e.g. via MCP_REGISTRY_URL). Empty baseURL means the
+// source is disabled and Discover/Fetch return ErrSourceDisabled.
+func New(baseURL string) *Adapter {
+	if baseURL == "" {
+		baseURL = DefaultBaseURL
+	}
+	return &Adapter{BaseURL: baseURL}
 }
 
 // Name returns the source name.
@@ -69,7 +85,7 @@ func (a *Adapter) TrustScore() float64 { return TrustScore }
 // Discover fetches the list of servers from the official registry API.
 func (a *Adapter) Discover(ctx context.Context) ([]models.RawCandidate, error) {
 	if a.BaseURL == "" {
-		a.BaseURL = "https://api.mcp-servers.dev"
+		return nil, ErrSourceDisabled
 	}
 	if a.HTTPClient == nil {
 		a.HTTPClient = &StdHTTPClient{Client: &http.Client{Timeout: 30 * time.Second}}
@@ -122,7 +138,7 @@ func (a *Adapter) Discover(ctx context.Context) ([]models.RawCandidate, error) {
 // Fetch retrieves full metadata for a candidate from the official registry.
 func (a *Adapter) Fetch(ctx context.Context, candidate models.RawCandidate) (*models.RawRecord, error) {
 	if a.BaseURL == "" {
-		a.BaseURL = "https://api.mcp-servers.dev"
+		return nil, ErrSourceDisabled
 	}
 	if a.HTTPClient == nil {
 		a.HTTPClient = &StdHTTPClient{Client: &http.Client{Timeout: 30 * time.Second}}

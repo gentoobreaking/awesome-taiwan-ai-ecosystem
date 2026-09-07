@@ -12,15 +12,34 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	adapter := New()
+	// T103: pass an explicit baseURL; empty URL is now the
+	// disabled-by-default state.
+	adapter := New("https://registry.example.com")
 	if adapter.Name() != "registry" {
 		t.Errorf("Expected name 'registry', got %s", adapter.Name())
 	}
-	if adapter.BaseURL != "https://api.mcp-servers.dev" {
-		t.Errorf("Expected default BaseURL, got %s", adapter.BaseURL)
+	if adapter.BaseURL != "https://registry.example.com" {
+		t.Errorf("Expected BaseURL, got %s", adapter.BaseURL)
 	}
 	if adapter.TrustScore() != 0.9 {
 		t.Errorf("Expected trust score 0.9, got %f", adapter.TrustScore())
+	}
+}
+
+func TestNew_EmptyURL_Disabled(t *testing.T) {
+	adapter := New("")
+	if adapter.BaseURL != "" {
+		t.Errorf("Expected empty BaseURL when disabled, got %s", adapter.BaseURL)
+	}
+}
+
+func TestDiscover_EmptyBaseURL_ReturnsErrSourceDisabled(t *testing.T) {
+	adapter := New("")
+	if _, err := adapter.Discover(context.Background()); err != ErrSourceDisabled {
+		t.Errorf("Expected ErrSourceDisabled, got %v", err)
+	}
+	if _, err := adapter.Fetch(context.Background(), models.RawCandidate{Name: "x"}); err != ErrSourceDisabled {
+		t.Errorf("Fetch: Expected ErrSourceDisabled, got %v", err)
 	}
 }
 
@@ -137,7 +156,7 @@ func TestFetchNotFound(t *testing.T) {
 
 func TestAdapterImplementsInterface(t *testing.T) {
 	var _ = func() {
-		var a interface{} = New()
+		var a interface{} = New("")
 		_ = a.(interface {
 			Name() string
 			TrustScore() float64

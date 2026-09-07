@@ -218,7 +218,7 @@ func setupCrawler(store *storage.Store) (*crawler.CrawlCoordinator, *coordinator
 	adapters = append(adapters, ghAdapter)
 	adapters = append(adapters, githubrepo.New("modelcontextprotocol/servers", os.Getenv("GITHUB_TOKEN")))
 	adapters = append(adapters, githubrepo.New("modelcontextprotocol/servers-archived", os.Getenv("GITHUB_TOKEN")))
-	adapters = append(adapters, registry.New())
+	adapters = append(adapters, registry.New(os.Getenv("MCP_REGISTRY_URL")))
 	adapters = append(adapters, mcpserversorg.New())
 	adapters = append(adapters, mcpmarket.New())
 	norm := normalize.New()
